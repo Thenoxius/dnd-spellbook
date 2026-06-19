@@ -1,0 +1,939 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+import { Character, Spell, Feature, SpellSlot, CharacterWithRelations } from '@/types/database';
+import { formatAbilityScore, calculateModifier, calculateSpellSlots } from '@/lib/helpers';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ArrowLeft, Plus, Minus, BookOpen, Shield, Package, Book, Edit, Settings, Check, Trash2, ArrowRight } from 'lucide-react';
+
+export default function CharacterPage() {
+  const router = useRouter();
+  const params = useParams();
+  const characterId = params.id as string;
+
+  const [character, setCharacter] = useState<CharacterWithRelations | null>(null);
+  const [spells, setSpells] = useState<Spell[]>([]);
+  const [features, setFeatures] = useState<Feature[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedSpells, setExpandedSpells] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState('combat');
+  const [theme, setTheme] = useState('shadow-fiend');
+  const [editLevel, setEditLevel] = useState(0);
+  const [editMaxHP, setEditMaxHP] = useState(0);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteConfirmName, setDeleteConfirmName] = useState('');
+
+  useEffect(() => {
+    // Check authentication
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+        return;
+      }
+    };
+
+    checkAuth();
+
+    if (characterId) {
+      fetchCharacterData();
+    }
+    // Check URL for tab parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam && ['combat', 'spells', 'inventory', 'settings'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+    // Load theme from user profile
+    fetchUserTheme();
+  }, [characterId]);
+
+  const fetchUserTheme = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('theme')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profile) {
+        setTheme(profile.theme);
+        document.documentElement.setAttribute('data-theme', profile.theme);
+      }
+    }
+  };
+
+  const fetchCharacterData = async () => {
+    const [charResult, spellsResult, featuresResult] = await Promise.all([
+      supabase
+        .from('characters')
+        .select(`
+          *,
+          class:classes(*),
+          subclass:subclasses(*),
+          race:races(*),
+          subrace:subraces(*),
+          background:backgrounds(*)
+        `)
+        .eq('id', characterId)
+        .single(),
+      supabase.from('spells').select('*'),
+      supabase.from('features').select('*'),
+    ]);
+
+    if (charResult.data) {
+      setCharacter(charResult.data as CharacterWithRelations);
+      setEditLevel(charResult.data.level);
+      setEditMaxHP(charResult.data.hp_max);
+    }
+    if (spellsResult.data) setSpells(spellsResult.data);
+    if (featuresResult.data) setFeatures(featuresResult.data);
+    setLoading(false);
+  };
+
+  const updateCharacter = async (updates: Partial<Character>) => {
+    const { error } = await supabase
+      .from('characters')
+      .update(updates)
+      .eq('id', characterId);
+
+    if (error) {
+      console.error('Error updating character:', error);
+      alert(`Error updating character: ${error.message}`);
+    } else {
+      setCharacter(prev => prev ? { ...prev, ...updates } : null);
+    }
+  };
+
+  const handleHPChange = (delta: number) => {
+    if (!character) return;
+    const newHP = Math.max(0, Math.min(character.hp_max, character.hp_current + delta));
+    updateCharacter({ hp_current: newHP });
+  };
+
+  const handleSpellSlotToggle = (level: number, index: number) => {
+    if (!character) return;
+    const spellSlots = { ...character.spell_slots };
+    const slot = spellSlots[level];
+    if (!slot) return;
+
+    if (index < slot.used) {
+      slot.used--;
+    } else if (index < slot.max) {
+      slot.used++;
+    }
+
+    updateCharacter({ spell_slots: spellSlots });
+  };
+
+  // Calculate spellcasting ability modifier and save DC
+  const getSpellcastingAbility = () => {
+    if (!character) return 'CHA';
+    const classId = character.class_id;
+    if (classId === 'wizard') return 'INT';
+    if (['cleric', 'druid', 'ranger'].includes(classId)) return 'WIS';
+    return 'CHA'; // bard, sorcerer, warlock, paladin
+  };
+
+  const spellcastingAbility = getSpellcastingAbility();
+  const abilityScore = character ? character[spellcastingAbility.toLowerCase() as keyof typeof character] as number : 10;
+  const spellcastingModifier = calculateModifier(abilityScore);
+  const proficiencyBonus = character ? Math.ceil(character.level / 4) + 1 : 2;
+  const spellSaveDC = 8 + proficiencyBonus + spellcastingModifier;
+
+  const toggleSpellExpansion = (spellId: string) => {
+    setExpandedSpells(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(spellId)) {
+        newSet.delete(spellId);
+      } else {
+        newSet.add(spellId);
+      }
+      return newSet;
+    });
+  };
+
+  const getPreparedSpells = () => {
+    if (!character) return [];
+    return spells.filter(spell => character.prepared_spells.includes(spell.id));
+  };
+
+  const getCharacterFeatures = () => {
+    if (!character) return [];
+    return features.filter(
+      feature =>
+        (feature.source_id === character.class_id || feature.source_id === character.subclass_id) &&
+        feature.level_required <= character.level
+    );
+  };
+
+  const getSpellSlotsByLevel = () => {
+    if (!character) return {};
+    return character.spell_slots;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-white">Loading character...</div>
+      </div>
+    );
+  }
+
+  if (!character) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-white">Character not found</div>
+      </div>
+    );
+  }
+
+  const preparedSpells = getPreparedSpells();
+  const characterFeatures = getCharacterFeatures();
+  const spellSlotsByLevel = getSpellSlotsByLevel();
+
+  return (
+    <div className="min-h-screen" style={{ background: `linear-gradient(to bottom right, var(--bg-from), var(--bg-to))` }}>
+      <div className="max-w-7xl mx-auto p-4 md:p-8">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex-1">
+            <h1 className="text-2xl md:text-3xl font-bold text-white">{character.name}</h1>
+            <p className="text-slate-400">
+              Level {character.level} {character.class?.name} {character.subclass?.name && `• ${character.subclass.name}`}
+            </p>
+          </div>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="bg-slate-800/30 border-b-2 border-slate-700 rounded-none p-0 h-auto" style={{ borderColor: 'var(--border-color)' }}>
+            <TabsTrigger
+              value="combat"
+              className="data-[state=active]:text-white data-[state=active]:border-b-2 rounded-t-lg border-b-2 border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-6 py-3"
+            >
+              <Shield className="mr-2 h-4 w-4" />
+              Combat
+            </TabsTrigger>
+            <TabsTrigger
+              value="spells"
+              className="data-[state=active]:text-white data-[state=active]:border-b-2 rounded-t-lg border-b-2 border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-6 py-3"
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              Spells
+            </TabsTrigger>
+            <TabsTrigger
+              value="inventory"
+              className="data-[state=active]:text-white data-[state=active]:border-b-2 rounded-t-lg border-b-2 border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-6 py-3"
+            >
+              <Package className="mr-2 h-4 w-4" />
+              Inventory
+            </TabsTrigger>
+            <TabsTrigger
+              value="settings"
+              className="data-[state=active]:text-white data-[state=active]:border-b-2 rounded-t-lg border-b-2 border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-6 py-3"
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Settings
+            </TabsTrigger>
+            <Button
+              onClick={() => router.push('/')}
+              className="ml-4 text-white rounded-lg px-6 py-3 transition-all border-2"
+              style={{
+                backgroundColor: 'var(--accent-primary)',
+                borderColor: 'var(--accent-primary)',
+                opacity: 0.8,
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}
+            >
+              <ArrowRight className="mr-2 h-4 w-4" />
+              Change Character
+            </Button>
+          </TabsList>
+
+          {/* Combat Tab */}
+          <TabsContent value="combat" className="space-y-6">
+            {/* HP Tracker */}
+            <Card className="bg-slate-800/50 border-slate-700" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)' }}>
+              <CardHeader>
+                <CardTitle className="text-white">Hit Points</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleHPChange(-10)}
+                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                  >
+                    -10
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => handleHPChange(-1)}
+                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                  >
+                    <Minus className="h-6 w-6" />
+                  </Button>
+                  <div className="text-center px-8">
+                    <div className="text-4xl md:text-5xl font-bold text-white">
+                      {character.hp_current}
+                    </div>
+                    <div className="text-slate-400">/ {character.hp_max}</div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => handleHPChange(1)}
+                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                  >
+                    <Plus className="h-6 w-6" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleHPChange(10)}
+                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                  >
+                    +10
+                  </Button>
+                </div>
+                {/* Temp HP */}
+                <div className="mt-4 pt-4 border-t border-slate-700">
+                  <div className="flex items-center justify-center gap-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newTempHP = Math.max(0, (character.temp_hp || 0) - 1);
+                        updateCharacter({ temp_hp: newTempHP });
+                      }}
+                      className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <div className="text-center">
+                      <div className="text-sm text-slate-400">Temp HP</div>
+                      <div className="text-2xl font-bold text-cyan-400">
+                        {character.temp_hp || 0}
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const newTempHP = (character.temp_hp || 0) + 1;
+                        updateCharacter({ temp_hp: newTempHP });
+                      }}
+                      className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Spell Slots */}
+            {Object.keys(spellSlotsByLevel).length > 0 && (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white">Spell Slots</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-5 gap-4">
+                    {Object.entries(spellSlotsByLevel).map(([level, slot]: [string, SpellSlot]) => (
+                      <div key={level} className="text-center">
+                        <div className="text-slate-400 text-sm mb-1">Level {level}</div>
+                        <div className="flex gap-2 justify-center">
+                          {Array.from({ length: slot.max }).map((_, i) => (
+                            <button
+                              key={i}
+                              onClick={() => handleSpellSlotToggle(parseInt(level), i)}
+                              className="w-8 h-8 rounded-full border-2 transition-colors"
+                              style={{
+                                backgroundColor: i < slot.used ? '#475569' : 'var(--accent-primary)',
+                                borderColor: i < slot.used ? '#64748b' : 'var(--accent-primary)',
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <div className="text-xs text-slate-400 mt-1">{slot.used}/{slot.max}</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Ability Scores */}
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white">Ability Scores</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+                  {(['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as const).map((stat) => {
+                    const statValue = character[stat.toLowerCase() as keyof Character] as number;
+                    return (
+                      <div key={stat} className="text-center">
+                        <div className="text-slate-400 text-sm mb-1">{stat}</div>
+                        <div className="text-xl font-bold text-white">{statValue}</div>
+                        <div className="text-purple-400 text-sm">
+                          {formatAbilityScore(statValue)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Features */}
+            {characterFeatures.length > 0 && (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white">Features</CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Class and subclass features
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[400px]">
+                    <div className="space-y-4">
+                      {characterFeatures.map((feature) => (
+                        <div key={feature.id} className="p-4 bg-slate-900/50 rounded-lg">
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="text-white font-medium">{feature.name}</h4>
+                            <Badge variant="outline" className="bg-slate-700 border-slate-600 text-white">
+                              Lv. {feature.level_required}
+                            </Badge>
+                          </div>
+                          <p className="text-slate-400 text-sm">{feature.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Spells Tab */}
+          <TabsContent value="spells" className="space-y-6">
+            {/* Spell Stats */}
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-slate-400 text-sm">Spellcasting Ability</div>
+                    <div className="text-xl font-bold text-white">{spellcastingAbility}</div>
+                    <div className="text-purple-400">{spellcastingModifier >= 0 ? '+' : ''}{spellcastingModifier}</div>
+                  </div>
+                  <div>
+                    <div className="text-slate-400 text-sm">Spell Save DC</div>
+                    <div className="text-xl font-bold text-white">{spellSaveDC}</div>
+                    <div className="text-slate-400 text-sm">8 + {proficiencyBonus} + {spellcastingModifier}</div>
+                  </div>
+                  <div>
+                    <div className="text-slate-400 text-sm">Proficiency Bonus</div>
+                    <div className="text-xl font-bold text-white">+{proficiencyBonus}</div>
+                    <div className="text-slate-400 text-sm">Level {character.level}</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Spell Slots */}
+            {Object.keys(spellSlotsByLevel).length > 0 && (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white">Spell Slots</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-5 gap-4">
+                    {Object.entries(spellSlotsByLevel).map(([level, slot]: [string, SpellSlot]) => (
+                      <div key={level} className="text-center">
+                        <div className="text-slate-400 text-sm mb-1">Level {level}</div>
+                        <div className="flex gap-2 justify-center">
+                          {Array.from({ length: slot.max }).map((_, i) => (
+                            <button
+                              key={i}
+                              onClick={() => handleSpellSlotToggle(parseInt(level), i)}
+                              className="w-8 h-8 rounded-full border-2 transition-colors"
+                              style={{
+                                backgroundColor: i < slot.used ? '#475569' : 'var(--accent-primary)',
+                                borderColor: i < slot.used ? '#64748b' : 'var(--accent-primary)',
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <div className="text-xs text-slate-400 mt-1">{slot.used}/{slot.max}</div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-white">Prepared Spells</CardTitle>
+                    <CardDescription className="text-slate-400">
+                      {preparedSpells.length} spells prepared
+                    </CardDescription>
+                  </div>
+                  <Button
+                    onClick={() => router.push(`/character/${characterId}/spells`)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    <Book className="mr-2 h-4 w-4" />
+                    Spell Library
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {preparedSpells.length === 0 ? (
+                  <div className="text-center text-slate-400 py-8">
+                    No spells prepared. Visit the Spell Library to prepare spells.
+                  </div>
+                ) : (
+                  <ScrollArea className="h-[600px]">
+                    <div className="space-y-4">
+                      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => {
+                        const levelSpells = preparedSpells.filter(s => s.level === level);
+                        if (levelSpells.length === 0) return null;
+                        return (
+                          <div key={level}>
+                            <h3 className="text-white font-medium mb-3">
+                              {level === 0 ? 'Cantrips' : `Level ${level}`}
+                            </h3>
+                            <div className="space-y-2">
+                              {levelSpells.map(spell => (
+                                <div key={spell.id}>
+                                  <div
+                                    onClick={() => toggleSpellExpansion(spell.id)}
+                                    className="p-4 bg-slate-900/50 rounded-lg cursor-pointer hover:bg-slate-900/70 transition-colors"
+                                  >
+                                    <div className="flex items-start justify-between">
+                                      <div>
+                                        <h4 className="text-white font-medium">{spell.name}</h4>
+                                        <div className="text-slate-400 text-sm mt-1">
+                                          {spell.school} • {spell.casting_time} • {spell.range}
+                                        </div>
+                                      </div>
+                                      <div className="flex gap-2">
+                                        {spell.concentration && (
+                                          <Badge variant="outline" className="bg-purple-900/50 border-purple-700 text-purple-300">
+                                            Concentration
+                                          </Badge>
+                                        )}
+                                        {spell.ritual && (
+                                          <Badge variant="outline" className="bg-blue-900/50 border-blue-700 text-blue-300">
+                                            Ritual
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {expandedSpells.has(spell.id) && (
+                                      <div className="mt-4 pt-4 border-t border-slate-700">
+                                        <div className="grid grid-cols-2 gap-4 text-sm mb-3">
+                                          <div>
+                                            <span className="text-slate-400">Components:</span>
+                                            <span className="text-white ml-2">{spell.components}</span>
+                                          </div>
+                                          <div>
+                                            <span className="text-slate-400">Duration:</span>
+                                            <span className="text-white ml-2">{spell.duration}</span>
+                                          </div>
+                                        </div>
+                                        <p className="text-slate-300 text-sm">{spell.description}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Inventory Tab */}
+          <TabsContent value="inventory" className="space-y-6">
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white">Currency</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-5 gap-4">
+                  {(['cp', 'sp', 'ep', 'gp', 'pp'] as const).map(currency => (
+                    <div key={currency} className="text-center">
+                      <div className="text-slate-400 text-sm mb-1 uppercase">{currency}</div>
+                      <div className="flex items-center justify-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            const newCurrency = { ...character.currency };
+                            newCurrency[currency] = Math.max(0, newCurrency[currency] - 1);
+                            updateCharacter({ currency: newCurrency });
+                          }}
+                          className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 h-8 w-8"
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <Input
+                          type="number"
+                          value={character.currency[currency]}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            const value = parseInt(e.target.value) || 0;
+                            const newCurrency = { ...character.currency };
+                            newCurrency[currency] = Math.max(0, value);
+                            updateCharacter({ currency: newCurrency });
+                          }}
+                          className="bg-slate-900/50 border-slate-700 text-white w-20 text-center h-8"
+                        />
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => {
+                            const newCurrency = { ...character.currency };
+                            newCurrency[currency] = newCurrency[currency] + 1;
+                            updateCharacter({ currency: newCurrency });
+                          }}
+                          className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 h-8 w-8"
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-white">Inventory</CardTitle>
+                    <CardDescription className="text-slate-400">
+                      {character.inventory.length} items
+                    </CardDescription>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      const name = prompt('Item name:');
+                      if (!name) return;
+                      const quantity = parseInt(prompt('Quantity:', '1') || '1') || 1;
+                      const notes = prompt('Notes (optional):') || '';
+                      const newItem = { name, quantity, notes };
+                      const newInventory = [...character.inventory, newItem];
+                      updateCharacter({ inventory: newInventory });
+                    }}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Item
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {character.inventory.length === 0 ? (
+                  <div className="text-center text-slate-400 py-8">
+                    No items in inventory
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {character.inventory.map((item, index) => (
+                      <div key={index} className="p-4 bg-slate-900/50 rounded-lg">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-white font-medium">{item.name}</h4>
+                            {item.notes && (
+                              <p className="text-slate-400 text-sm mt-1">{item.notes}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => {
+                                const newInventory = [...character.inventory];
+                                if (newInventory[index].quantity > 1) {
+                                  newInventory[index].quantity--;
+                                } else {
+                                  newInventory.splice(index, 1);
+                                }
+                                updateCharacter({ inventory: newInventory });
+                              }}
+                              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 h-8 w-8"
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <Badge variant="outline" className="bg-slate-700 border-slate-600 text-white min-w-[50px]">
+                              x{item.quantity}
+                            </Badge>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => {
+                                const newInventory = [...character.inventory];
+                                newInventory[index].quantity++;
+                                updateCharacter({ inventory: newInventory });
+                              }}
+                              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 h-8 w-8"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-6">
+            {/* Character Details Card */}
+            <Card className="bg-slate-800/50 border-slate-700" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)' }}>
+              <CardHeader>
+                <CardTitle className="text-white">Character Details</CardTitle>
+                <CardDescription className="text-slate-400">
+                  Update your character's level and maximum HP
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-level" className="text-white">Level</Label>
+                  <Input
+                    id="edit-level"
+                    type="number"
+                    value={editLevel}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditLevel(parseInt(e.target.value) || 0)}
+                    className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-max-hp" className="text-white">Max HP</Label>
+                  <Input
+                    id="edit-max-hp"
+                    type="number"
+                    value={editMaxHP}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditMaxHP(parseInt(e.target.value) || 0)}
+                    className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                  />
+                </div>
+                <div className="flex gap-4 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      if (character) {
+                        setEditLevel(character.level);
+                        setEditMaxHP(character.hp_max);
+                      }
+                    }}
+                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      if (!character) return;
+                      const { error } = await supabase
+                        .from('characters')
+                        .update({
+                          level: editLevel,
+                          hp_max: editMaxHP,
+                          spell_slots: calculateSpellSlots(character.class_id, editLevel),
+                        })
+                        .eq('id', characterId);
+
+                      if (error) {
+                        alert(`Error updating character: ${error.message}`);
+                      } else {
+                        fetchCharacterData();
+                      }
+                    }}
+                    className="text-white flex-1"
+                    style={{ backgroundColor: 'var(--accent-primary)' }}
+                  >
+                    Save Changes
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Theme Customization Card */}
+            <Card className="bg-slate-800/50 border-slate-700" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)' }}>
+              <CardHeader>
+                <CardTitle className="text-white">Theme Customization</CardTitle>
+                <CardDescription className="text-slate-400">
+                  Choose your preferred visual theme
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {[
+                    { id: 'shadow-fiend', name: 'Shadow Fiend', from: '#1e1b4b', to: '#581c87', accent: '#9333ea' },
+                    { id: 'royal-oath', name: 'Royal Oath', from: '#0f172a', to: '#1e3a5f', accent: '#fbbf24' },
+                    { id: 'wildwood-sentry', name: 'Wildwood Sentry', from: '#14532d', to: '#166534', accent: '#22c55e' },
+                    { id: 'crimson-pact', name: 'Crimson Pact', from: '#450a0a', to: '#7f1d1d', accent: '#dc2626' },
+                    { id: 'arcane-sanctum', name: 'Arcane Sanctum', from: '#0f172a', to: '#0e7490', accent: '#06b6d4' },
+                  ].map((themeOption) => (
+                    <div
+                      key={themeOption.id}
+                      onClick={async () => {
+                        setTheme(themeOption.id);
+                        document.documentElement.setAttribute('data-theme', themeOption.id);
+                        // Save to user profile
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (user) {
+                          await supabase
+                            .from('user_profiles')
+                            .update({ theme: themeOption.id })
+                            .eq('user_id', user.id);
+                        }
+                      }}
+                      className={`relative cursor-pointer rounded-lg overflow-hidden transition-all ${
+                        theme === themeOption.id
+                          ? 'ring-4 ring-offset-2 ring-offset-slate-900'
+                          : 'hover:scale-105'
+                      }`}
+                      style={{
+                        boxShadow: theme === themeOption.id ? `0 0 20px ${themeOption.accent}40` : 'none',
+                      }}
+                    >
+                      <div
+                        className="h-24 w-full"
+                        style={{
+                          background: `linear-gradient(to bottom right, ${themeOption.from}, ${themeOption.to})`,
+                        }}
+                      >
+                        <div className="absolute inset-0 border-2 border-white/20 rounded-lg" />
+                        <div className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: themeOption.accent }} />
+                        <div className="absolute bottom-2 left-2 right-2">
+                          <div className="text-white text-xs font-serif">{themeOption.name}</div>
+                        </div>
+                        {theme === themeOption.id && (
+                          <div className="absolute top-2 right-2">
+                            <Check className="h-4 w-4 text-white" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Danger Zone Card */}
+            <Card className="bg-red-950/30 border-red-900" style={{ backgroundColor: 'rgba(69, 10, 10, 0.3)', borderColor: '#991b1b' }}>
+              <CardHeader>
+                <CardTitle className="text-red-400">Danger Zone</CardTitle>
+                <CardDescription className="text-red-300">
+                  Irreversible actions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  variant="destructive"
+                  onClick={() => setDeleteDialogOpen(true)}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Character
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent className="bg-slate-800 border-slate-700 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-red-400">Delete Character</DialogTitle>
+              <DialogDescription className="text-slate-400">
+                Are you sure you want to delete {character?.name}? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="delete-confirm" className="text-white">
+                  Type <span className="text-red-400 font-bold">{character?.name}</span> to confirm
+                </Label>
+                <Input
+                  id="delete-confirm"
+                  type="text"
+                  value={deleteConfirmName}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeleteConfirmName(e.target.value)}
+                  placeholder="Character name"
+                  className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDeleteDialogOpen(false);
+                  setDeleteConfirmName('');
+                }}
+                className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={async () => {
+                  if (!character || deleteConfirmName !== character.name) {
+                    alert('Character name does not match');
+                    return;
+                  }
+
+                  const { error } = await supabase
+                    .from('characters')
+                    .delete()
+                    .eq('id', characterId);
+
+                  if (error) {
+                    alert(`Error deleting character: ${error.message}`);
+                  } else {
+                    router.push('/');
+                  }
+                }}
+                disabled={deleteConfirmName !== character?.name}
+                variant="destructive"
+              >
+                Delete Character
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </div>
+  );
+}
