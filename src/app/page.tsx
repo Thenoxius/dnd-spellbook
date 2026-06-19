@@ -109,25 +109,25 @@ export default function Home() {
   return (
     <div className="min-h-screen p-4 md:p-8" style={{ background: 'linear-gradient(to bottom right, var(--bg-from), var(--bg-to))' }}>
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-white">D&D Spellbook</h1>
-          <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4">
+          <h1 className="text-2xl md:text-4xl font-bold text-white">D&D Spellbook</h1>
+          <div className="flex gap-2 sm:gap-4 w-full sm:w-auto">
             <Button
               onClick={handleLogout}
               variant="outline"
               size="lg"
-              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 flex-1 sm:flex-none text-sm md:text-base"
             >
-              <LogOut className="mr-2 h-5 w-5" />
-              Logout
+              <LogOut className="mr-1 h-4 w-4 md:mr-2 md:h-5 md:w-5" />
+              <span className="hidden sm:inline">Logout</span>
             </Button>
             <Button
               onClick={handleCreateCharacter}
               size="lg"
-              className="bg-purple-600 hover:bg-purple-700 text-white"
+              className="bg-purple-600 hover:bg-purple-700 text-white flex-1 sm:flex-none text-sm md:text-base"
             >
-              <Plus className="mr-2 h-5 w-5" />
-              New Character
+              <Plus className="mr-1 h-4 w-4 md:mr-2 md:h-5 md:w-5" />
+              <span className="hidden sm:inline">New Character</span>
             </Button>
           </div>
         </div>
@@ -153,7 +153,7 @@ export default function Home() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-3 md:gap-4 sm:grid-cols-2">
             {characters.map((character) => (
               <Card
                 key={character.id}
@@ -169,18 +169,18 @@ export default function Home() {
                   <Trash2 className="h-4 w-4" />
                 </Button>
                 <CardHeader>
-                  <CardTitle className="text-white">{character.name}</CardTitle>
-                  <CardDescription className="text-slate-400">
+                  <CardTitle className="text-white text-base md:text-lg">{character.name}</CardTitle>
+                  <CardDescription className="text-slate-400 text-sm md:text-base">
                     Level {character.level} • {character.class_id}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-xs md:text-sm">
                     <div className="text-slate-300">
                       HP: {character.hp_current}/{character.hp_max}
                     </div>
                     <div className="text-purple-400">
-                      {character.prepared_spells.length} spells prepared
+                      {character.prepared_spells.length} spells
                     </div>
                   </div>
                 </CardContent>

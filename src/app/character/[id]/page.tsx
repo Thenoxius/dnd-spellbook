@@ -15,6 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ArrowLeft, Plus, Minus, BookOpen, Shield, Package, Book, Edit, Settings, Check, Trash2, ArrowRight } from 'lucide-react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { useToast, Toast } from '@/components/ui/toast';
 
 export default function CharacterPage() {
   const router = useRouter();
@@ -32,6 +34,10 @@ export default function CharacterPage() {
   const [editMaxHP, setEditMaxHP] = useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmName, setDeleteConfirmName] = useState('');
+  const [savingDetails, setSavingDetails] = useState(false);
+  const [updatingHP, setUpdatingHP] = useState(false);
+  const [togglingSlot, setTogglingSlot] = useState<string | null>(null);
+  const { toast, showToast } = useToast();
 
   useEffect(() => {
     // Check authentication
@@ -110,20 +116,24 @@ export default function CharacterPage() {
 
     if (error) {
       console.error('Error updating character:', error);
-      alert(`Error updating character: ${error.message}`);
+      showToast(`Error updating character: ${error.message}`, 'error');
     } else {
       setCharacter(prev => prev ? { ...prev, ...updates } : null);
     }
   };
 
-  const handleHPChange = (delta: number) => {
+  const handleHPChange = async (delta: number) => {
     if (!character) return;
+    setUpdatingHP(true);
     const newHP = Math.max(0, Math.min(character.hp_max, character.hp_current + delta));
-    updateCharacter({ hp_current: newHP });
+    await updateCharacter({ hp_current: newHP });
+    setUpdatingHP(false);
+    showToast(`HP updated to ${newHP}`, 'success');
   };
 
-  const handleSpellSlotToggle = (level: number, index: number) => {
+  const handleSpellSlotToggle = async (level: number, index: number) => {
     if (!character) return;
+    setTogglingSlot(`${level}-${index}`);
     const spellSlots = { ...character.spell_slots };
     const slot = spellSlots[level];
     if (!slot) return;
@@ -134,7 +144,9 @@ export default function CharacterPage() {
       slot.used++;
     }
 
-    updateCharacter({ spell_slots: spellSlots });
+    await updateCharacter({ spell_slots: spellSlots });
+    setTogglingSlot(null);
+    showToast(`Spell slot ${level} updated`, 'success');
   };
 
   // Calculate spellcasting ability modifier and save DC
@@ -217,49 +229,48 @@ export default function CharacterPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-slate-800/30 border-b-2 border-slate-700 rounded-none p-0 h-auto" style={{ borderColor: 'var(--border-color)' }}>
-            <TabsTrigger
-              value="combat"
-              className="data-[state=active]:text-white data-[state=active]:border-b-2 rounded-t-lg border-b-2 border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-6 py-3"
-            >
-              <Shield className="mr-2 h-4 w-4" />
-              Combat
-            </TabsTrigger>
-            <TabsTrigger
-              value="spells"
-              className="data-[state=active]:text-white data-[state=active]:border-b-2 rounded-t-lg border-b-2 border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-6 py-3"
-            >
-              <BookOpen className="mr-2 h-4 w-4" />
-              Spells
-            </TabsTrigger>
-            <TabsTrigger
-              value="inventory"
-              className="data-[state=active]:text-white data-[state=active]:border-b-2 rounded-t-lg border-b-2 border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-6 py-3"
-            >
-              <Package className="mr-2 h-4 w-4" />
-              Inventory
-            </TabsTrigger>
-            <TabsTrigger
-              value="settings"
-              className="data-[state=active]:text-white data-[state=active]:border-b-2 rounded-t-lg border-b-2 border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-6 py-3"
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </TabsTrigger>
-            <Button
-              onClick={() => router.push('/')}
-              className="ml-4 text-white rounded-lg px-6 py-3 transition-all border-2"
-              style={{
-                backgroundColor: 'var(--accent-primary)',
-                borderColor: 'var(--accent-primary)',
-                opacity: 0.8,
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-              onMouseLeave={(e) => e.currentTarget.style.opacity = '0.8'}
-            >
-              <ArrowRight className="mr-2 h-4 w-4" />
-              Change Character
-            </Button>
+          <TabsList className="bg-slate-800/30 border-b-2 border-slate-700 rounded-none p-0 h-auto overflow-x-auto overflow-y-hidden" style={{ borderColor: 'var(--border-color)' }}>
+            <div className="flex min-w-max">
+              <TabsTrigger
+                value="combat"
+                className="data-[state=active]:text-white data-[state=active]:border-b-2 rounded-t-lg border-b-2 border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-4 py-3 text-sm md:px-6 md:text-base"
+              >
+                <Shield className="mr-1 h-4 w-4 md:mr-2" />
+                <span className="hidden sm:inline">Combat</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="spells"
+                className="data-[state=active]:text-white data-[state=active]:border-b-2 rounded-t-lg border-b-2 border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-4 py-3 text-sm md:px-6 md:text-base"
+              >
+                <BookOpen className="mr-1 h-4 w-4 md:mr-2" />
+                <span className="hidden sm:inline">Spells</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="inventory"
+                className="data-[state=active]:text-white data-[state=active]:border-b-2 rounded-t-lg border-b-2 border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-4 py-3 text-sm md:px-6 md:text-base"
+              >
+                <Package className="mr-1 h-4 w-4 md:mr-2" />
+                <span className="hidden sm:inline">Inventory</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="settings"
+                className="data-[state=active]:text-white data-[state=active]:border-b-2 rounded-t-lg border-b-2 border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-4 py-3 text-sm md:px-6 md:text-base"
+              >
+                <Settings className="mr-1 h-4 w-4 md:mr-2" />
+                <span className="hidden sm:inline">Settings</span>
+              </TabsTrigger>
+              <Button
+                onClick={() => router.push('/')}
+                className="ml-2 text-white rounded-t-lg border-b-2 border-transparent px-3 py-3 transition-all text-sm md:px-4 md:text-base data-[state=active]:text-white data-[state=active]:border-b-2 hover:text-white hover:bg-slate-700/50"
+                style={{
+                  borderColor: 'var(--border-color)',
+                  backgroundColor: 'transparent',
+                }}
+              >
+                <ArrowRight className="mr-1 h-4 w-4 md:mr-2" />
+                <span className="hidden sm:inline">Change Character</span>
+              </Button>
+            </div>
           </TabsList>
 
           {/* Combat Tab */}
@@ -270,44 +281,48 @@ export default function CharacterPage() {
                 <CardTitle className="text-white">Hit Points</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center justify-center gap-1 md:gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleHPChange(-10)}
-                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                    disabled={updatingHP}
+                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 text-xs md:text-sm"
                   >
-                    -10
+                    {updatingHP ? <LoadingSpinner size="sm" /> : '-10'}
                   </Button>
                   <Button
                     variant="outline"
                     size="lg"
                     onClick={() => handleHPChange(-1)}
+                    disabled={updatingHP}
                     className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
                   >
-                    <Minus className="h-6 w-6" />
+                    {updatingHP ? <LoadingSpinner size="sm" /> : <Minus className="h-5 w-5 md:h-6 md:w-6" />}
                   </Button>
-                  <div className="text-center px-8">
-                    <div className="text-4xl md:text-5xl font-bold text-white">
+                  <div className="text-center px-4 md:px-8">
+                    <div className="text-3xl md:text-5xl font-bold text-white">
                       {character.hp_current}
                     </div>
-                    <div className="text-slate-400">/ {character.hp_max}</div>
+                    <div className="text-slate-400 text-sm md:text-base">/ {character.hp_max}</div>
                   </div>
                   <Button
                     variant="outline"
                     size="lg"
                     onClick={() => handleHPChange(1)}
+                    disabled={updatingHP}
                     className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
                   >
-                    <Plus className="h-6 w-6" />
+                    {updatingHP ? <LoadingSpinner size="sm" /> : <Plus className="h-5 w-5 md:h-6 md:w-6" />}
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleHPChange(10)}
-                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                    disabled={updatingHP}
+                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 text-xs md:text-sm"
                   >
-                    +10
+                    {updatingHP ? <LoadingSpinner size="sm" /> : '+10'}
                   </Button>
                 </div>
                 {/* Temp HP */}
@@ -353,21 +368,28 @@ export default function CharacterPage() {
                   <CardTitle className="text-white">Spell Slots</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-5 gap-4">
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 md:gap-4">
                     {Object.entries(spellSlotsByLevel).map(([level, slot]: [string, SpellSlot]) => (
                       <div key={level} className="text-center">
-                        <div className="text-slate-400 text-sm mb-1">Level {level}</div>
-                        <div className="flex gap-2 justify-center">
+                        <div className="text-slate-400 text-xs md:text-sm mb-1">L{level}</div>
+                        <div className="flex gap-1 md:gap-2 justify-center">
                           {Array.from({ length: slot.max }).map((_, i) => (
                             <button
                               key={i}
                               onClick={() => handleSpellSlotToggle(parseInt(level), i)}
-                              className="w-8 h-8 rounded-full border-2 transition-colors"
+                              disabled={togglingSlot === `${level}-${i}`}
+                              className="w-6 h-6 md:w-8 md:h-8 rounded-full border-2 transition-colors relative"
                               style={{
                                 backgroundColor: i < slot.used ? '#475569' : 'var(--accent-primary)',
                                 borderColor: i < slot.used ? '#64748b' : 'var(--accent-primary)',
                               }}
-                            />
+                            >
+                              {togglingSlot === `${level}-${i}` && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <LoadingSpinner size="sm" />
+                                </div>
+                              )}
+                            </button>
                           ))}
                         </div>
                         <div className="text-xs text-slate-400 mt-1">{slot.used}/{slot.max}</div>
@@ -463,21 +485,28 @@ export default function CharacterPage() {
                   <CardTitle className="text-white">Spell Slots</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-5 gap-4">
+                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 md:gap-4">
                     {Object.entries(spellSlotsByLevel).map(([level, slot]: [string, SpellSlot]) => (
                       <div key={level} className="text-center">
-                        <div className="text-slate-400 text-sm mb-1">Level {level}</div>
-                        <div className="flex gap-2 justify-center">
+                        <div className="text-slate-400 text-xs md:text-sm mb-1">L{level}</div>
+                        <div className="flex gap-1 md:gap-2 justify-center">
                           {Array.from({ length: slot.max }).map((_, i) => (
                             <button
                               key={i}
                               onClick={() => handleSpellSlotToggle(parseInt(level), i)}
-                              className="w-8 h-8 rounded-full border-2 transition-colors"
+                              disabled={togglingSlot === `${level}-${i}`}
+                              className="w-6 h-6 md:w-8 md:h-8 rounded-full border-2 transition-colors relative"
                               style={{
                                 backgroundColor: i < slot.used ? '#475569' : 'var(--accent-primary)',
                                 borderColor: i < slot.used ? '#64748b' : 'var(--accent-primary)',
                               }}
-                            />
+                            >
+                              {togglingSlot === `${level}-${i}` && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <LoadingSpinner size="sm" />
+                                </div>
+                              )}
+                            </button>
                           ))}
                         </div>
                         <div className="text-xs text-slate-400 mt-1">{slot.used}/{slot.max}</div>
@@ -763,6 +792,7 @@ export default function CharacterPage() {
                   <Button
                     onClick={async () => {
                       if (!character) return;
+                      setSavingDetails(true);
                       const { error } = await supabase
                         .from('characters')
                         .update({
@@ -773,15 +803,18 @@ export default function CharacterPage() {
                         .eq('id', characterId);
 
                       if (error) {
-                        alert(`Error updating character: ${error.message}`);
+                        showToast(`Error updating character: ${error.message}`, 'error');
                       } else {
                         fetchCharacterData();
+                        showToast('Character details updated successfully', 'success');
                       }
+                      setSavingDetails(false);
                     }}
+                    disabled={savingDetails}
                     className="text-white flex-1"
                     style={{ backgroundColor: 'var(--accent-primary)' }}
                   >
-                    Save Changes
+                    {savingDetails ? <LoadingSpinner size="sm" /> : 'Save Changes'}
                   </Button>
                 </div>
               </CardContent>
@@ -796,7 +829,7 @@ export default function CharacterPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
                   {[
                     { id: 'shadow-fiend', name: 'Shadow Fiend', from: '#1e1b4b', to: '#581c87', accent: '#9333ea' },
                     { id: 'royal-oath', name: 'Royal Oath', from: '#0f172a', to: '#1e3a5f', accent: '#fbbf24' },
@@ -933,6 +966,9 @@ export default function CharacterPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Toast Notifications */}
+        {toast && <Toast message={toast.message} type={toast.type} />}
       </div>
     </div>
   );

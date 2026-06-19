@@ -34,11 +34,11 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(to bottom right, var(--bg-from), var(--bg-to))' }}>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(to bottom right, var(--bg-from), var(--bg-to))' }}>
       <Card className="w-full max-w-md" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)' }}>
         <CardHeader>
-          <CardTitle className="text-white">Sign Up</CardTitle>
-          <CardDescription className="text-slate-400">
+          <CardTitle className="text-white text-2xl md:text-3xl">Sign Up</CardTitle>
+          <CardDescription className="text-slate-400 text-sm md:text-base">
             Create an account to start tracking your D&D characters
           </CardDescription>
         </CardHeader>

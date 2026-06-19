@@ -34,11 +34,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(to bottom right, var(--bg-from), var(--bg-to))' }}>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(to bottom right, var(--bg-from), var(--bg-to))' }}>
       <Card className="w-full max-w-md" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)' }}>
         <CardHeader>
-          <CardTitle className="text-white">Login</CardTitle>
-          <CardDescription className="text-slate-400">
+          <CardTitle className="text-white text-2xl md:text-3xl">Login</CardTitle>
+          <CardDescription className="text-slate-400 text-sm md:text-base">
             Enter your credentials to access your spellbook
           </CardDescription>
         </CardHeader>
