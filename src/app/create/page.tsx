@@ -91,10 +91,12 @@ export default function CreateCharacterPage() {
   // Calculate stats with racial bonuses
   let adjustedStats = stats;
   if (selectedRace) {
-    adjustedStats = applyStatBonuses(adjustedStats, selectedRace.stat_bonuses);
+    const raceBonuses = typeof selectedRace.stat_bonuses === 'string' ? JSON.parse(selectedRace.stat_bonuses) : selectedRace.stat_bonuses;
+    adjustedStats = applyStatBonuses(adjustedStats, raceBonuses);
   }
   if (selectedSubrace) {
-    adjustedStats = applyStatBonuses(adjustedStats, selectedSubrace.stat_bonuses);
+    const subraceBonuses = typeof selectedSubrace.stat_bonuses === 'string' ? JSON.parse(selectedSubrace.stat_bonuses) : selectedSubrace.stat_bonuses;
+    adjustedStats = applyStatBonuses(adjustedStats, subraceBonuses);
   }
 
   // Check if subclass selection should be shown
@@ -260,10 +262,13 @@ export default function CreateCharacterPage() {
                   </Select>
                   {selectedRace && (
                     <div className="mt-2 text-sm text-slate-400">
-                      <div>Stat Bonuses: {Object.entries(selectedRace.stat_bonuses).map(([k, v]) => `${k} +${v}`).join(', ')}</div>
-                      {selectedRace.granted_spells.length > 0 && (
-                        <div>Granted Spells: {selectedRace.granted_spells.join(', ')}</div>
-                      )}
+                      <div>Stat Bonuses: {Object.entries(typeof selectedRace.stat_bonuses === 'string' ? JSON.parse(selectedRace.stat_bonuses) : selectedRace.stat_bonuses).map(([k, v]) => `${k} +${v}`).join(', ')}</div>
+                      {(() => {
+                        const grantedSpells = typeof selectedRace.granted_spells === 'string' ? JSON.parse(selectedRace.granted_spells) : selectedRace.granted_spells;
+                        return grantedSpells.length > 0 && (
+                          <div>Granted Spells: {grantedSpells.join(', ')}</div>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
@@ -285,10 +290,13 @@ export default function CreateCharacterPage() {
                     </Select>
                     {selectedSubrace && (
                       <div className="mt-2 text-sm text-slate-400">
-                        <div>Stat Bonuses: {Object.entries(selectedSubrace.stat_bonuses).map(([k, v]) => `${k} +${v}`).join(', ')}</div>
-                        {selectedSubrace.granted_spells.length > 0 && (
-                          <div>Granted Spells: {selectedSubrace.granted_spells.join(', ')}</div>
-                        )}
+                        <div>Stat Bonuses: {Object.entries(typeof selectedSubrace.stat_bonuses === 'string' ? JSON.parse(selectedSubrace.stat_bonuses) : selectedSubrace.stat_bonuses).map(([k, v]) => `${k} +${v}`).join(', ')}</div>
+                        {(() => {
+                          const grantedSpells = typeof selectedSubrace.granted_spells === 'string' ? JSON.parse(selectedSubrace.granted_spells) : selectedSubrace.granted_spells;
+                          return grantedSpells.length > 0 && (
+                            <div>Granted Spells: {grantedSpells.join(', ')}</div>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>

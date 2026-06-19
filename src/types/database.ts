@@ -16,16 +16,16 @@ export interface Subclass {
 export interface Race {
   id: string;
   name: string;
-  stat_bonuses: Record<string, number>;
-  granted_spells: string[];
+  stat_bonuses: Record<string, number> | string;
+  granted_spells: string[] | string;
 }
 
 export interface Subrace {
   id: string;
   race_id: string;
   name: string;
-  stat_bonuses: Record<string, number>;
-  granted_spells: string[];
+  stat_bonuses: Record<string, number> | string;
+  granted_spells: string[] | string;
 }
 
 export interface Background {

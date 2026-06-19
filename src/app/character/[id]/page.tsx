@@ -266,6 +266,7 @@ export default function CharacterPage() {
                   borderColor: 'var(--border-color)',
                   backgroundColor: 'transparent',
                 }}
+                variant="ghost"
               >
                 <ArrowRight className="mr-1 h-4 w-4 md:mr-2" />
                 <span className="hidden sm:inline">Change Character</span>
