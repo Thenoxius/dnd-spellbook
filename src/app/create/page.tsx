@@ -3,8 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Class, Race, Background, Subclass, Subrace, AbilityScoreName, SUBCLASS_LEVEL_REQUIREMENTS } from '@/types/database';
+import { AbilityScoreName, SUBCLASS_LEVEL_REQUIREMENTS } from '@/types/database';
 import { calculateMaxHP, calculateSpellSlots, applyStatBonuses, formatAbilityScore } from '@/lib/helpers';
+import { dndClasses } from '@/data/classes';
+import { dndRaces } from '@/data/races';
+import { dndSubraces, getSubracesByRace } from '@/data/subraces';
+import { dndBackgrounds } from '@/data/backgrounds';
+import { dndSubclasses, getSubclassesByClass } from '@/data/subclasses';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,13 +23,6 @@ export default function CreateCharacterPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
-
-  // Data from database
-  const [classes, setClasses] = useState<Class[]>([]);
-  const [races, setRaces] = useState<Race[]>([]);
-  const [subraces, setSubraces] = useState<Subrace[]>([]);
-  const [backgrounds, setBackgrounds] = useState<Background[]>([]);
-  const [subclasses, setSubclasses] = useState<Subclass[]>([]);
 
   // Character data
   const [name, setName] = useState('');
@@ -40,7 +38,6 @@ export default function CreateCharacterPage() {
     };
 
     checkAuth();
-    fetchReferenceData();
   }, []);
   const [stats, setStats] = useState<Record<AbilityScoreName, number>>({
     STR: 10,
@@ -57,51 +54,24 @@ export default function CreateCharacterPage() {
   const [level, setLevel] = useState(1);
   const [subclassId, setSubclassId] = useState('');
 
-  useEffect(() => {
-    fetchReferenceData();
-  }, []);
-
-  const fetchReferenceData = async () => {
-    const [classesData, racesData, subracesData, backgroundsData, subclassesData] = await Promise.all([
-      supabase.from('classes').select('*'),
-      supabase.from('races').select('*'),
-      supabase.from('subraces').select('*'),
-      supabase.from('backgrounds').select('*'),
-      supabase.from('subclasses').select('*'),
-    ]);
-
-    if (classesData.data) setClasses(classesData.data);
-    if (racesData.data) setRaces(racesData.data);
-    if (subracesData.data) {
-      setSubraces(subracesData.data);
-      console.log('Subraces loaded:', subracesData.data);
-    } else {
-      console.error('No subraces data:', subracesData.error);
-    }
-    if (backgroundsData.data) setBackgrounds(backgroundsData.data);
-    if (subclassesData.data) setSubclasses(subclassesData.data);
-  };
-
-  const selectedRace = races.find(r => r.id === raceId);
-  const selectedSubrace = subraces.find(s => s.id === subraceId);
-  const selectedClass = classes.find(c => c.id === classId);
-  const selectedBackground = backgrounds.find(b => b.id === backgroundId);
-  const selectedSubclass = subclasses.find(s => s.id === subclassId);
+  const selectedRace = dndRaces.find(r => r.id === raceId);
+  const selectedSubrace = dndSubraces.find(s => s.id === subraceId);
+  const selectedClass = dndClasses.find(c => c.id === classId);
+  const selectedBackground = dndBackgrounds.find(b => b.id === backgroundId);
+  const selectedSubclass = dndSubclasses.find(s => s.id === subclassId);
 
   // Calculate stats with racial bonuses
   let adjustedStats = stats;
   if (selectedRace) {
-    const raceBonuses = typeof selectedRace.stat_bonuses === 'string' ? JSON.parse(selectedRace.stat_bonuses) : selectedRace.stat_bonuses;
-    adjustedStats = applyStatBonuses(adjustedStats, raceBonuses);
+    adjustedStats = applyStatBonuses(adjustedStats, selectedRace.statBonuses);
   }
   if (selectedSubrace) {
-    const subraceBonuses = typeof selectedSubrace.stat_bonuses === 'string' ? JSON.parse(selectedSubrace.stat_bonuses) : selectedSubrace.stat_bonuses;
-    adjustedStats = applyStatBonuses(adjustedStats, subraceBonuses);
+    adjustedStats = applyStatBonuses(adjustedStats, selectedSubrace.statBonuses);
   }
 
   // Check if subclass selection should be shown
   const showSubclassSelection = selectedClass && level >= (SUBCLASS_LEVEL_REQUIREMENTS[selectedClass.id] || 3);
-  const availableSubclasses = selectedClass ? subclasses.filter(s => s.class_id === selectedClass.id) : [];
+  const availableSubclasses = selectedClass ? getSubclassesByClass(selectedClass.id) : [];
 
   const handleStatChange = (stat: AbilityScoreName, delta: number) => {
     setStats(prev => ({
@@ -253,7 +223,7 @@ export default function CreateCharacterPage() {
                       <SelectValue placeholder="Select a race" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-slate-700">
-                      {races.map((race) => (
+                      {dndRaces.map((race) => (
                         <SelectItem key={race.id} value={race.id} className="text-white">
                           {race.name}
                         </SelectItem>
@@ -262,13 +232,10 @@ export default function CreateCharacterPage() {
                   </Select>
                   {selectedRace && (
                     <div className="mt-2 text-sm text-slate-400">
-                      <div>Stat Bonuses: {Object.entries(typeof selectedRace.stat_bonuses === 'string' ? JSON.parse(selectedRace.stat_bonuses) : selectedRace.stat_bonuses).map(([k, v]) => `${k} +${v}`).join(', ')}</div>
-                      {(() => {
-                        const grantedSpells = typeof selectedRace.granted_spells === 'string' ? JSON.parse(selectedRace.granted_spells) : selectedRace.granted_spells;
-                        return grantedSpells.length > 0 && (
-                          <div>Granted Spells: {grantedSpells.join(', ')}</div>
-                        );
-                      })()}
+                      <div>Stat Bonuses: {Object.entries(selectedRace.statBonuses).map(([k, v]) => `${k} +${v}`).join(', ')}</div>
+                      {selectedRace.grantedSpells.length > 0 && (
+                        <div>Granted Spells: {selectedRace.grantedSpells.join(', ')}</div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -281,7 +248,7 @@ export default function CreateCharacterPage() {
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-slate-700">
                         <SelectItem value="" className="text-white">None</SelectItem>
-                        {subraces.filter(s => s.race_id === raceId).map((subrace) => (
+                        {getSubracesByRace(raceId).map((subrace) => (
                           <SelectItem key={subrace.id} value={subrace.id} className="text-white">
                             {subrace.name}
                           </SelectItem>
@@ -290,13 +257,10 @@ export default function CreateCharacterPage() {
                     </Select>
                     {selectedSubrace && (
                       <div className="mt-2 text-sm text-slate-400">
-                        <div>Stat Bonuses: {Object.entries(typeof selectedSubrace.stat_bonuses === 'string' ? JSON.parse(selectedSubrace.stat_bonuses) : selectedSubrace.stat_bonuses).map(([k, v]) => `${k} +${v}`).join(', ')}</div>
-                        {(() => {
-                          const grantedSpells = typeof selectedSubrace.granted_spells === 'string' ? JSON.parse(selectedSubrace.granted_spells) : selectedSubrace.granted_spells;
-                          return grantedSpells.length > 0 && (
-                            <div>Granted Spells: {grantedSpells.join(', ')}</div>
-                          );
-                        })()}
+                        <div>Stat Bonuses: {Object.entries(selectedSubrace.statBonuses).map(([k, v]) => `${k} +${v}`).join(', ')}</div>
+                        {selectedSubrace.grantedSpells.length > 0 && (
+                          <div>Granted Spells: {selectedSubrace.grantedSpells.join(', ')}</div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -308,7 +272,7 @@ export default function CreateCharacterPage() {
                       <SelectValue placeholder="Select a background" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-slate-700">
-                      {backgrounds.map((bg) => (
+                      {dndBackgrounds.map((bg) => (
                         <SelectItem key={bg.id} value={bg.id} className="text-white">
                           {bg.name}
                         </SelectItem>
@@ -318,7 +282,7 @@ export default function CreateCharacterPage() {
                   {selectedBackground && (
                     <div className="mt-2 text-sm text-slate-400">
                       <div>Skills: {selectedBackground.skills.join(', ')}</div>
-                      <div>Feature: {selectedBackground.feature_name}</div>
+                      <div>Feature: {selectedBackground.featureName}</div>
                     </div>
                   )}
                 </div>
@@ -347,7 +311,7 @@ export default function CreateCharacterPage() {
                       <SelectValue placeholder="Select a class" />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-slate-700">
-                      {classes.map((cls) => (
+                      {dndClasses.map((cls) => (
                         <SelectItem key={cls.id} value={cls.id} className="text-white">
                           {cls.name}
                         </SelectItem>

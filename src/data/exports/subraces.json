@@ -1,0 +1,125 @@
+[
+  {
+    "id": "human_variant",
+    "race_id": "human",
+    "name": "Human (Variant)",
+    "stat_bonuses": {},
+    "granted_spells": []
+  },
+  {
+    "id": "human_standard",
+    "race_id": "human",
+    "name": "Human (Standard)",
+    "stat_bonuses": {
+      "CHA": 1,
+      "CON": 1,
+      "DEX": 1,
+      "INT": 1,
+      "STR": 1,
+      "WIS": 1
+    },
+    "granted_spells": []
+  },
+  {
+    "id": "high_elf",
+    "race_id": "elf",
+    "name": "High Elf",
+    "stat_bonuses": {
+      "INT": 1
+    },
+    "granted_spells": []
+  },
+  {
+    "id": "wood_elf",
+    "race_id": "elf",
+    "name": "Wood Elf",
+    "stat_bonuses": {
+      "WIS": 1
+    },
+    "granted_spells": []
+  },
+  {
+    "id": "drow",
+    "race_id": "elf",
+    "name": "Drow",
+    "stat_bonuses": {
+      "CHA": 1
+    },
+    "granted_spells": []
+  },
+  {
+    "id": "hill_dwarf",
+    "race_id": "dwarf",
+    "name": "Hill Dwarf",
+    "stat_bonuses": {
+      "WIS": 1
+    },
+    "granted_spells": []
+  },
+  {
+    "id": "mountain_dwarf",
+    "race_id": "dwarf",
+    "name": "Mountain Dwarf",
+    "stat_bonuses": {
+      "STR": 2
+    },
+    "granted_spells": []
+  },
+  {
+    "id": "lightfoot_halfling",
+    "race_id": "halfling",
+    "name": "Lightfoot Halfling",
+    "stat_bonuses": {
+      "CHA": 1
+    },
+    "granted_spells": []
+  },
+  {
+    "id": "stout_halfling",
+    "race_id": "halfling",
+    "name": "Stout Halfling",
+    "stat_bonuses": {
+      "CON": 1
+    },
+    "granted_spells": []
+  },
+  {
+    "id": "forest_gnome",
+    "race_id": "gnome",
+    "name": "Forest Gnome",
+    "stat_bonuses": {
+      "DEX": 1
+    },
+    "granted_spells": []
+  },
+  {
+    "id": "rock_gnome",
+    "race_id": "gnome",
+    "name": "Rock Gnome",
+    "stat_bonuses": {
+      "CON": 1
+    },
+    "granted_spells": []
+  },
+  {
+    "id": "half_elf_variant",
+    "race_id": "half_elf",
+    "name": "Half-Elf (Variant)",
+    "stat_bonuses": {},
+    "granted_spells": []
+  },
+  {
+    "id": "half_orc_standard",
+    "race_id": "half_orc",
+    "name": "Half-Orc",
+    "stat_bonuses": {},
+    "granted_spells": []
+  },
+  {
+    "id": "tiefling_variant",
+    "race_id": "tiefling",
+    "name": "Tiefling (Variant)",
+    "stat_bonuses": {},
+    "granted_spells": []
+  }
+]

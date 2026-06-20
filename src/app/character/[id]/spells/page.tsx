@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Character, Spell, Subclass, CharacterWithRelations } from '@/types/database';
+import { Character } from '@/types/database';
+import { dndSpells, getSpellById } from '@/data/spells';
+import { dndSubclasses, getSubclassById } from '@/data/subclasses';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,9 +18,9 @@ export default function SpellLibraryPage() {
   const params = useParams();
   const characterId = params.id as string;
 
-  const [character, setCharacter] = useState<CharacterWithRelations | null>(null);
-  const [spells, setSpells] = useState<Spell[]>([]);
-  const [subclasses, setSubclasses] = useState<Subclass[]>([]);
+  const [character, setCharacter] = useState<Character | null>(null);
+  const [spells, setSpells] = useState<any[]>([]);
+  const [subclasses, setSubclasses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterLevel, setFilterLevel] = useState<number | 'all'>('all');
@@ -31,25 +33,25 @@ export default function SpellLibraryPage() {
   }, [characterId]);
 
   const fetchData = async () => {
-    const [charResult, spellsResult, subclassesResult] = await Promise.all([
-      supabase
-        .from('characters')
-        .select(`
-          *,
-          class:classes(*),
-          subclass:subclasses(*),
-          race:races(*),
-          background:backgrounds(*)
-        `)
-        .eq('id', characterId)
-        .single(),
-      supabase.from('spells').select('*'),
-      supabase.from('subclasses').select('*'),
-    ]);
+    const { data: charResult, error } = await supabase
+      .from('characters')
+      .select('*')
+      .eq('id', characterId)
+      .single();
 
-    if (charResult.data) setCharacter(charResult.data as CharacterWithRelations);
-    if (spellsResult.data) setSpells(spellsResult.data);
-    if (subclassesResult.data) setSubclasses(subclassesResult.data);
+    if (error) {
+      console.error('Error fetching character:', error);
+      setLoading(false);
+      return;
+    }
+
+    if (charResult) {
+      setCharacter(charResult);
+    }
+
+    // Use local data for spells and subclasses
+    setSpells(dndSpells);
+    setSubclasses(dndSubclasses);
     setLoading(false);
   };
 
@@ -83,19 +85,19 @@ export default function SpellLibraryPage() {
     });
   };
 
-  const getAvailableSpells = () => {
+    const getAvailableSpells = () => {
     if (!character) return [];
 
-    return spells.filter(spell => {
+    return dndSpells.filter(spell => {
       // Check if spell is in base class IDs
-      const inBaseClass = spell.base_class_ids.includes(character.class_id);
+      const inBaseClass = spell.baseClassIds.includes(character.class_id);
       
       // Check if spell is in subclass bonus spells for current level
       let inSubclassBonus = false;
       if (character.subclass_id) {
-        const subclass = subclasses.find(s => s.id === character.subclass_id);
+        const subclass = dndSubclasses.find(s => s.id === character.subclass_id);
         if (subclass) {
-          const bonusSpellsForLevel = subclass.bonus_spells[character.level] || [];
+          const bonusSpellsForLevel = subclass.bonusSpells[character.level] || [];
           inSubclassBonus = bonusSpellsForLevel.includes(spell.id);
         }
       }
@@ -239,7 +241,7 @@ export default function SpellLibraryPage() {
                                 </div>
                               </div>
                               <div className="text-slate-400 text-sm">
-                                {spell.casting_time} • {spell.range} • {spell.components}
+                                {spell.castingTime} • {spell.range} • {spell.components}
                               </div>
                             </div>
                             {expandedSpells.has(spell.id) && (

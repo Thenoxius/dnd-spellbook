@@ -4,7 +4,14 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Character, Spell, Feature, SpellSlot, CharacterWithRelations } from '@/types/database';
-import { formatAbilityScore, calculateModifier, calculateSpellSlots } from '@/lib/helpers';
+import { formatAbilityScore, calculateModifier, calculateSpellSlots, calculateProficiencyBonus } from '@/lib/helpers';
+import { dndClasses, getClassProgression } from '@/data/classes';
+import { dndFeatures, getFeaturesByLevel } from '@/data/features';
+import { dndSpells, getSpellById } from '@/data/spells';
+import { dndSubclasses, getSubclassById } from '@/data/subclasses';
+import { dndRaces, getRaceById } from '@/data/races';
+import { dndSubraces, getSubraceById } from '@/data/subraces';
+import { dndBackgrounds, getBackgroundById } from '@/data/backgrounds';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,8 +31,6 @@ export default function CharacterPage() {
   const characterId = params.id as string;
 
   const [character, setCharacter] = useState<CharacterWithRelations | null>(null);
-  const [spells, setSpells] = useState<Spell[]>([]);
-  const [features, setFeatures] = useState<Feature[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedSpells, setExpandedSpells] = useState<Set<string>>(new Set());
   const [activeTab, setActiveTab] = useState('combat');
@@ -81,30 +86,34 @@ export default function CharacterPage() {
   };
 
   const fetchCharacterData = async () => {
-    const [charResult, spellsResult, featuresResult] = await Promise.all([
-      supabase
-        .from('characters')
-        .select(`
-          *,
-          class:classes(*),
-          subclass:subclasses(*),
-          race:races(*),
-          subrace:subraces(*),
-          background:backgrounds(*)
-        `)
-        .eq('id', characterId)
-        .single(),
-      supabase.from('spells').select('*'),
-      supabase.from('features').select('*'),
-    ]);
+    const { data: charResult, error } = await supabase
+      .from('characters')
+      .select('*')
+      .eq('id', characterId)
+      .single();
 
-    if (charResult.data) {
-      setCharacter(charResult.data as CharacterWithRelations);
-      setEditLevel(charResult.data.level);
-      setEditMaxHP(charResult.data.hp_max);
+    if (error) {
+      console.error('Error fetching character:', error);
+      setLoading(false);
+      return;
     }
-    if (spellsResult.data) setSpells(spellsResult.data);
-    if (featuresResult.data) setFeatures(featuresResult.data);
+
+    if (charResult) {
+      // Map character data to use local data instead of Supabase relations
+      const characterWithRelations: CharacterWithRelations = {
+        ...charResult,
+        class: dndClasses.find(c => c.id === charResult.class_id) || null,
+        subclass: dndSubclasses.find(s => s.id === charResult.subclass_id) || null,
+        race: dndRaces.find(r => r.id === charResult.race_id) || null,
+        subrace: dndSubraces.find(sr => sr.id === charResult.subrace_id) || null,
+        background: dndBackgrounds.find(b => b.id === charResult.background_id) || null,
+      };
+      
+      setCharacter(characterWithRelations);
+      setEditLevel(charResult.level);
+      setEditMaxHP(charResult.hp_max);
+    }
+    
     setLoading(false);
   };
 
@@ -178,21 +187,26 @@ export default function CharacterPage() {
 
   const getPreparedSpells = () => {
     if (!character) return [];
-    return spells.filter(spell => character.prepared_spells.includes(spell.id));
+    return dndSpells.filter(spell => character.prepared_spells.includes(spell.id));
   };
 
   const getCharacterFeatures = () => {
     if (!character) return [];
-    return features.filter(
+    return dndFeatures.filter(
       feature =>
-        (feature.source_id === character.class_id || feature.source_id === character.subclass_id) &&
-        feature.level_required <= character.level
+        (feature.sourceId === character.class_id || feature.sourceId === character.subclass_id) &&
+        feature.levelRequired <= character.level
     );
   };
 
   const getSpellSlotsByLevel = () => {
     if (!character) return {};
     return character.spell_slots;
+  };
+
+  const getClassProgressionData = () => {
+    if (!character || !character.class) return null;
+    return getClassProgression(character.class_id, character.level);
   };
 
   if (loading) {
@@ -441,7 +455,7 @@ export default function CharacterPage() {
                           <div className="flex items-start justify-between mb-2">
                             <h4 className="text-white font-medium">{feature.name}</h4>
                             <Badge variant="outline" className="bg-slate-700 border-slate-600 text-white">
-                              Lv. {feature.level_required}
+                              Lv. {feature.levelRequired}
                             </Badge>
                           </div>
                           <p className="text-slate-400 text-sm">{feature.description}</p>
@@ -452,6 +466,34 @@ export default function CharacterPage() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Class Progressions */}
+            {(() => {
+              const progression = getClassProgressionData();
+              if (!progression || !progression.customClassData) return null;
+              return (
+                <Card className="bg-slate-800/50 border-slate-700">
+                  <CardHeader>
+                    <CardTitle className="text-white">Class Progressions</CardTitle>
+                    <CardDescription className="text-slate-400">
+                      Abilities and resources gained at your current level
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {Object.entries(progression.customClassData).map(([key, value]) => (
+                        <div key={key} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg">
+                          <div>
+                            <div className="text-white font-medium">{key}</div>
+                          </div>
+                          <div className="text-purple-400 font-bold">{value}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
           </TabsContent>
 
           {/* Spells Tab */}
@@ -563,7 +605,7 @@ export default function CharacterPage() {
                                       <div>
                                         <h4 className="text-white font-medium">{spell.name}</h4>
                                         <div className="text-slate-400 text-sm mt-1">
-                                          {spell.school} • {spell.casting_time} • {spell.range}
+                                          {spell.school} • {spell.castingTime} • {spell.range}
                                         </div>
                                       </div>
                                       <div className="flex gap-2">

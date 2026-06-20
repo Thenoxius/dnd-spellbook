@@ -1,0 +1,618 @@
+[
+  {
+    "id": "path_of_berserker",
+    "class_id": "barbarian",
+    "name": "Path of the Berserker",
+    "bonus_spells": {},
+    "subclass_level_required": 3
+  },
+  {
+    "id": "college_of_lore",
+    "class_id": "bard",
+    "name": "College of Lore",
+    "bonus_spells": {},
+    "subclass_level_required": 3
+  },
+  {
+    "id": "life_domain",
+    "class_id": "cleric",
+    "name": "Life Domain",
+    "bonus_spells": {},
+    "subclass_level_required": 1
+  },
+  {
+    "id": "circle_of_land",
+    "class_id": "druid",
+    "name": "Circle of Land",
+    "bonus_spells": {},
+    "subclass_level_required": 2
+  },
+  {
+    "id": "way_of_shadow",
+    "class_id": "monk",
+    "name": "Way of Shadow",
+    "bonus_spells": {},
+    "subclass_level_required": 3
+  },
+  {
+    "id": "oath_of_devotion",
+    "class_id": "paladin",
+    "name": "Oath of Devotion",
+    "bonus_spells": {},
+    "subclass_level_required": 3
+  },
+  {
+    "id": "draconic_sorcery",
+    "class_id": "sorcerer",
+    "name": "Draconic Sorcery",
+    "bonus_spells": {},
+    "subclass_level_required": 1
+  },
+  {
+    "id": "the_fiend",
+    "class_id": "warlock",
+    "name": "The Fiend",
+    "bonus_spells": {},
+    "subclass_level_required": 1
+  },
+  {
+    "id": "evocation_school",
+    "class_id": "wizard",
+    "name": "School of Evocation",
+    "bonus_spells": {},
+    "subclass_level_required": 2
+  },
+  {
+    "id": "berserker",
+    "class_id": "barbarian",
+    "name": "Berserker",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "champion",
+    "class_id": "fighter",
+    "name": "Champion",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "devotion",
+    "class_id": "paladin",
+    "name": "Devotion",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "draconic",
+    "class_id": "sorcerer",
+    "name": "Draconic",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "evocation",
+    "class_id": "wizard",
+    "name": "Evocation",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "fiend",
+    "class_id": "warlock",
+    "name": "Fiend",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "hunter",
+    "class_id": "ranger",
+    "name": "Hunter",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "land",
+    "class_id": "druid",
+    "name": "Land",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "life",
+    "class_id": "cleric",
+    "name": "Life",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "lore",
+    "class_id": "bard",
+    "name": "Lore",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "open-hand",
+    "class_id": "monk",
+    "name": "Open Hand",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "thief",
+    "class_id": "rogue",
+    "name": "Thief",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "path_of_battlerager",
+    "class_id": "barbarian",
+    "name": "Path of the Battlerager",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "path_of_totem_warrior",
+    "class_id": "barbarian",
+    "name": "Path of the Totem Warrior",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "path_of_ancestral_guardian",
+    "class_id": "barbarian",
+    "name": "Path of the Ancestral Guardian",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "path_of_storm_herald",
+    "class_id": "barbarian",
+    "name": "Path of the Storm Herald",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "path_of_zealot",
+    "class_id": "barbarian",
+    "name": "Path of the Zealot",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "college_of_valor",
+    "class_id": "bard",
+    "name": "College of Valor",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "college_of_glamour",
+    "class_id": "bard",
+    "name": "College of Glamour",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "college_of_swords",
+    "class_id": "bard",
+    "name": "College of Swords",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "college_of_whispers",
+    "class_id": "bard",
+    "name": "College of Whispers",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "knowledge_domain",
+    "class_id": "cleric",
+    "name": "Knowledge Domain",
+    "bonus_spells": "[]",
+    "subclass_level_required": 1
+  },
+  {
+    "id": "light_domain",
+    "class_id": "cleric",
+    "name": "Light Domain",
+    "bonus_spells": "[]",
+    "subclass_level_required": 1
+  },
+  {
+    "id": "nature_domain",
+    "class_id": "cleric",
+    "name": "Nature Domain",
+    "bonus_spells": "[]",
+    "subclass_level_required": 1
+  },
+  {
+    "id": "tempest_domain",
+    "class_id": "cleric",
+    "name": "Tempest Domain",
+    "bonus_spells": "[]",
+    "subclass_level_required": 1
+  },
+  {
+    "id": "trickery_domain",
+    "class_id": "cleric",
+    "name": "Trickery Domain",
+    "bonus_spells": "[]",
+    "subclass_level_required": 1
+  },
+  {
+    "id": "war_domain",
+    "class_id": "cleric",
+    "name": "War Domain",
+    "bonus_spells": "[]",
+    "subclass_level_required": 1
+  },
+  {
+    "id": "circle_of_moon",
+    "class_id": "druid",
+    "name": "Circle of the Moon",
+    "bonus_spells": "[]",
+    "subclass_level_required": 2
+  },
+  {
+    "id": "circle_of_spores",
+    "class_id": "druid",
+    "name": "Circle of Spores",
+    "bonus_spells": "[]",
+    "subclass_level_required": 2
+  },
+  {
+    "id": "circle_of_dreams",
+    "class_id": "druid",
+    "name": "Circle of Dreams",
+    "bonus_spells": "[]",
+    "subclass_level_required": 2
+  },
+  {
+    "id": "circle_of_shepherd",
+    "class_id": "druid",
+    "name": "Circle of the Shepherd",
+    "bonus_spells": "[]",
+    "subclass_level_required": 2
+  },
+  {
+    "id": "battle_master",
+    "class_id": "fighter",
+    "name": "Battle Master",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "eldritch_knight",
+    "class_id": "fighter",
+    "name": "Eldritch Knight",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "purple_dragon_knight",
+    "class_id": "fighter",
+    "name": "Purple Dragon Knight",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "cavalier",
+    "class_id": "fighter",
+    "name": "Cavalier",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "samurai",
+    "class_id": "fighter",
+    "name": "Samurai",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "arcane_archer",
+    "class_id": "fighter",
+    "name": "Arcane Archer",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "way_of_four_elements",
+    "class_id": "monk",
+    "name": "Way of the Four Elements",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "way_of_kensei",
+    "class_id": "monk",
+    "name": "Way of the Kensei",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "way_of_mercy",
+    "class_id": "monk",
+    "name": "Way of Mercy",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "way_of_the_drunken_master",
+    "class_id": "monk",
+    "name": "Way of the Drunken Master",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "way_of_the_sun_soul",
+    "class_id": "monk",
+    "name": "Way of the Sun Soul",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "oath_of_ancients",
+    "class_id": "paladin",
+    "name": "Oath of Ancients",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "oath_of_vengeance",
+    "class_id": "paladin",
+    "name": "Oath of Vengeance",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "oath_of_crown",
+    "class_id": "paladin",
+    "name": "Oath of the Crown",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "oath_of_conquest",
+    "class_id": "paladin",
+    "name": "Oath of Conquest",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "oath_of_redemption",
+    "class_id": "paladin",
+    "name": "Oath of Redemption",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "gloom_stalker",
+    "class_id": "ranger",
+    "name": "Gloom Stalker",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "horizon_walker",
+    "class_id": "ranger",
+    "name": "Horizon Walker",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "monster_slayer",
+    "class_id": "ranger",
+    "name": "Monster Slayer",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "fey_wanderer",
+    "class_id": "ranger",
+    "name": "Fey Wanderer",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "swarmkeeper",
+    "class_id": "ranger",
+    "name": "Swarmkeeper",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "assassin",
+    "class_id": "rogue",
+    "name": "Assassin",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "arcane_trickster",
+    "class_id": "rogue",
+    "name": "Arcane Trickster",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "mastermind",
+    "class_id": "rogue",
+    "name": "Mastermind",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "phantom",
+    "class_id": "rogue",
+    "name": "Phantom",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "soulknife",
+    "class_id": "rogue",
+    "name": "Soulknife",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "swashbuckler",
+    "class_id": "rogue",
+    "name": "Swashbuckler",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "inquisitive",
+    "class_id": "rogue",
+    "name": "Inquisitive",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "wild_magic",
+    "class_id": "sorcerer",
+    "name": "Wild Magic",
+    "bonus_spells": "[]",
+    "subclass_level_required": 1
+  },
+  {
+    "id": "divine_soul",
+    "class_id": "sorcerer",
+    "name": "Divine Soul",
+    "bonus_spells": "[]",
+    "subclass_level_required": 1
+  },
+  {
+    "id": "shadow_magic",
+    "class_id": "sorcerer",
+    "name": "Shadow Magic",
+    "bonus_spells": "[]",
+    "subclass_level_required": 1
+  },
+  {
+    "id": "storm_sorcery",
+    "class_id": "sorcerer",
+    "name": "Storm Sorcery",
+    "bonus_spells": "[]",
+    "subclass_level_required": 1
+  },
+  {
+    "id": "phoenix_sorcery",
+    "class_id": "sorcerer",
+    "name": "Phoenix Sorcery",
+    "bonus_spells": "[]",
+    "subclass_level_required": 1
+  },
+  {
+    "id": "school_of_abjuration",
+    "class_id": "wizard",
+    "name": "School of Abjuration",
+    "bonus_spells": "[]",
+    "subclass_level_required": 2
+  },
+  {
+    "id": "school_of_conjuration",
+    "class_id": "wizard",
+    "name": "School of Conjuration",
+    "bonus_spells": "[]",
+    "subclass_level_required": 2
+  },
+  {
+    "id": "school_of_divination",
+    "class_id": "wizard",
+    "name": "School of Divination",
+    "bonus_spells": "[]",
+    "subclass_level_required": 2
+  },
+  {
+    "id": "school_of_enchantment",
+    "class_id": "wizard",
+    "name": "School of Enchantment",
+    "bonus_spells": "[]",
+    "subclass_level_required": 2
+  },
+  {
+    "id": "school_of_illusion",
+    "class_id": "wizard",
+    "name": "School of Illusion",
+    "bonus_spells": "[]",
+    "subclass_level_required": 2
+  },
+  {
+    "id": "school_of_necromancy",
+    "class_id": "wizard",
+    "name": "School of Necromancy",
+    "bonus_spells": "[]",
+    "subclass_level_required": 2
+  },
+  {
+    "id": "school_of_transmutation",
+    "class_id": "wizard",
+    "name": "School of Transmutation",
+    "bonus_spells": "[]",
+    "subclass_level_required": 2
+  },
+  {
+    "id": "school_of_bladesinging",
+    "class_id": "wizard",
+    "name": "School of Bladesinging",
+    "bonus_spells": "[]",
+    "subclass_level_required": 2
+  },
+  {
+    "id": "school_of_chronurgy",
+    "class_id": "wizard",
+    "name": "School of Chronurgy",
+    "bonus_spells": "[]",
+    "subclass_level_required": 2
+  },
+  {
+    "id": "school_of_order_of_scribes",
+    "class_id": "wizard",
+    "name": "Order of Scribes",
+    "bonus_spells": "[]",
+    "subclass_level_required": 2
+  },
+  {
+    "id": "school_of_war_magic",
+    "class_id": "wizard",
+    "name": "School of War Magic",
+    "bonus_spells": "[]",
+    "subclass_level_required": 2
+  },
+  {
+    "id": "pact_of_the_chain",
+    "class_id": "warlock",
+    "name": "Pact of the Chain",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "pact_of_the_blade",
+    "class_id": "warlock",
+    "name": "Pact of the Blade",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "pact_of_the_tome",
+    "class_id": "warlock",
+    "name": "Pact of the Tome",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  },
+  {
+    "id": "pact_of_the_talisman",
+    "class_id": "warlock",
+    "name": "Pact of the Talisman",
+    "bonus_spells": "[]",
+    "subclass_level_required": 3
+  }
+]

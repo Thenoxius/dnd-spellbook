@@ -58,6 +58,23 @@ export interface Feature {
   level_required: number;
   name: string;
   description: string;
+  feature_type: 'class_feature' | 'subclass_feature' | 'invocation' | 'mystic_arcanum' | 'metamagic' | 'fighting_style' | 'ki_feature' | 'rune_feature' | 'other';
+}
+
+export interface ProgressionType {
+  id: string;
+  name: string;
+  description: string | null;
+  category: 'resource' | 'feature' | 'limit';
+}
+
+export interface ClassProgression {
+  id: string;
+  class_id: string;
+  level: number;
+  progression_type_id: string;
+  value: any;
+  created_at: string;
 }
 
 export interface SpellSlot {

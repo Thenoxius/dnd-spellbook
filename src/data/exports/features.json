@@ -1,0 +1,82 @@
+[
+  {
+    "id": "barb_rage",
+    "source_id": "barbarian",
+    "source_type": "class",
+    "level_required": 1,
+    "name": "Rage",
+    "description": "On your turn, you can enter a rage as a bonus action. While raging, you gain the following benefits if you aren't wearing heavy armor: Advantage on Strength checks and saving throws; +2 bonus to damage rolls with melee weapon attacks; Resistance to bludgeoning, piercing, and slashing damage."
+  },
+  {
+    "id": "barb_unarmored_defense",
+    "source_id": "barbarian",
+    "source_type": "class",
+    "level_required": 1,
+    "name": "Unarmored Defense",
+    "description": "While you are not wearing any armor, your Armor Class equals 10 + your Dexterity modifier + your Constitution modifier. You can use a shield and still gain this benefit."
+  },
+  {
+    "id": "cleric_divine_domain",
+    "source_id": "cleric",
+    "source_type": "class",
+    "level_required": 1,
+    "name": "Divine Domain",
+    "description": "Choose one domain related to your deity: Knowledge, Life, Light, Nature, Tempest, Trickery, or War. Each domain is detailed at the end of the class description."
+  },
+  {
+    "id": "cleric_spellcasting",
+    "source_id": "cleric",
+    "source_type": "class",
+    "level_required": 1,
+    "name": "Spellcasting",
+    "description": "You can cast cleric spells using Wisdom as your spellcasting ability."
+  },
+  {
+    "id": "wizard_arcane_recovery",
+    "source_id": "wizard",
+    "source_type": "class",
+    "level_required": 1,
+    "name": "Arcane Recovery",
+    "description": "Once per day when you finish a short rest, you can choose expended spell slots to recover. The spell slots can have a combined level equal to or less than half your wizard level (rounded up), and none of the slots can be 6th level or higher."
+  },
+  {
+    "id": "wizard_spellcasting",
+    "source_id": "wizard",
+    "source_type": "class",
+    "level_required": 1,
+    "name": "Spellcasting",
+    "description": "You can cast wizard spells using Intelligence as your spellcasting ability."
+  },
+  {
+    "id": "fighter_fighting_style",
+    "source_id": "fighter",
+    "source_type": "class",
+    "level_required": 1,
+    "name": "Fighting Style",
+    "description": "You adopt a particular style of fighting as your specialty. Choose one of the following options: Archery, Defense, Dueling, Great Weapon Fighting, Protection, Two-Weapon Fighting."
+  },
+  {
+    "id": "fighter_second_wind",
+    "source_id": "fighter",
+    "source_type": "class",
+    "level_required": 1,
+    "name": "Second Wind",
+    "description": "You have a limited well of stamina that you can draw on to protect yourself from harm. On your turn, you can use a bonus action to regain hit points equal to 1d10 + your fighter level."
+  },
+  {
+    "id": "rogue_expertise",
+    "source_id": "rogue",
+    "source_type": "class",
+    "level_required": 1,
+    "name": "Expertise",
+    "description": "Choose two of your skill proficiencies, or one of your skill proficiencies and one of your tool proficiencies. Your proficiency bonus is doubled for any ability check you make that uses either of the chosen proficiencies."
+  },
+  {
+    "id": "rogue_sneak_attack",
+    "source_id": "rogue",
+    "source_type": "class",
+    "level_required": 1,
+    "name": "Sneak Attack",
+    "description": "You know how to strike subtly and exploit a foe's distraction. Once per turn, you can deal an extra 1d6 damage to one creature you hit with an attack if you have advantage on the attack roll."
+  }
+]

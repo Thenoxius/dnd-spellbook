@@ -1,4 +1,4 @@
-import { AbilityScoreName, SpellSlot } from '@/types/database';
+import { AbilityScoreName, SpellSlot, ClassProgression, ProgressionType } from '@/types/database';
 
 // Calculate ability modifier: floor((score - 10) / 2)
 export function calculateModifier(score: number): number {
@@ -102,4 +102,32 @@ export function applyStatBonuses(
   });
 
   return result;
+}
+
+// Get progression value for a specific class and level
+export function getProgressionValue(
+  progressions: ClassProgression[],
+  progressionTypeId: string,
+  level: number
+): any {
+  const progression = progressions.find(
+    p => p.progression_type_id === progressionTypeId && p.level === level
+  );
+  return progression?.value;
+}
+
+// Get all progressions for a class up to a specific level
+export function getProgressionsUpToLevel(
+  progressions: ClassProgression[],
+  progressionTypeId: string,
+  maxLevel: number
+): ClassProgression[] {
+  return progressions.filter(
+    p => p.progression_type_id === progressionTypeId && p.level <= maxLevel
+  ).sort((a, b) => a.level - b.level);
+}
+
+// Calculate proficiency bonus based on level (standard D&D 5e formula)
+export function calculateProficiencyBonus(level: number): number {
+  return Math.ceil(level / 4) + 1;
 }

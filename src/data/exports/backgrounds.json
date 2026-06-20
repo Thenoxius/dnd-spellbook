@@ -1,0 +1,62 @@
+[
+  {
+    "id": "acolyte",
+    "name": "Acolyte",
+    "skills": [
+      "Insight",
+      "Religion"
+    ],
+    "feature_name": "Shelter of the Faithful",
+    "feature_desc": "You can perform religious ceremonies and receive free healing and care at temples."
+  },
+  {
+    "id": "criminal",
+    "name": "Criminal",
+    "skills": [
+      "Deception",
+      "Stealth"
+    ],
+    "feature_name": "Criminal Contact",
+    "feature_desc": "You have a reliable and trustworthy contact in the criminal underworld."
+  },
+  {
+    "id": "folk_hero",
+    "name": "Folk Hero",
+    "skills": [
+      "Animal Handling",
+      "Survival"
+    ],
+    "feature_name": "Rustic Hospitality",
+    "feature_desc": "You can secure free room and board for yourself and your companions in rural areas."
+  },
+  {
+    "id": "noble",
+    "name": "Noble",
+    "skills": [
+      "History",
+      "Persuasion"
+    ],
+    "feature_name": "Position of Privilege",
+    "feature_desc": "You can secure an audience with local nobility and receive free lodging and food."
+  },
+  {
+    "id": "sage",
+    "name": "Sage",
+    "skills": [
+      "Arcana",
+      "History"
+    ],
+    "feature_name": "Researcher",
+    "feature_desc": "You can find information about obscure topics in libraries and archives."
+  },
+  {
+    "id": "soldier",
+    "name": "Soldier",
+    "skills": [
+      "Athletics",
+      "Intimidation"
+    ],
+    "feature_name": "Military Rank",
+    "feature_desc": "You can secure free lodging and food for yourself and your companions in military installations."
+  }
+]
