@@ -243,47 +243,46 @@ export default function CharacterPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-slate-800/30 border-b-2 border-slate-700 rounded-none p-0 h-auto overflow-x-auto overflow-y-hidden" style={{ borderColor: 'var(--border-color)' }}>
-            <div className="flex min-w-max">
+          <TabsList className="bg-slate-800/50 border border-slate-700 rounded-lg p-1 w-full" style={{ borderColor: 'var(--border-color)' }}>
+            <div className="flex w-full gap-1">
               <TabsTrigger
                 value="combat"
-                className="data-[state=active]:text-white data-[state=active]:border-b-2 rounded-t-lg border-b-2 border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-4 py-3 text-sm md:px-6 md:text-base"
+                className="flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 border border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md data-[state=active]:bg-slate-700 data-[state=active]:text-white h-[38px] sm:h-[42px]"
               >
-                <Shield className="mr-1 h-4 w-4 md:mr-2" />
-                <span className="hidden sm:inline">Combat</span>
+                <Shield className="h-4 w-4" />
+                <span className="hidden md:inline">Combat</span>
               </TabsTrigger>
               <TabsTrigger
                 value="spells"
-                className="data-[state=active]:text-white data-[state=active]:border-b-2 rounded-t-lg border-b-2 border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-4 py-3 text-sm md:px-6 md:text-base"
+                className="flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 border border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md data-[state=active]:bg-slate-700 data-[state=active]:text-white h-[38px] sm:h-[42px]"
               >
-                <BookOpen className="mr-1 h-4 w-4 md:mr-2" />
-                <span className="hidden sm:inline">Spells</span>
+                <BookOpen className="h-4 w-4" />
+                <span className="hidden md:inline">Spells</span>
               </TabsTrigger>
               <TabsTrigger
                 value="inventory"
-                className="data-[state=active]:text-white data-[state=active]:border-b-2 rounded-t-lg border-b-2 border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-4 py-3 text-sm md:px-6 md:text-base"
+                className="flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 border border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md data-[state=active]:bg-slate-700 data-[state=active]:text-white h-[38px] sm:h-[42px]"
               >
-                <Package className="mr-1 h-4 w-4 md:mr-2" />
-                <span className="hidden sm:inline">Inventory</span>
+                <Package className="h-4 w-4" />
+                <span className="hidden md:inline">Inventory</span>
               </TabsTrigger>
               <TabsTrigger
                 value="settings"
-                className="data-[state=active]:text-white data-[state=active]:border-b-2 rounded-t-lg border-b-2 border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-4 py-3 text-sm md:px-6 md:text-base"
+                className="flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 border border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md data-[state=active]:bg-slate-700 data-[state=active]:text-white h-[38px] sm:h-[42px]"
               >
-                <Settings className="mr-1 h-4 w-4 md:mr-2" />
-                <span className="hidden sm:inline">Settings</span>
+                <Settings className="h-4 w-4" />
+                <span className="hidden md:inline">Settings</span>
               </TabsTrigger>
               <Button
                 onClick={() => router.push('/')}
-                className="ml-2 text-white rounded-t-lg border-b-2 border-transparent px-3 py-3 transition-all text-sm md:px-4 md:text-base data-[state=active]:text-white data-[state=active]:border-b-2 hover:text-white hover:bg-slate-700/50"
+                className="flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 border text-white transition-all px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm hover:opacity-80 rounded-md h-[38px] sm:h-[42px]"
                 style={{
-                  borderColor: 'var(--border-color)',
-                  backgroundColor: 'transparent',
+                  backgroundColor: 'var(--accent-primary)',
+                  borderColor: 'var(--accent-primary)',
                 }}
-                variant="ghost"
               >
-                <ArrowRight className="mr-1 h-4 w-4 md:mr-2" />
-                <span className="hidden sm:inline">Change Character</span>
+                <ArrowRight className="h-4 w-4" />
+                <span className="hidden md:inline">Back</span>
               </Button>
             </div>
           </TabsList>
@@ -608,7 +607,12 @@ export default function CharacterPage() {
                                           {spell.school} • {spell.castingTime} • {spell.range}
                                         </div>
                                       </div>
-                                      <div className="flex gap-2">
+                                      <div className="flex gap-2 flex-wrap">
+                                        {spell.damage && (
+                                          <Badge variant="outline" className="bg-red-900/50 border-red-700 text-red-300">
+                                            {spell.damage} {spell.damageType}
+                                          </Badge>
+                                        )}
                                         {spell.concentration && (
                                           <Badge variant="outline" className="bg-purple-900/50 border-purple-700 text-purple-300">
                                             Concentration

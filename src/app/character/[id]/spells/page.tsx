@@ -231,13 +231,18 @@ export default function SpellLibraryPage() {
                             >
                               <div className="flex items-start justify-between mb-2">
                                 <h4 className="text-white font-medium">{spell.name}</h4>
-                                <div className="flex gap-2">
+                                <div className="flex gap-2 flex-wrap">
                                   <Badge variant="outline" className="bg-slate-700 border-slate-600 text-white">
                                     {spell.level === 0 ? 'Cantrip' : `Level ${spell.level}`}
                                   </Badge>
                                   <Badge variant="outline" className="bg-slate-700 border-slate-600 text-white">
                                     {spell.school}
                                   </Badge>
+                                  {spell.damage && (
+                                    <Badge variant="outline" className="bg-red-900/50 border-red-700 text-red-300">
+                                      {spell.damage} {spell.damageType}
+                                    </Badge>
+                                  )}
                                 </div>
                               </div>
                               <div className="text-slate-400 text-sm">

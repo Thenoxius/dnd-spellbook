@@ -14,7 +14,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "1d10",
+    "damage_type": "fire"
   },
   {
     "id": "mage_hand",
@@ -49,7 +51,9 @@
     "description": "Flame-like radiance descends on a creature that you can see within range.",
     "base_class_ids": [
       "cleric"
-    ]
+    ],
+    "damage": "1d8",
+    "damage_type": "radiant"
   },
   {
     "id": "cure_wounds",
@@ -104,7 +108,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "3d4 + 3",
+    "damage_type": "force"
   },
   {
     "id": "hold_person",
@@ -144,7 +150,9 @@
       "sorcerer",
       "warlock",
       "cleric"
-    ]
+    ],
+    "damage": "8d6",
+    "damage_type": "fire"
   },
   {
     "id": "acid-arrow",
@@ -160,7 +168,9 @@
     "description": "A shimmering green arrow streaks toward a target within range and bursts in a spray of acid. Make a ranged spell attack against the target. On a hit, the target takes 4d4 acid damage immediately and 2d4 acid damage at the end of its next turn. On a miss, the arrow splashes the target with acid for half as much of the initial damage and no damage at the end of its next turn.",
     "base_class_ids": [
       "wizard"
-    ]
+    ],
+    "damage": "4d4",
+    "damage_type": "acid"
   },
   {
     "id": "acid-splash",
@@ -177,7 +187,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "1d6",
+    "damage_type": "acid"
   },
   {
     "id": "aid",
@@ -263,7 +275,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "8d6",
+    "damage_type": "fire"
   },
   {
     "id": "shield",
@@ -432,7 +446,9 @@
     "description": "You create a Large hand of shimmering, translucent force in an unoccupied space that you can see within range. The hand lasts for the spell's duration, and it moves at your command, mimicking the movements of your own hand. The hand is an object that has AC 20 and hit points equal to your hit point maximum. If it drops to 0 hit points, the spell ends. It has a Strength of 26 (+8) and a Dexterity of 10 (+0). The hand doesn't fill its space. When you cast the spell and as a bonus action on your subsequent turns, you can move the hand up to 60 feet and then cause one of the following effects with it. ***Clenched Fist.*** The hand strikes one creature or object within 5 feet of it. Make a melee spell attack for the hand using your game statistics. On a hit, the target takes 4d8 force damage. ***Forceful Hand.*** The hand attempts to push a creature within 5 feet of it in a direction you choose. Make a check with the hand's Strength contested by the Strength (Athletics) check of the target. If the target is Medium or smaller, you have advantage on the check. If you succeed, the hand pushes the target up to 5 feet plus a number of feet equal to five times your spellcasting ability modifier. The hand moves with the target to remain within 5 feet of it. ***Grasping Hand.*** The hand attempts to grapple a Huge or smaller creature within 5 feet of it. You use the hand's Strength score to resolve the grapple. If the target is Medium or smaller, you have advantage on the check. While the hand is grappling the target, you can use a bonus action to have the hand crush it. When you do so, the target takes bludgeoning damage equal to 2d6 + your spellcasting ability modifier. ***Interposing Hand.*** The hand interposes itself between you and a creature you choose until you give the hand a different command. The hand moves to stay between you and the target, providing you with half cover against the target. The target can't move through the hand's space if its Strength score is less than or equal to the hand's Strength score. If its Strength score is higher than the hand's Strength score, the target can move toward you through the hand's space, but that space is difficult terrain for the target.",
     "base_class_ids": [
       "wizard"
-    ]
+    ],
+    "damage": "4d8",
+    "damage_type": "force"
   },
   {
     "id": "arcane-lock",
@@ -465,7 +481,9 @@
     "base_class_ids": [
       "bard",
       "wizard"
-    ]
+    ],
+    "damage": "3d10",
+    "damage_type": "force"
   },
   {
     "id": "arcanists-magic-aura",
@@ -637,7 +655,9 @@
       "bard",
       "cleric",
       "wizard"
-    ]
+    ],
+    "damage": "1d8",
+    "damage_type": "necrotic"
   },
   {
     "id": "black-tentacles",
@@ -653,7 +673,9 @@
     "description": "Squirming, ebony tentacles fill a 20-foot square on ground that you can see within range. For the duration, these tentacles turn the ground in the area into difficult terrain. When a creature enters the affected area for the first time on a turn or starts its turn there, the creature must succeed on a Dexterity saving throw or take 3d6 bludgeoning damage and be restrained by the tentacles until the spell ends. A creature that starts its turn in the area and is already restrained by the tentacles takes 3d6 bludgeoning damage. A creature restrained by the tentacles can use its action to make a Strength or Dexterity check (its choice) against your spell save DC. On a success, it frees itself.",
     "base_class_ids": [
       "wizard"
-    ]
+    ],
+    "damage": "3d6",
+    "damage_type": "bludgeoning"
   },
   {
     "id": "blade-barrier",
@@ -669,7 +691,9 @@
     "description": "You create a vertical wall of whirling, razor-sharp blades made of magical energy. The wall appears within range and lasts for the duration. You can make a straight wall up to 100 feet long, 20 feet high, and 5 feet thick, or a ringed wall up to 60 feet in diameter, 20 feet high, and 5 feet thick. The wall provides three-quarters cover to creatures behind it, and its space is difficult terrain. When a creature enters the wall's area for the first time on a turn or starts its turn there, the creature must make a dexterity saving throw. On a failed save, the creature takes 6d10 slashing damage. On a successful save, the creature takes half as much damage.",
     "base_class_ids": [
       "cleric"
-    ]
+    ],
+    "damage": "6d10",
+    "damage_type": "slashing"
   },
   {
     "id": "bless",
@@ -705,7 +729,9 @@
       "sorcerer",
       "warlock",
       "wizard"
-    ]
+    ],
+    "damage": "8d8",
+    "damage_type": "necrotic"
   },
   {
     "id": "blindness-deafness",
@@ -774,7 +800,9 @@
     "description": "The next time you hit a creature with a weapon attack before this spell ends, the weapon gleams with astral radiance as you strike. The attack deals an extra 2d6 radiant damage to the target, which becomes visible if it's invisible, and the target sheds dim light in a 5-foot radius and can't become invisible until the spell ends.",
     "base_class_ids": [
       "paladin"
-    ]
+    ],
+    "damage": "2d6",
+    "damage_type": "radiant"
   },
   {
     "id": "burning-hands",
@@ -791,7 +819,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "3d6",
+    "damage_type": "fire"
   },
   {
     "id": "call-lightning",
@@ -807,7 +837,9 @@
     "description": "A storm cloud appears in the shape of a cylinder that is 10 feet tall with a 60-foot radius, centered on a point you can see 100 feet directly above you. The spell fails if you can't see a point in the air where the storm cloud could appear (for example, if you are in a room that can't accommodate the cloud). When you cast the spell, choose a point you can see within range. A bolt of lightning flashes down from the cloud to that point. Each creature within 5 feet of that point must make a dexterity saving throw. A creature takes 3d10 lightning damage on a failed save, or half as much damage on a successful one. On each of your turns until the spell ends, you can use your action to call down lightning in this way again, targeting the same point or a different one. If you are outdoors in stormy conditions when you cast this spell, the spell gives you control over the existing storm instead of creating a new one. Under such conditions, the spell's damage increases by 1d10.",
     "base_class_ids": [
       "druid"
-    ]
+    ],
+    "damage": "3d10",
+    "damage_type": "lightning"
   },
   {
     "id": "calm-emotions",
@@ -841,7 +873,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "10d8",
+    "damage_type": "lightning"
   },
   {
     "id": "charm-person",
@@ -879,7 +913,9 @@
       "sorcerer",
       "warlock",
       "wizard"
-    ]
+    ],
+    "damage": "1d8",
+    "damage_type": "necrotic"
   },
   {
     "id": "circle-of-death",
@@ -897,7 +933,9 @@
       "sorcerer",
       "warlock",
       "wizard"
-    ]
+    ],
+    "damage": "8d6",
+    "damage_type": "necrotic"
   },
   {
     "id": "guidance",
@@ -966,7 +1004,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "5d8",
+    "damage_type": "poison"
   },
   {
     "id": "color-spray",
@@ -1105,7 +1145,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "8d8",
+    "damage_type": "cold"
   },
   {
     "id": "confusion",
@@ -1242,7 +1284,9 @@
     "base_class_ids": [
       "warlock",
       "wizard"
-    ]
+    ],
+    "damage": "6d6",
+    "damage_type": "psychic"
   },
   {
     "id": "contagion",
@@ -1310,7 +1354,9 @@
       "cleric",
       "druid",
       "wizard"
-    ]
+    ],
+    "damage": "2d8",
+    "damage_type": "bludgeoning"
   },
   {
     "id": "death-ward",
@@ -1524,7 +1570,9 @@
     "description": "A flash of light streaks toward a creature of your choice within range. Make a ranged spell attack against the target. On a hit, the target takes 4d6 radiant damage, and the next attack roll made against this target before the end of your next turn has advantage, thanks to the mystical dim light glittering on the target until then.",
     "base_class_ids": [
       "cleric"
-    ]
+    ],
+    "damage": "4d6",
+    "damage_type": "radiant"
   },
   {
     "id": "delayed-blast-fireball",
@@ -1541,7 +1589,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "12d6",
+    "damage_type": "fire"
   },
   {
     "id": "demiplane",
@@ -1653,7 +1703,9 @@
       "sorcerer",
       "warlock",
       "wizard"
-    ]
+    ],
+    "damage": "4d6",
+    "damage_type": "force"
   },
   {
     "id": "disguise-self",
@@ -1688,7 +1740,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "8d6",
+    "damage_type": "lightning"
   },
   {
     "id": "disintegrate",
@@ -1705,7 +1759,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "10d6 + 40",
+    "damage_type": "force"
   },
   {
     "id": "dispel-evil-and-good",
@@ -1776,7 +1832,9 @@
     "description": "Your prayer empowers you with divine radiance. Until the spell ends, your weapon attacks deal an extra 1d4 radiant damage on a hit.",
     "base_class_ids": [
       "paladin"
-    ]
+    ],
+    "damage": "1d4",
+    "damage_type": "radiant"
   },
   {
     "id": "divine-word",
@@ -1882,7 +1940,9 @@
       "bard",
       "warlock",
       "wizard"
-    ]
+    ],
+    "damage": "3d6",
+    "damage_type": "psychic"
   },
   {
     "id": "druidcraft",
@@ -1916,7 +1976,9 @@
       "cleric",
       "druid",
       "sorcerer"
-    ]
+    ],
+    "damage": "5d6",
+    "damage_type": "bludgeoning"
   },
   {
     "id": "eldritch-blast",
@@ -1932,7 +1994,9 @@
     "description": "A beam of crackling energy streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 force damage. The spell creates more than one beam when you reach higher levels: two beams at 5th level, three beams at 11th level, and four beams at 17th level. You can direct the beams at the same target or at different ones. Make a separate attack roll for each beam.",
     "base_class_ids": [
       "warlock"
-    ]
+    ],
+    "damage": "1d10",
+    "damage_type": "force"
   },
   {
     "id": "enhance-ability",
@@ -1967,7 +2031,9 @@
     "description": "You conjure a phantom watchdog in an unoccupied space that you can see within range, where it remains for the duration, until you dismiss it as an action, or until you move more than 100 feet away from it. The hound is invisible to all creatures except you and can't be harmed. When a Small or larger creature comes within 30 feet of it without first speaking the password that you specify when you cast this spell, the hound starts barking loudly. The hound sees invisible creatures and can see into the Ethereal Plane. It ignores illusions. At the start of each of your turns, the hound attempts to bite one creature within 5 feet of it that is hostile to you. The hound's attack bonus is equal to your spellcasting ability modifier + your proficiency bonus. On a hit, it deals 4d8 piercing damage.",
     "base_class_ids": [
       "wizard"
-    ]
+    ],
+    "damage": "4d8",
+    "damage_type": "piercing"
   },
   {
     "id": "enlarge-reduce",
@@ -2162,7 +2228,9 @@
       "druid",
       "warlock",
       "wizard"
-    ]
+    ],
+    "damage": "4d6",
+    "damage_type": "psychic"
   },
   {
     "id": "find-familiar",
@@ -2248,7 +2316,9 @@
       "sorcerer",
       "warlock",
       "wizard"
-    ]
+    ],
+    "damage": "7d8 + 30",
+    "damage_type": "necrotic"
   },
   {
     "id": "fire-bolt",
@@ -2265,7 +2335,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "1d10",
+    "damage_type": "fire"
   },
   {
     "id": "fire-shield",
@@ -2281,7 +2353,9 @@
     "description": "Thin and vaporous flame surround your body for the duration of the spell, radiating a bright light bright light in a 10-foot radius and dim light for an additional 10 feet. You can end the spell using an action to make it disappear. The flames are around you a heat shield or cold, your choice. The heat shield gives you cold damage resistance and the cold resistance to fire damage. In addition, whenever a creature within 5 feet of you hits you with a melee attack, flames spring from the shield. The attacker then suffers 2d8 points of fire damage or cold, depending on the model.",
     "base_class_ids": [
       "wizard"
-    ]
+    ],
+    "damage": "2d8",
+    "damage_type": "fire"
   },
   {
     "id": "fire-storm",
@@ -2299,7 +2373,9 @@
       "cleric",
       "druid",
       "sorcerer"
-    ]
+    ],
+    "damage": "7d10",
+    "damage_type": "fire"
   },
   {
     "id": "flame-blade",
@@ -2315,7 +2391,9 @@
     "description": "You evoke a fiery blade in your free hand. The blade is similar in size and shape to a scimitar, and it lasts for the duration. If you let go of the blade, it disappears, but you can evoke the blade again as a bonus action. You can use your action to make a melee spell attack with the fiery blade. On a hit, the target takes 3d6 fire damage. The flaming blade sheds bright light in a 10-foot radius and dim light for an additional 10 feet.",
     "base_class_ids": [
       "druid"
-    ]
+    ],
+    "damage": "3d6",
+    "damage_type": "fire"
   },
   {
     "id": "flame-strike",
@@ -2331,7 +2409,9 @@
     "description": "A vertical column of divine fire roars down from the heavens in a location you specify. Each creature in a 10-foot-radius, 40-foot-high cylinder centered on a point within range must make a dexterity saving throw. A creature takes 4d6 fire damage and 4d6 radiant damage on a failed save, or half as much damage on a successful one.",
     "base_class_ids": [
       "cleric"
-    ]
+    ],
+    "damage": "4d6 + 4d6",
+    "damage_type": "fire"
   },
   {
     "id": "flaming-sphere",
@@ -2348,7 +2428,9 @@
     "base_class_ids": [
       "druid",
       "wizard"
-    ]
+    ],
+    "damage": "2d6",
+    "damage_type": "fire"
   },
   {
     "id": "flesh-to-stone",
@@ -2506,7 +2588,9 @@
     "description": "A frigid globe of cold energy streaks from your fingertips to a point of your choice within range, where it explodes in a 60-foot-radius sphere. Each creature within the area must make a constitution saving throw. On a failed save, a creature takes 10d6 cold damage. On a successful save, it takes half as much damage. If the globe strikes a body of water or a liquid that is principally water (not including water-based creatures), it freezes the liquid to a depth of 6 inches over an area 30 feet square. This ice lasts for 1 minute. Creatures that were swimming on the surface of frozen water are trapped in the ice. A trapped creature can use an action to make a Strength check against your spell save DC to break free. You can refrain from firing the globe after completing the spell, if you wish. A small globe about the size of a sling stone, cool to the touch, appears in your hand. At any time, you or a creature you give the globe to can throw the globe (to a range of 40 feet) or hurl it with a sling (to the sling's normal range). It shatters on impact, with the same effect as the normal casting of the spell. You can also set the globe down without shattering it. After 1 minute, if the globe hasn't already shattered, it explodes.",
     "base_class_ids": [
       "wizard"
-    ]
+    ],
+    "damage": "10d6",
+    "damage_type": "cold"
   },
   {
     "id": "gaseous-form",
@@ -2562,7 +2646,9 @@
       "druid",
       "paladin",
       "wizard"
-    ]
+    ],
+    "damage": "5d10",
+    "damage_type": "psychic"
   },
   {
     "id": "gentle-repose",
@@ -2732,7 +2818,9 @@
     "description": "A Large spectral guardian appears and hovers for the duration in an unoccupied space of your choice that you can see within range. The guardian occupies that space and is indistinct except for a gleaming sword and shield emblazoned with the symbol of your deity. Any creature hostile to you that moves to a space within 10 feet of the guardian for the first time on a turn must succeed on a dexterity saving throw. The creature takes 20 radiant damage on a failed save, or half as much damage on a successful one. The guardian vanishes when it has dealt a total of 60 damage.",
     "base_class_ids": [
       "cleric"
-    ]
+    ],
+    "damage": "20",
+    "damage_type": "radiant"
   },
   {
     "id": "guards-and-wards",
@@ -2818,7 +2906,9 @@
     "description": "You unleash a virulent disease on a creature that you can see within range. The target must make a constitution saving throw. On a failed save, it takes 14d6 necrotic damage, or half as much damage on a successful save. The damage can't reduce the target's hit points below 1. If the target fails the saving throw, its hit point maximum is reduced for 1 hour by an amount equal to the necrotic damage it took. Any effect that removes a disease allows a creature's hit point maximum to return to normal before that time passes.",
     "base_class_ids": [
       "cleric"
-    ]
+    ],
+    "damage": "14d6",
+    "damage_type": "necrotic"
   },
   {
     "id": "haste",
@@ -2887,7 +2977,9 @@
     "base_class_ids": [
       "bard",
       "druid"
-    ]
+    ],
+    "damage": "2d8",
+    "damage_type": "fire"
   },
   {
     "id": "hellish-rebuke",
@@ -2903,7 +2995,9 @@
     "description": "You point your finger, and the creature that damaged you is momentarily surrounded by hellish flames. The creature must make a dexterity saving throw. It takes 2d10 fire damage on a failed save, or half as much damage on a successful one.",
     "base_class_ids": [
       "warlock"
-    ]
+    ],
+    "damage": "2d10",
+    "damage_type": "fire"
   },
   {
     "id": "heroes-feast",
@@ -3063,7 +3157,9 @@
       "druid",
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "2d8 + 4d6",
+    "damage_type": "bludgeoning"
   },
   {
     "id": "identify",
@@ -3132,7 +3228,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "10d8",
+    "damage_type": "fire"
   },
   {
     "id": "inflict-wounds",
@@ -3148,7 +3246,9 @@
     "description": "Make a melee spell attack against a creature you can reach. On a hit, the target takes 3d10 necrotic damage.",
     "base_class_ids": [
       "cleric"
-    ]
+    ],
+    "damage": "3d10",
+    "damage_type": "necrotic"
   },
   {
     "id": "insect-plague",
@@ -3166,7 +3266,9 @@
       "cleric",
       "druid",
       "sorcerer"
-    ]
+    ],
+    "damage": "4d10",
+    "damage_type": "piercing"
   },
   {
     "id": "instant-summons",
@@ -3478,7 +3580,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "3d4 + 3",
+    "damage_type": "force"
   },
   {
     "id": "magic-mouth",
@@ -3649,7 +3753,9 @@
     "description": "You step into a stone object or surface large enough to fully contain your body, melding yourself and all the equipment you carry with the stone for the duration. Using your movement, you step into the stone at a point you can touch. Nothing of your presence remains visible or otherwise detectable by nonmagical senses. While merged with the stone, you can't see what occurs outside it, and any Wisdom (Perception) checks you make to hear sounds outside it are made with disadvantage. You remain aware of the passage of time and can cast spells on yourself while merged in the stone. You can use your movement to leave the stone where you entered it, which ends the spell. You otherwise can't move. Minor physical damage to the stone doesn't harm you, but its partial destruction or a change in its shape (to the extent that you no longer fit within it) expels you and deals 6d6 bludgeoning damage to you. The stone's complete destruction (or transmutation into a different substance) expels you and deals 50 bludgeoning damage to you. If expelled, you fall prone in an unoccupied space closest to where you first entered.",
     "base_class_ids": [
       "cleric"
-    ]
+    ],
+    "damage": "6d6",
+    "damage_type": "bludgeoning"
   },
   {
     "id": "mending",
@@ -3704,7 +3810,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "20d6 + 20d6",
+    "damage_type": "fire"
   },
   {
     "id": "mind-blank",
@@ -3879,7 +3987,9 @@
     "description": "A silvery beam of pale light shines down in a 5-foot radius, 40-foot-high cylinder centered on a point within range. Until the spell ends, dim light fills the cylinder. When a creature enters the spell's area for the first time on a turn or starts its turn there, it is engulfed in ghostly flames that cause searing pain, and it must make a constitution saving throw. It takes 2d10 radiant damage on a failed save, or half as much damage on a successful one. A shapechanger makes its saving throw with disadvantage. If it fails, it also instantly reverts to its original form and can't assume a different form until it leaves the spell's light. On each of your turns after you cast this spell, you can use an action to move the beam 60 feet in any direction.",
     "base_class_ids": [
       "druid"
-    ]
+    ],
+    "damage": "2d10",
+    "damage_type": "radiant"
   },
   {
     "id": "move-earth",
@@ -3964,7 +4074,9 @@
     "description": "You tap into the nightmares of a creature you can see within range and create an illusory manifestation of its deepest fears, visible only to that creature. The target must make a wisdom saving throw. On a failed save, the target becomes frightened for the duration. At the start of each of the target's turns before the spell ends, the target must succeed on a wisdom saving throw or take 4d10 psychic damage. On a successful save, the spell ends.",
     "base_class_ids": [
       "wizard"
-    ]
+    ],
+    "damage": "4d10",
+    "damage_type": "psychic"
   },
   {
     "id": "phantom-steed",
@@ -4090,7 +4202,9 @@
       "warlock",
       "wizard",
       "druid"
-    ]
+    ],
+    "damage": "1d12",
+    "damage_type": "poison"
   },
   {
     "id": "polymorph",
@@ -4164,7 +4278,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "10d6",
+    "damage_type": "fire"
   },
   {
     "id": "prismatic-wall",
@@ -4180,7 +4296,9 @@
     "description": "A shimmering, multicolored plane of light forms a vertical opaque wall--up to 90 feet long, 30 feet high, and 1 inch thick--centered on a point you can see within range. Alternatively, you can shape the wall into a sphere up to 30 feet in diameter centered on a point you choose within range. The wall remains in place for the duration. If you position the wall so that it passes through a space occupied by a creature, the spell fails, and your action and the spell slot are wasted. The wall sheds bright light out to a range of 100 feet and dim light for an additional 100 feet. You and creatures you designate at the time you cast the spell can pass through and remain near the wall without harm. If another creature that can see the wall moves to within 20 feet of it or starts its turn there, the creature must succeed on a constitution saving throw or become blinded for 1 minute. The wall consists of seven layers, each with a different color. When a creature attempts to reach into or pass through the wall, it does so one layer at a time through all the wall's layers. As it passes or reaches through each layer, the creature must make a dexterity saving throw or be affected by that layer's properties as described below. The wall can be destroyed, also one layer at a time, in order from red to violet, by means specific to each layer. Once a layer is destroyed, it remains so for the duration of the spell. A rod of cancellation destroys a prismatic wall, but an antimagic field has no effect on it. ***1. Red.*** The creature takes 10d6 fire damage on a failed save, or half as much damage on a successful one. While this layer is in place, nonmagical ranged attacks can't pass through the wall. The layer can be destroyed by dealing at least 25 cold damage to it. ***2. Orange.*** The creature takes 10d6 acid damage on a failed save, or half as much damage on a successful one. While this layer is in place, magical ranged attacks can't pass through the wall. The layer is destroyed by a strong wind. ***3. Yellow.*** The creature takes 10d6 lightning damage on a failed save, or half as much damage on a successful one. This layer can be destroyed by dealing at least 60 force damage to it. ***4. Green.*** The creature takes 10d6 poison damage on a failed save, or half as much damage on a successful one. A passwall spell, or another spell of equal or greater level that can open a portal on a solid surface, destroys this layer. ***5. Blue.*** The creature takes 10d6 cold damage on a failed save, or half as much damage on a successful one. This layer can be destroyed by dealing at least 25 fire damage to it. ***6. Indigo.*** On a failed save, the creature is restrained. It must then make a constitution saving throw at the end of each of its turns. If it successfully saves three times, the spell ends. If it fails its save three times, it permanently turns to stone and is subjected to the petrified condition. The successes and failures don't need to be consecutive; keep track of both until the creature collects three of a kind. While this layer is in place, spells can't be cast through the wall. The layer is destroyed by bright light shed by a daylight spell or a similar spell of equal or higher level. ***7. Violet.*** On a failed save, the creature is blinded. It must then make a wisdom saving throw at the start of your next turn. A successful save ends the blindness. If it fails that save, the creature is transported to another plane of the GM's choosing and is no longer blinded. (Typically, a creature that is on a plane that isn't its home plane is banished home, while other creatures are usually cast into the Astral or Ethereal planes.) This layer is destroyed by a dispel magic spell or a similar spell of equal or higher level that can end spells and magical effects.",
     "base_class_ids": [
       "wizard"
-    ]
+    ],
+    "damage": "10d6",
+    "damage_type": "fire"
   },
   {
     "id": "private-sanctum",
@@ -4212,7 +4330,9 @@
     "description": "A flickering flame appears in your hand. The flame remains there for the duration and harms neither you nor your equipment. The flame sheds bright light in a 10-foot radius and dim light for an additional 10 feet. The spell ends if you dismiss it as an action or if you cast it again. You can also attack with the flame, although doing so ends the spell. When you cast this spell, or as an action on a later turn, you can hurl the flame at a creature within 30 feet of you. Make a ranged spell attack. On a hit, the target takes 1d8 fire damage. This spell's damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).",
     "base_class_ids": [
       "druid"
-    ]
+    ],
+    "damage": "1d8",
+    "damage_type": "fire"
   },
   {
     "id": "reincarnate",
@@ -4390,7 +4510,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "1d8",
+    "damage_type": "cold"
   },
   {
     "id": "regenerate",
@@ -4544,7 +4666,9 @@
     "description": "Flame-like radiance descends on a creature that you can see within range. The target must succeed on a dexterity saving throw or take 1d8 radiant damage. The target gains no benefit from cover for this saving throw. The spell's damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).",
     "base_class_ids": [
       "cleric"
-    ]
+    ],
+    "damage": "1d8",
+    "damage_type": "radiant"
   },
   {
     "id": "sanctuary",
@@ -4577,7 +4701,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "2d6",
+    "damage_type": "fire"
   },
   {
     "id": "scrying",
@@ -4719,7 +4845,9 @@
       "sorcerer",
       "warlock",
       "wizard"
-    ]
+    ],
+    "damage": "3d8",
+    "damage_type": "thunder"
   },
   {
     "id": "shield-of-faith",
@@ -4769,7 +4897,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "1d8",
+    "damage_type": "lightning"
   },
   {
     "id": "silent-image",
@@ -4926,7 +5056,9 @@
       "druid",
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "2d8",
+    "damage_type": "thunder"
   },
   {
     "id": "speak-with-plants",
@@ -4979,7 +5111,9 @@
     "base_class_ids": [
       "druid",
       "ranger"
-    ]
+    ],
+    "damage": "2d4",
+    "damage_type": "piercing"
   },
   {
     "id": "spirit-guardians",
@@ -4995,7 +5129,9 @@
     "description": "You call forth spirits to protect you. They flit around you to a distance of 15 feet for the duration. If you are good or neutral, their spectral form appears angelic or fey (your choice). If you are evil, they appear fiendish. When you cast this spell, you can designate any number of creatures you can see to be unaffected by it. An affected creature's speed is halved in the area, and when the creature enters the area for the first time on a turn or starts its turn there, it must make a wisdom saving throw. On a failed save, the creature takes 3d8 radiant damage (if you are good or neutral) or 3d8 necrotic damage (if you are evil). On a successful save, the creature takes half as much damage.",
     "base_class_ids": [
       "cleric"
-    ]
+    ],
+    "damage": "3d8",
+    "damage_type": "radiant"
   },
   {
     "id": "spiritual-weapon",
@@ -5011,7 +5147,9 @@
     "description": "You create a floating, spectral weapon within range that lasts for the duration or until you cast this spell again. When you cast the spell, you can make a melee spell attack against a creature within 5 feet of the weapon. On a hit, the target takes force damage equal to 1d8 + your spellcasting ability modifier. As a bonus action on your turn, you can move the weapon up to 20 feet and repeat the attack against a creature within 5 feet of it. The weapon can take whatever form you choose. Clerics of deities who are associated with a particular weapon (as St. Cuthbert is known for his mace and Thor for his hammer) make this spell's effect resemble that weapon.",
     "base_class_ids": [
       "cleric"
-    ]
+    ],
+    "damage": "1d8 + MOD",
+    "damage_type": "force"
   },
   {
     "id": "stinking-cloud",
@@ -5082,7 +5220,9 @@
     "description": "A churning storm cloud forms, centered on a point you can see and spreading to a radius of 360 feet. Lightning flashes in the area, thunder booms, and strong winds roar. Each creature under the cloud (no more than 5,000 feet beneath the cloud) when it appears must make a constitution saving throw. On a failed save, a creature takes 2d6 thunder damage and becomes deafened for 5 minutes. Each round you maintain concentration on this spell, the storm produces additional effects on your turn. ***Round 2.*** Acidic rain falls from the cloud. Each creature and object under the cloud takes 1d6 acid damage. ***Round 3.*** You call six bolts of lightning from the cloud to strike six creatures or objects of your choice beneath the cloud. A given creature or object can't be struck by more than one bolt. A struck creature must make a dexterity saving throw. The creature takes 10d6 lightning damage on a failed save, or half as much damage on a successful one. ***Round 4.*** Hailstones rain down from the cloud. Each creature under the cloud takes 2d6 bludgeoning damage. ***Round 5-10.*** Gusts and freezing rain assail the area under the cloud. The area becomes difficult terrain and is heavily obscured. Each creature there takes 1d6 cold damage. Ranged weapon attacks in the area are impossible. The wind and rain count as a severe distraction for the purposes of maintaining concentration on spells. Finally, gusts of strong wind (ranging from 20 to 50 miles per hour) automatically disperse fog, mists, and similar phenomena in the area, whether mundane or magical.",
     "base_class_ids": [
       "druid"
-    ]
+    ],
+    "damage": "2d6",
+    "damage_type": "thunder"
   },
   {
     "id": "water-breathing",
@@ -5138,7 +5278,9 @@
       "druid",
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "6d8",
+    "damage_type": "radiant"
   },
   {
     "id": "sunburst",
@@ -5156,7 +5298,9 @@
       "druid",
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "12d6",
+    "damage_type": "radiant"
   },
   {
     "id": "symbol",
@@ -5225,7 +5369,9 @@
       "bard",
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "3d10",
+    "damage_type": "force"
   },
   {
     "id": "teleportation-circle",
@@ -5455,7 +5601,9 @@
     "base_class_ids": [
       "warlock",
       "wizard"
-    ]
+    ],
+    "damage": "3d6",
+    "damage_type": "necrotic"
   },
   {
     "id": "vicious-mockery",
@@ -5471,7 +5619,9 @@
     "description": "You unleash a string of insults laced with subtle enchantments at a creature you can see within range. If the target can hear you (though it need not understand you), it must succeed on a wisdom saving throw or take 1d4 psychic damage and have disadvantage on the next attack roll it makes before the end of its next turn. This spell's damage increases by 1d4 when you reach 5th level (2d4), 11th level (3d4), and 17th level (4d4).",
     "base_class_ids": [
       "bard"
-    ]
+    ],
+    "damage": "1d4",
+    "damage_type": "psychic"
   },
   {
     "id": "wall-of-fire",
@@ -5489,7 +5639,9 @@
       "druid",
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "5d8",
+    "damage_type": "fire"
   },
   {
     "id": "wall-of-force",
@@ -5521,7 +5673,9 @@
     "description": "You create a wall of ice on a solid surface within range. You can form it into a hemispherical dome or a sphere with a radius of up to 10 feet, or you can shape a flat surface made up of ten 10-foot-square panels. Each panel must be contiguous with another panel. In any form, the wall is 1 foot thick and lasts for the duration. If the wall cuts through a creature's space when it appears, the creature within its area is pushed to one side of the wall and must make a dexterity saving throw. On a failed save, the creature takes 10d6 cold damage, or half as much damage on a successful save. The wall is an object that can be damaged and thus breached. It has AC 12 and 30 hit points per 10-foot section, and it is vulnerable to fire damage. Reducing a 10-foot section of wall to 0 hit points destroys it and leaves behind a sheet of frigid air in the space the wall occupied. A creature moving through the sheet of frigid air for the first time on a turn must make a constitution saving throw. That creature takes 5d6 cold damage on a failed save, or half as much damage on a successful one.",
     "base_class_ids": [
       "wizard"
-    ]
+    ],
+    "damage": "10d6",
+    "damage_type": "cold"
   },
   {
     "id": "wall-of-stone",
@@ -5555,7 +5709,9 @@
     "description": "You create a wall of tough, pliable, tangled brush bristling with needle-sharp thorns. The wall appears within range on a solid surface and lasts for the duration. You choose to make the wall up to 60 feet long, 10 feet high, and 5 feet thick or a circle that has a 20-foot diameter and is up to 20 feet high and 5 feet thick. The wall blocks line of sight. When the wall appears, each creature within its area must make a dexterity saving throw. On a failed save, a creature takes 7d8 piercing damage, or half as much damage on a successful save. A creature can move through the wall, albeit slowly and painfully. For every 1 foot a creature moves through the wall, it must spend 4 feet of movement. Furthermore, the first time a creature enters the wall on a turn or ends its turn there, the creature must make a dexterity saving throw. It takes 7d8 slashing damage on a failed save, or half as much damage on a successful one.",
     "base_class_ids": [
       "druid"
-    ]
+    ],
+    "damage": "7d8",
+    "damage_type": "piercing"
   },
   {
     "id": "warding-bond",
@@ -5607,7 +5763,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "2d4",
+    "damage_type": "fire"
   },
   {
     "id": "weird",
@@ -5623,7 +5781,9 @@
     "description": "Drawing on the deepest fears of a group of creatures, you create illusory creatures in their minds, visible only to them. Each creature in a 30-foot-radius sphere centered on a point of your choice within range must make a wisdom saving throw. On a failed save, a creature becomes frightened for the duration. The illusion calls on the creature's deepest fears, manifesting its worst nightmares as an implacable threat. At the start of each of the frightened creature's turns, it must succeed on a wisdom saving throw or take 4d10 psychic damage. On a successful save, the spell ends for that creature.",
     "base_class_ids": [
       "wizard"
-    ]
+    ],
+    "damage": "4d10",
+    "damage_type": "psychic"
   },
   {
     "id": "wind-walk",
@@ -5656,7 +5816,9 @@
     "base_class_ids": [
       "druid",
       "ranger"
-    ]
+    ],
+    "damage": "3d8",
+    "damage_type": "bludgeoning"
   },
   {
     "id": "wish",
@@ -5673,7 +5835,9 @@
     "base_class_ids": [
       "sorcerer",
       "wizard"
-    ]
+    ],
+    "damage": "1d10",
+    "damage_type": "necrotic"
   },
   {
     "id": "word-of-recall",

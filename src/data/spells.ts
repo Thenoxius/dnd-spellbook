@@ -16,6 +16,8 @@ export interface DndSpell {
   ritual: boolean;
   description: string;
   baseClassIds: string[];
+  damage?: string; // e.g., "3d6 fire", "8d6 necrotic", "2d10 force"
+  damageType?: string; // e.g., "fire", "necrotic", "force", "acid"
 }
 
 // Convert JSON data to TypeScript format
@@ -32,6 +34,8 @@ export const dndSpells: DndSpell[] = spellsData.map(spell => ({
   ritual: spell.ritual,
   description: spell.description,
   baseClassIds: typeof spell.base_class_ids === 'string' ? JSON.parse(spell.base_class_ids) : spell.base_class_ids,
+  damage: (spell as any).damage,
+  damageType: (spell as any).damage_type,
 }));
 
 export function getSpellById(id: string): DndSpell | undefined {
