@@ -118,6 +118,7 @@ export interface Character {
   prepared_spells: string[];
   currency: Currency;
   inventory: InventoryItem[];
+  ability_uses: Record<string, number>;
   created_at: string;
   updated_at: string;
 }

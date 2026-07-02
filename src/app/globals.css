@@ -4,60 +4,203 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Theme Custom Properties */
+/* ==========================================================================
+   Spellbook theme system
+   Each theme sets the palette vars; --page-bg layers a parchment/leather
+   noise texture and vignette over the base gradient so every page feels
+   like the cover or pages of a tome. --slot-glow drives the magical pulse
+   on unused spell slots.
+   ========================================================================== */
+
 :root {
-  /* Default theme: Shadow Fiend */
-  --bg-from: #1e1b4b;
-  --bg-to: #581c87;
-  --card-bg: rgba(30, 27, 75, 0.5);
-  --accent-primary: #9333ea;
-  --border-color: #4c1d95;
-  --text-highlight: #a855f7;
+  /* Shared texture: SVG fractal noise, tiled. Reads as paper fibers on light
+     themes and worn leather grain on dark ones. */
+  --paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+
+  /* Default theme: Arcane Tome (aged parchment) */
+  --bg-from: #ead9b5;
+  --bg-to: #d3bc8d;
+  --card-bg: rgba(250, 241, 218, 0.65);
+  --accent-primary: #7c3aed;
+  --border-color: #b59e73;
+  --text-highlight: #6d28d9;
+  --slot-glow: #8b5cf6;
+  --slot-used-bg: #c9b58f;
+  --page-bg: radial-gradient(ellipse at 50% 0%, rgba(255, 250, 235, 0.55), transparent 60%),
+    var(--paper-noise),
+    radial-gradient(ellipse at 50% 120%, rgba(90, 62, 20, 0.35), transparent 65%),
+    linear-gradient(to bottom right, var(--bg-from), var(--bg-to));
+}
+
+[data-theme="arcane-tome"] {
+  --bg-from: #ead9b5;
+  --bg-to: #d3bc8d;
+  --card-bg: rgba(250, 241, 218, 0.65);
+  --accent-primary: #7c3aed;
+  --border-color: #b59e73;
+  --text-highlight: #6d28d9;
+  --slot-glow: #8b5cf6;
+  --slot-used-bg: #c9b58f;
+  --page-bg: radial-gradient(ellipse at 50% 0%, rgba(255, 250, 235, 0.55), transparent 60%),
+    var(--paper-noise),
+    radial-gradient(ellipse at 50% 120%, rgba(90, 62, 20, 0.35), transparent 65%),
+    linear-gradient(to bottom right, var(--bg-from), var(--bg-to));
 }
 
 [data-theme="shadow-fiend"] {
   --bg-from: #1e1b4b;
   --bg-to: #581c87;
-  --card-bg: rgba(30, 27, 75, 0.5);
+  --card-bg: rgba(30, 27, 75, 0.55);
   --accent-primary: #9333ea;
   --border-color: #4c1d95;
   --text-highlight: #a855f7;
+  --slot-glow: #c084fc;
+  --slot-used-bg: #3f3358;
+  --page-bg: var(--paper-noise),
+    radial-gradient(ellipse at 50% -20%, rgba(147, 51, 234, 0.25), transparent 55%),
+    radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, 0.5), transparent 65%),
+    linear-gradient(to bottom right, var(--bg-from), var(--bg-to));
 }
 
 [data-theme="royal-oath"] {
   --bg-from: #0f172a;
   --bg-to: #1e3a5f;
-  --card-bg: rgba(15, 23, 42, 0.5);
+  --card-bg: rgba(15, 23, 42, 0.55);
   --accent-primary: #fbbf24;
   --border-color: #1e40af;
   --text-highlight: #fcd34d;
+  --slot-glow: #fcd34d;
+  --slot-used-bg: #2c3a52;
+  --page-bg: var(--paper-noise),
+    radial-gradient(ellipse at 50% -20%, rgba(251, 191, 36, 0.14), transparent 55%),
+    radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, 0.5), transparent 65%),
+    linear-gradient(to bottom right, var(--bg-from), var(--bg-to));
 }
 
 [data-theme="wildwood-sentry"] {
   --bg-from: #14532d;
   --bg-to: #166534;
-  --card-bg: rgba(20, 83, 45, 0.5);
+  --card-bg: rgba(20, 83, 45, 0.55);
   --accent-primary: #22c55e;
   --border-color: #15803d;
   --text-highlight: #4ade80;
+  --slot-glow: #4ade80;
+  --slot-used-bg: #2a4a35;
+  --page-bg: var(--paper-noise),
+    radial-gradient(ellipse at 50% -20%, rgba(74, 222, 128, 0.16), transparent 55%),
+    radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, 0.5), transparent 65%),
+    linear-gradient(to bottom right, var(--bg-from), var(--bg-to));
 }
 
 [data-theme="crimson-pact"] {
   --bg-from: #450a0a;
   --bg-to: #7f1d1d;
-  --card-bg: rgba(69, 10, 10, 0.5);
+  --card-bg: rgba(69, 10, 10, 0.55);
   --accent-primary: #dc2626;
   --border-color: #991b1b;
   --text-highlight: #f87171;
+  --slot-glow: #fb923c;
+  --slot-used-bg: #4a2828;
+  --page-bg: var(--paper-noise),
+    radial-gradient(ellipse at 50% -20%, rgba(251, 146, 60, 0.16), transparent 55%),
+    radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, 0.6), transparent 65%),
+    linear-gradient(to bottom right, var(--bg-from), var(--bg-to));
 }
 
 [data-theme="arcane-sanctum"] {
   --bg-from: #0f172a;
   --bg-to: #0e7490;
-  --card-bg: rgba(15, 23, 42, 0.5);
+  --card-bg: rgba(15, 23, 42, 0.55);
   --accent-primary: #06b6d4;
   --border-color: #0891b2;
   --text-highlight: #22d3ee;
+  --slot-glow: #22d3ee;
+  --slot-used-bg: #23404d;
+  --page-bg: var(--paper-noise),
+    radial-gradient(ellipse at 50% -20%, rgba(34, 211, 238, 0.16), transparent 55%),
+    radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, 0.5), transparent 65%),
+    linear-gradient(to bottom right, var(--bg-from), var(--bg-to));
+}
+
+/* --------------------------------------------------------------------------
+   Parchment (light theme) readability overrides.
+   The app's markup hardcodes dark-mode utility classes (text-white,
+   bg-slate-*); rather than rewrite every component, remap them to ink
+   tones when the light parchment theme is active. These rules are
+   unlayered so they win over Tailwind's layered utilities.
+   -------------------------------------------------------------------------- */
+
+[data-theme="arcane-tome"] .text-white { color: #3b2a17; }
+[data-theme="arcane-tome"] .text-slate-300 { color: #52402a; }
+[data-theme="arcane-tome"] .text-slate-400 { color: #6d5a3e; }
+[data-theme="arcane-tome"] .text-slate-500 { color: #7d6a4c; }
+[data-theme="arcane-tome"] .bg-slate-900\/50 { background-color: rgba(214, 195, 156, 0.5); }
+[data-theme="arcane-tome"] .hover\:bg-slate-900\/70:hover { background-color: rgba(205, 184, 141, 0.7); }
+[data-theme="arcane-tome"] .bg-slate-800\/50 { background-color: rgba(236, 222, 190, 0.6); }
+[data-theme="arcane-tome"] .bg-slate-800\/30 { background-color: rgba(236, 222, 190, 0.4); }
+[data-theme="arcane-tome"] .hover\:bg-slate-800\/70:hover { background-color: rgba(226, 209, 172, 0.7); }
+[data-theme="arcane-tome"] .bg-slate-700 { background-color: #d9c8a4; }
+[data-theme="arcane-tome"] .bg-slate-700\/50 { background-color: rgba(217, 200, 164, 0.5); }
+[data-theme="arcane-tome"] .hover\:bg-slate-700\/50:hover { background-color: rgba(210, 191, 151, 0.6); }
+[data-theme="arcane-tome"] .border-slate-700 { border-color: #b59e73; }
+[data-theme="arcane-tome"] .border-slate-600 { border-color: #a8905f; }
+[data-theme="arcane-tome"] .bg-slate-800 { background-color: #e6d7b4; }
+[data-theme="arcane-tome"] .bg-slate-900 { background-color: #dccaa2; }
+
+/* --------------------------------------------------------------------------
+   Spell slots: unused slots radiate magic; used slots are spent ink.
+   -------------------------------------------------------------------------- */
+
+.spell-slot {
+  border-width: 2px;
+  border-radius: 9999px;
+  transition: background-color 0.3s, border-color 0.3s, opacity 0.3s;
+}
+
+.spell-slot-available {
+  background: radial-gradient(
+    circle at 35% 30%,
+    color-mix(in srgb, var(--slot-glow) 35%, white),
+    var(--accent-primary) 70%
+  );
+  border-color: color-mix(in srgb, var(--slot-glow) 70%, white);
+  animation: slot-pulse 2.4s ease-in-out infinite;
+}
+
+.spell-slot-used {
+  background-color: var(--slot-used-bg);
+  border-color: color-mix(in srgb, var(--slot-used-bg) 60%, var(--border-color));
+  opacity: 0.65;
+}
+
+@keyframes slot-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 3px color-mix(in srgb, var(--slot-glow) 80%, transparent),
+      0 0 10px color-mix(in srgb, var(--slot-glow) 40%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 6px var(--slot-glow),
+      0 0 22px color-mix(in srgb, var(--slot-glow) 60%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spell-slot-available {
+    animation: none;
+    box-shadow: 0 0 8px color-mix(in srgb, var(--slot-glow) 50%, transparent);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Spellbook typography: engraved serif for headings and card titles.
+   -------------------------------------------------------------------------- */
+
+h1, h2, h3, h4,
+[data-slot="card-title"] {
+  font-family: var(--font-cinzel), Georgia, serif;
+  letter-spacing: 0.02em;
 }
 
 @theme inline {

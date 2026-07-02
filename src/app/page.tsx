@@ -107,7 +107,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen p-4 md:p-8" style={{ background: 'linear-gradient(to bottom right, var(--bg-from), var(--bg-to))' }}>
+    <div className="min-h-screen p-4 md:p-8" style={{ background: 'var(--page-bg)' }}>
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4">
           <h1 className="text-2xl md:text-4xl font-bold text-white">D&D Spellbook</h1>

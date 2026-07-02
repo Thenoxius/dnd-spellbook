@@ -120,7 +120,7 @@ export default function SpellLibraryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div style={{ background: 'var(--page-bg)' }} className="min-h-screen flex items-center justify-center">
         <div className="text-white">Loading spell library...</div>
       </div>
     );
@@ -128,7 +128,7 @@ export default function SpellLibraryPage() {
 
   if (!character) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div style={{ background: 'var(--page-bg)' }} className="min-h-screen flex items-center justify-center">
         <div className="text-white">Character not found</div>
       </div>
     );
@@ -138,7 +138,7 @@ export default function SpellLibraryPage() {
   const preparedCount = character.prepared_spells.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div style={{ background: 'var(--page-bg)' }} className="min-h-screen">
       <div className="max-w-4xl mx-auto p-4 md:p-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">

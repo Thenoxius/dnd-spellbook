@@ -9,6 +9,7 @@ import { dndClasses, getClassProgression } from '@/data/classes';
 import { dndFeatures, getFeaturesByLevel } from '@/data/features';
 import { dndSpells, getSpellById } from '@/data/spells';
 import { dndSubclasses, getSubclassById } from '@/data/subclasses';
+import { getClassAbilities } from '@/data/classAbilities';
 import { dndRaces, getRaceById } from '@/data/races';
 import { dndSubraces, getSubraceById } from '@/data/subraces';
 import { dndBackgrounds, getBackgroundById } from '@/data/backgrounds';
@@ -158,6 +159,59 @@ export default function CharacterPage() {
     showToast(`Spell slot ${level} updated`, 'success');
   };
 
+  const abilityMods = character
+    ? {
+        str: calculateModifier(character.str),
+        dex: calculateModifier(character.dex),
+        con: calculateModifier(character.con),
+        int: calculateModifier(character.int),
+        wis: calculateModifier(character.wis),
+        cha: calculateModifier(character.cha),
+      }
+    : { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 };
+  const classAbilities = character
+    ? getClassAbilities(character.class_id, character.level, abilityMods)
+    : [];
+
+  const handleAbilityUseChange = async (abilityId: string, used: number, max: number) => {
+    if (!character) return;
+    const clamped = Math.max(0, Math.min(max, used));
+    const abilityUses = { ...(character.ability_uses || {}), [abilityId]: clamped };
+    await updateCharacter({ ability_uses: abilityUses });
+  };
+
+  const handleRest = async (type: 'short' | 'long') => {
+    if (!character) return;
+    const abilityUses = { ...(character.ability_uses || {}) };
+    for (const ability of classAbilities) {
+      if (type === 'long' || ability.recharge === 'short') {
+        abilityUses[ability.id] = 0;
+      }
+    }
+    const updates: Partial<Character> = { ability_uses: abilityUses };
+
+    // Long rest restores HP and spell slots; Warlock pact slots also return on a short rest.
+    if (type === 'long' || character.class_id === 'warlock') {
+      const spellSlots = { ...character.spell_slots };
+      for (const level of Object.keys(spellSlots)) {
+        spellSlots[Number(level)] = { ...spellSlots[Number(level)], used: 0 };
+      }
+      updates.spell_slots = spellSlots;
+    }
+    if (type === 'long') {
+      updates.hp_current = character.hp_max;
+      updates.temp_hp = 0;
+    }
+
+    await updateCharacter(updates);
+    showToast(
+      type === 'long'
+        ? 'Long rest complete: HP, spell slots, and abilities restored'
+        : 'Short rest complete: abilities recharged',
+      'success'
+    );
+  };
+
   // Calculate spellcasting ability modifier and save DC
   const getSpellcastingAbility = () => {
     if (!character) return 'CHA';
@@ -211,7 +265,7 @@ export default function CharacterPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div style={{ background: 'var(--page-bg)' }} className="min-h-screen flex items-center justify-center">
         <div className="text-white">Loading character...</div>
       </div>
     );
@@ -219,7 +273,7 @@ export default function CharacterPage() {
 
   if (!character) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div style={{ background: 'var(--page-bg)' }} className="min-h-screen flex items-center justify-center">
         <div className="text-white">Character not found</div>
       </div>
     );
@@ -230,7 +284,7 @@ export default function CharacterPage() {
   const spellSlotsByLevel = getSpellSlotsByLevel();
 
   return (
-    <div className="min-h-screen" style={{ background: `linear-gradient(to bottom right, var(--bg-from), var(--bg-to))` }}>
+    <div className="min-h-screen" style={{ background: 'var(--page-bg)' }}>
       <div className="max-w-7xl mx-auto p-4 md:p-8">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
@@ -292,7 +346,28 @@ export default function CharacterPage() {
             {/* HP Tracker */}
             <Card className="bg-slate-800/50 border-slate-700" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)' }}>
               <CardHeader>
-                <CardTitle className="text-white">Hit Points</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-white">Hit Points</CardTitle>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRest('short')}
+                      className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 text-xs"
+                    >
+                      Short Rest
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRest('long')}
+                      className="text-white text-xs hover:opacity-80"
+                      style={{ backgroundColor: 'var(--accent-primary)', borderColor: 'var(--accent-primary)' }}
+                    >
+                      Long Rest
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-center gap-1 md:gap-2">
@@ -392,11 +467,8 @@ export default function CharacterPage() {
                               key={i}
                               onClick={() => handleSpellSlotToggle(parseInt(level), i)}
                               disabled={togglingSlot === `${level}-${i}`}
-                              className="w-6 h-6 md:w-8 md:h-8 rounded-full border-2 transition-colors relative"
-                              style={{
-                                backgroundColor: i < slot.used ? '#475569' : 'var(--accent-primary)',
-                                borderColor: i < slot.used ? '#64748b' : 'var(--accent-primary)',
-                              }}
+                              className={`spell-slot w-6 h-6 md:w-8 md:h-8 relative ${i < slot.used ? 'spell-slot-used' : 'spell-slot-available'}`}
+                              style={{ animationDelay: `${i * 200}ms` }}
                             >
                               {togglingSlot === `${level}-${i}` && (
                                 <div className="absolute inset-0 flex items-center justify-center">
@@ -410,6 +482,82 @@ export default function CharacterPage() {
                       </div>
                     ))}
                   </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Class Abilities (limited-use) */}
+            {classAbilities.length > 0 && (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white">Class Abilities</CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Limited-use abilities — tap to spend, rest to recharge
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5">
+                  {classAbilities.map((ability) => {
+                    const used = character.ability_uses?.[ability.id] ?? 0;
+                    const remaining = ability.maxUses - used;
+                    return (
+                      <div key={ability.id}>
+                        <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
+                          <div className="flex items-center gap-2">
+                            <span className="text-white font-medium">{ability.name}</span>
+                            {ability.linkedStat && (
+                              <Badge variant="outline" className="bg-purple-900/50 border-purple-700 text-purple-300 text-xs">
+                                {ability.linkedStat.toUpperCase()} linked
+                              </Badge>
+                            )}
+                          </div>
+                          <Badge variant="outline" className="bg-slate-700 border-slate-600 text-slate-300 text-xs">
+                            {ability.recharge === 'short' ? 'Short Rest' : 'Long Rest'}
+                          </Badge>
+                        </div>
+                        {ability.maxUses <= 10 ? (
+                          <div className="flex gap-1.5 md:gap-2 flex-wrap items-center">
+                            {Array.from({ length: ability.maxUses }).map((_, i) => (
+                              <button
+                                key={i}
+                                onClick={() =>
+                                  handleAbilityUseChange(ability.id, i < used ? used - 1 : used + 1, ability.maxUses)
+                                }
+                                className={`spell-slot w-5 h-5 md:w-6 md:h-6 ${i < used ? 'spell-slot-used' : 'spell-slot-available'}`}
+                                style={{ animationDelay: `${i * 200}ms` }}
+                              />
+                            ))}
+                            <span className="text-xs text-slate-400 ml-2">{remaining}/{ability.maxUses}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-3">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleAbilityUseChange(ability.id, used + 1, ability.maxUses)}
+                              disabled={remaining <= 0}
+                              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                            >
+                              <Minus className="h-4 w-4" />
+                            </Button>
+                            <div className="text-center min-w-[70px]">
+                              <span className="text-xl font-bold" style={{ color: 'var(--text-highlight)' }}>{remaining}</span>
+                              <span className="text-slate-400 text-sm"> / {ability.maxUses}</span>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleAbilityUseChange(ability.id, used - 1, ability.maxUses)}
+                              disabled={used <= 0}
+                              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                        <p className="text-slate-400 text-sm mt-2">{ability.description}</p>
+                      </div>
+                    );
+                  })}
                 </CardContent>
               </Card>
             )}
@@ -537,11 +685,8 @@ export default function CharacterPage() {
                               key={i}
                               onClick={() => handleSpellSlotToggle(parseInt(level), i)}
                               disabled={togglingSlot === `${level}-${i}`}
-                              className="w-6 h-6 md:w-8 md:h-8 rounded-full border-2 transition-colors relative"
-                              style={{
-                                backgroundColor: i < slot.used ? '#475569' : 'var(--accent-primary)',
-                                borderColor: i < slot.used ? '#64748b' : 'var(--accent-primary)',
-                              }}
+                              className={`spell-slot w-6 h-6 md:w-8 md:h-8 relative ${i < slot.used ? 'spell-slot-used' : 'spell-slot-available'}`}
+                              style={{ animationDelay: `${i * 200}ms` }}
                             >
                               {togglingSlot === `${level}-${i}` && (
                                 <div className="absolute inset-0 flex items-center justify-center">
@@ -883,11 +1028,12 @@ export default function CharacterPage() {
               <CardContent>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
                   {[
-                    { id: 'shadow-fiend', name: 'Shadow Fiend', from: '#1e1b4b', to: '#581c87', accent: '#9333ea' },
-                    { id: 'royal-oath', name: 'Royal Oath', from: '#0f172a', to: '#1e3a5f', accent: '#fbbf24' },
-                    { id: 'wildwood-sentry', name: 'Wildwood Sentry', from: '#14532d', to: '#166534', accent: '#22c55e' },
-                    { id: 'crimson-pact', name: 'Crimson Pact', from: '#450a0a', to: '#7f1d1d', accent: '#dc2626' },
-                    { id: 'arcane-sanctum', name: 'Arcane Sanctum', from: '#0f172a', to: '#0e7490', accent: '#06b6d4' },
+                    { id: 'arcane-tome', name: 'Arcane Tome', from: '#ead9b5', to: '#d3bc8d', accent: '#7c3aed', ink: '#3b2a17' },
+                    { id: 'shadow-fiend', name: 'Shadow Codex', from: '#1e1b4b', to: '#581c87', accent: '#9333ea', ink: '#ffffff' },
+                    { id: 'royal-oath', name: 'Celestial Oath', from: '#0f172a', to: '#1e3a5f', accent: '#fbbf24', ink: '#ffffff' },
+                    { id: 'wildwood-sentry', name: 'Wildwood Grimoire', from: '#14532d', to: '#166534', accent: '#22c55e', ink: '#ffffff' },
+                    { id: 'crimson-pact', name: 'Infernal Pact', from: '#450a0a', to: '#7f1d1d', accent: '#dc2626', ink: '#ffffff' },
+                    { id: 'arcane-sanctum', name: 'Arcane Sanctum', from: '#0f172a', to: '#0e7490', accent: '#06b6d4', ink: '#ffffff' },
                   ].map((themeOption) => (
                     <div
                       key={themeOption.id}
@@ -921,11 +1067,11 @@ export default function CharacterPage() {
                         <div className="absolute inset-0 border-2 border-white/20 rounded-lg" />
                         <div className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: themeOption.accent }} />
                         <div className="absolute bottom-2 left-2 right-2">
-                          <div className="text-white text-xs font-serif">{themeOption.name}</div>
+                          <div className="text-xs font-serif" style={{ color: themeOption.ink }}>{themeOption.name}</div>
                         </div>
                         {theme === themeOption.id && (
                           <div className="absolute top-2 right-2">
-                            <Check className="h-4 w-4 text-white" />
+                            <Check className="h-4 w-4" style={{ color: themeOption.ink }} />
                           </div>
                         )}
                       </div>
