@@ -39,6 +39,7 @@ export default function CharacterPage() {
   const [editLevel, setEditLevel] = useState(0);
   const [editSecondaryClass, setEditSecondaryClass] = useState('');
   const [editSecondaryLevel, setEditSecondaryLevel] = useState(0);
+  const [rollInputs, setRollInputs] = useState<Record<string, string>>({});
   const [editMaxHP, setEditMaxHP] = useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmName, setDeleteConfirmName] = useState('');
@@ -189,12 +190,27 @@ export default function CharacterPage() {
     await updateCharacter({ ability_uses: abilityUses });
   };
 
+  const getStoredRolls = (abilityId: string): number[] => {
+    const rolls = character?.ability_uses?.[`${abilityId}_rolls`];
+    return Array.isArray(rolls) ? rolls : [];
+  };
+
+  const handleStoredRollsChange = async (abilityId: string, rolls: number[]) => {
+    if (!character) return;
+    const abilityUses = { ...(character.ability_uses || {}), [`${abilityId}_rolls`]: rolls };
+    await updateCharacter({ ability_uses: abilityUses });
+  };
+
   const handleRest = async (type: 'short' | 'long') => {
     if (!character) return;
     const abilityUses = { ...(character.ability_uses || {}) };
     for (const ability of classAbilities) {
       if (type === 'long' || ability.recharge === 'short') {
         abilityUses[ability.id] = 0;
+        // Banked die results (Portent) are discarded on recharge: new rest, new rolls
+        if (ability.storesRolls) {
+          abilityUses[`${ability.id}_rolls`] = [];
+        }
       }
     }
     const updates: Partial<Character> = { ability_uses: abilityUses };
@@ -520,8 +536,9 @@ export default function CharacterPage() {
                 </CardHeader>
                 <CardContent className="space-y-5">
                   {classAbilities.map((ability) => {
-                    const used = character.ability_uses?.[ability.id] ?? 0;
+                    const used = (character.ability_uses?.[ability.id] as number) ?? 0;
                     const remaining = ability.maxUses - used;
+                    const storedRolls = ability.storesRolls ? getStoredRolls(ability.id) : [];
                     return (
                       <div key={ability.id}>
                         <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
@@ -537,7 +554,64 @@ export default function CharacterPage() {
                             {ability.recharge === 'short' ? 'Short Rest' : 'Long Rest'}
                           </Badge>
                         </div>
-                        {ability.maxUses <= 10 ? (
+                        {ability.storesRolls ? (
+                          <div className="flex gap-2 flex-wrap items-center">
+                            {storedRolls.map((roll, i) => (
+                              <button
+                                key={i}
+                                onClick={() =>
+                                  handleStoredRollsChange(ability.id, storedRolls.filter((_, idx) => idx !== i))
+                                }
+                                title="Tap to spend this die"
+                                className="spell-slot spell-slot-available w-8 h-8 md:w-9 md:h-9 flex items-center justify-center"
+                                style={{ animationDelay: `${i * 200}ms` }}
+                              >
+                                <span
+                                  className="text-xs md:text-sm font-bold"
+                                  style={{ color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}
+                                >
+                                  {roll}
+                                </span>
+                              </button>
+                            ))}
+                            {storedRolls.length < ability.maxUses && (
+                              <div className="flex items-center gap-1.5">
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  max={20}
+                                  placeholder="d20"
+                                  value={rollInputs[ability.id] ?? ''}
+                                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                    setRollInputs(prev => ({ ...prev, [ability.id]: e.target.value }))
+                                  }
+                                  className="w-16 h-8 bg-slate-900/50 border-slate-700 text-white text-center"
+                                  aria-label={`Store a ${ability.name} roll`}
+                                />
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={(() => {
+                                    const v = parseInt(rollInputs[ability.id] ?? '');
+                                    return isNaN(v) || v < 1 || v > 20;
+                                  })()}
+                                  onClick={() => {
+                                    const v = parseInt(rollInputs[ability.id] ?? '');
+                                    if (isNaN(v) || v < 1 || v > 20) return;
+                                    handleStoredRollsChange(ability.id, [...storedRolls, v]);
+                                    setRollInputs(prev => ({ ...prev, [ability.id]: '' }));
+                                  }}
+                                  className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 h-8"
+                                >
+                                  Store
+                                </Button>
+                              </div>
+                            )}
+                            <span className="text-xs text-slate-400 ml-1">
+                              {storedRolls.length}/{ability.maxUses} stored
+                            </span>
+                          </div>
+                        ) : ability.maxUses <= 10 ? (
                           <div className="flex gap-1.5 md:gap-2 flex-wrap items-center">
                             {Array.from({ length: ability.maxUses }).map((_, i) => (
                               <button

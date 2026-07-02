@@ -120,7 +120,8 @@ export interface Character {
   prepared_spells: string[];
   currency: Currency;
   inventory: InventoryItem[];
-  ability_uses: Record<string, number>;
+  // Used counts per ability id; `${id}_rolls` keys bank entered die results (e.g. Portent d20s)
+  ability_uses: Record<string, number | number[]>;
   created_at: string;
   updated_at: string;
 }

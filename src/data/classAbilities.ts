@@ -26,6 +26,8 @@ export interface ClassAbilityDef {
   recharge: (level: number) => RechargeType;
   /** Which ability modifier the max uses derive from, if any (for the UI to show the link). */
   linkedStat?: keyof AbilityModifiers;
+  /** The ability banks specific die results (e.g. Portent d20s) that the player enters and spends individually. */
+  storesRolls?: boolean;
 }
 
 /** A class ability resolved for a specific character. */
@@ -36,6 +38,7 @@ export interface ResolvedClassAbility {
   maxUses: number;
   recharge: RechargeType;
   linkedStat?: keyof AbilityModifiers;
+  storesRolls?: boolean;
 }
 
 const short = () => 'short' as const;
@@ -176,10 +179,11 @@ const classAbilityDefs: ClassAbilityDef[] = [
     classId: 'wizard',
     subclassId: 'school_of_divination',
     name: 'Portent Dice',
-    description: 'Foretelling d20 rolls made after each long rest. Spend one to replace any attack roll, saving throw, or ability check made by a creature you can see.',
+    description: 'Roll your foretelling d20s after each long rest and store the results here. Spend one to replace any attack roll, saving throw, or ability check made by a creature you can see.',
     minLevel: 2,
     maxUses: (level) => (level >= 14 ? 3 : 2),
     recharge: long,
+    storesRolls: true,
   },
   {
     id: 'hexblades_curse',
@@ -214,6 +218,7 @@ export function getClassAbilities(
       maxUses: def.maxUses(level, mods),
       recharge: def.recharge(level),
       linkedStat: def.linkedStat,
+      storesRolls: def.storesRolls,
     }))
     .filter((ability) => ability.maxUses > 0);
 }
