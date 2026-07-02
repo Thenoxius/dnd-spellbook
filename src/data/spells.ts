@@ -18,6 +18,8 @@ export interface DndSpell {
   baseClassIds: string[];
   damage?: string; // e.g., "3d6 fire", "8d6 necrotic", "2d10 force"
   damageType?: string; // e.g., "fire", "necrotic", "force", "acid"
+  damageScaling?: Record<string, string>; // dice at each level, keyed by scalesWith
+  scalesWith?: 'character_level' | 'slot_level'; // cantrips scale with character level, leveled spells with slot level
 }
 
 // Convert JSON data to TypeScript format
@@ -36,6 +38,8 @@ export const dndSpells: DndSpell[] = spellsData.map(spell => ({
   baseClassIds: typeof spell.base_class_ids === 'string' ? JSON.parse(spell.base_class_ids) : spell.base_class_ids,
   damage: (spell as any).damage,
   damageType: (spell as any).damage_type,
+  damageScaling: (spell as any).damage_scaling,
+  scalesWith: (spell as any).scales_with,
 }));
 
 export function getSpellById(id: string): DndSpell | undefined {

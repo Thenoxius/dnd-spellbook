@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Character, Spell, Feature, SpellSlot, CharacterWithRelations } from '@/types/database';
-import { formatAbilityScore, calculateModifier, calculateSpellSlots, calculateProficiencyBonus, getDamageTypeBadgeClasses } from '@/lib/helpers';
+import { formatAbilityScore, calculateModifier, calculateSpellSlots, calculateProficiencyBonus, getDamageTypeBadgeClasses, getEffectiveSpellDamage, getSpellUpcastText } from '@/lib/helpers';
 import { dndClasses, getClassProgression } from '@/data/classes';
 import { dndFeatures, getFeaturesByLevel } from '@/data/features';
 import { dndSpells, getSpellById } from '@/data/spells';
@@ -610,7 +610,7 @@ export default function CharacterPage() {
                                       <div className="flex gap-2 flex-wrap">
                                         {spell.damage && (
                                           <Badge variant="outline" className={getDamageTypeBadgeClasses(spell.damageType)}>
-                                            {spell.damage} {spell.damageType}
+                                            {getEffectiveSpellDamage(spell, character.level)} {spell.damageType}
                                           </Badge>
                                         )}
                                         {spell.concentration && (
@@ -638,6 +638,11 @@ export default function CharacterPage() {
                                           </div>
                                         </div>
                                         <p className="text-slate-300 text-sm">{spell.description}</p>
+                                        {getSpellUpcastText(spell) && (
+                                          <p className="text-slate-400 text-sm mt-2 italic">
+                                            {getSpellUpcastText(spell)}
+                                          </p>
+                                        )}
                                       </div>
                                     )}
                                   </div>

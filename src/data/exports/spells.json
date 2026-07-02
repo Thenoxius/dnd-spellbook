@@ -16,7 +16,14 @@
       "wizard"
     ],
     "damage": "1d10",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "1": "1d10",
+      "5": "2d10",
+      "11": "3d10",
+      "17": "4d10"
+    },
+    "scales_with": "character_level"
   },
   {
     "id": "mage_hand",
@@ -53,7 +60,14 @@
       "cleric"
     ],
     "damage": "1d8",
-    "damage_type": "radiant"
+    "damage_type": "radiant",
+    "damage_scaling": {
+      "1": "1d8",
+      "5": "2d8",
+      "11": "3d8",
+      "17": "4d8"
+    },
+    "scales_with": "character_level"
   },
   {
     "id": "cure_wounds",
@@ -110,7 +124,19 @@
       "wizard"
     ],
     "damage": "3d4 + 3",
-    "damage_type": "force"
+    "damage_type": "force",
+    "damage_scaling": {
+      "1": "3d4 + 3",
+      "2": "4d4 + 4",
+      "3": "5d4 + 5",
+      "4": "6d4 + 6",
+      "5": "7d4 + 7",
+      "6": "8d4 + 8",
+      "7": "9d4 + 9",
+      "8": "10d4 + 10",
+      "9": "11d4 + 11"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "hold_person",
@@ -152,7 +178,17 @@
       "cleric"
     ],
     "damage": "8d6",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "3": "8d6",
+      "4": "9d6",
+      "5": "10d6",
+      "6": "11d6",
+      "7": "12d6",
+      "8": "13d6",
+      "9": "14d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "acid-arrow",
@@ -170,7 +206,18 @@
       "wizard"
     ],
     "damage": "4d4",
-    "damage_type": "acid"
+    "damage_type": "acid",
+    "damage_scaling": {
+      "2": "4d4",
+      "3": "5d4",
+      "4": "6d4",
+      "5": "7d4",
+      "6": "8d4",
+      "7": "9d4",
+      "8": "10d4",
+      "9": "11d4"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "acid-splash",
@@ -189,7 +236,14 @@
       "wizard"
     ],
     "damage": "1d6",
-    "damage_type": "acid"
+    "damage_type": "acid",
+    "damage_scaling": {
+      "1": "1d6",
+      "5": "2d6",
+      "11": "3d6",
+      "17": "4d6"
+    },
+    "scales_with": "character_level"
   },
   {
     "id": "aid",
@@ -277,7 +331,17 @@
       "wizard"
     ],
     "damage": "8d6",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "3": "8d6",
+      "4": "9d6",
+      "5": "10d6",
+      "6": "11d6",
+      "7": "12d6",
+      "8": "13d6",
+      "9": "14d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "shield",
@@ -448,7 +512,11 @@
       "wizard"
     ],
     "damage": "4d8",
-    "damage_type": "force"
+    "damage_type": "force",
+    "damage_scaling": {
+      "5": "4d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "arcane-lock",
@@ -483,7 +551,11 @@
       "wizard"
     ],
     "damage": "3d10",
-    "damage_type": "force"
+    "damage_type": "force",
+    "damage_scaling": {
+      "7": "3d10"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "arcanists-magic-aura",
@@ -657,7 +729,11 @@
       "wizard"
     ],
     "damage": "1d8",
-    "damage_type": "necrotic"
+    "damage_type": "necrotic",
+    "damage_scaling": {
+      "3": "1d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "black-tentacles",
@@ -675,7 +751,11 @@
       "wizard"
     ],
     "damage": "3d6",
-    "damage_type": "bludgeoning"
+    "damage_type": "bludgeoning",
+    "damage_scaling": {
+      "4": "3d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "blade-barrier",
@@ -693,7 +773,11 @@
       "cleric"
     ],
     "damage": "6d10",
-    "damage_type": "slashing"
+    "damage_type": "slashing",
+    "damage_scaling": {
+      "6": "6d10"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "bless",
@@ -731,7 +815,16 @@
       "wizard"
     ],
     "damage": "8d8",
-    "damage_type": "necrotic"
+    "damage_type": "necrotic",
+    "damage_scaling": {
+      "4": "8d8",
+      "5": "9d8",
+      "6": "10d8",
+      "7": "11d8",
+      "8": "12d8",
+      "9": "13d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "blindness-deafness",
@@ -802,7 +895,18 @@
       "paladin"
     ],
     "damage": "2d6",
-    "damage_type": "radiant"
+    "damage_type": "radiant",
+    "damage_scaling": {
+      "2": "2d6",
+      "3": "3d6",
+      "4": "4d6",
+      "5": "5d6",
+      "6": "6d6",
+      "7": "7d6",
+      "8": "8d6",
+      "9": "9d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "burning-hands",
@@ -821,7 +925,19 @@
       "wizard"
     ],
     "damage": "3d6",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "1": "3d6",
+      "2": "4d6",
+      "3": "5d6",
+      "4": "6d6",
+      "5": "7d6",
+      "6": "8d6",
+      "7": "9d6",
+      "8": "10d6",
+      "9": "11d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "call-lightning",
@@ -839,7 +955,17 @@
       "druid"
     ],
     "damage": "3d10",
-    "damage_type": "lightning"
+    "damage_type": "lightning",
+    "damage_scaling": {
+      "3": "3d10",
+      "4": "4d10",
+      "5": "5d10",
+      "6": "6d10",
+      "7": "7d10",
+      "8": "8d10",
+      "9": "9d10"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "calm-emotions",
@@ -875,7 +1001,11 @@
       "wizard"
     ],
     "damage": "10d8",
-    "damage_type": "lightning"
+    "damage_type": "lightning",
+    "damage_scaling": {
+      "6": "10d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "charm-person",
@@ -915,7 +1045,14 @@
       "wizard"
     ],
     "damage": "1d8",
-    "damage_type": "necrotic"
+    "damage_type": "necrotic",
+    "damage_scaling": {
+      "1": "1d8",
+      "5": "2d8",
+      "11": "3d8",
+      "17": "4d8"
+    },
+    "scales_with": "character_level"
   },
   {
     "id": "circle-of-death",
@@ -935,7 +1072,14 @@
       "wizard"
     ],
     "damage": "8d6",
-    "damage_type": "necrotic"
+    "damage_type": "necrotic",
+    "damage_scaling": {
+      "6": "8d6",
+      "7": "10d6",
+      "8": "12d6",
+      "9": "14d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "guidance",
@@ -1006,7 +1150,15 @@
       "wizard"
     ],
     "damage": "5d8",
-    "damage_type": "poison"
+    "damage_type": "poison",
+    "damage_scaling": {
+      "5": "5d8",
+      "6": "6d8",
+      "7": "7d8",
+      "8": "8d8",
+      "9": "9d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "color-spray",
@@ -1147,7 +1299,15 @@
       "wizard"
     ],
     "damage": "8d8",
-    "damage_type": "cold"
+    "damage_type": "cold",
+    "damage_scaling": {
+      "5": "8d8",
+      "6": "9d8",
+      "7": "10d8",
+      "8": "11d8",
+      "9": "12d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "confusion",
@@ -1286,7 +1446,11 @@
       "wizard"
     ],
     "damage": "6d6",
-    "damage_type": "psychic"
+    "damage_type": "psychic",
+    "damage_scaling": {
+      "5": "6d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "contagion",
@@ -1356,7 +1520,11 @@
       "wizard"
     ],
     "damage": "2d8",
-    "damage_type": "bludgeoning"
+    "damage_type": "bludgeoning",
+    "damage_scaling": {
+      "4": "2d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "death-ward",
@@ -1572,7 +1740,19 @@
       "cleric"
     ],
     "damage": "4d6",
-    "damage_type": "radiant"
+    "damage_type": "radiant",
+    "damage_scaling": {
+      "1": "4d6",
+      "2": "5d6",
+      "3": "6d6",
+      "4": "7d6",
+      "5": "8d6",
+      "6": "9d6",
+      "7": "10d6",
+      "8": "11d6",
+      "9": "12d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "delayed-blast-fireball",
@@ -1591,7 +1771,13 @@
       "wizard"
     ],
     "damage": "12d6",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "7": "12d6",
+      "8": "13d6",
+      "9": "14d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "demiplane",
@@ -1705,7 +1891,11 @@
       "wizard"
     ],
     "damage": "4d6",
-    "damage_type": "force"
+    "damage_type": "force",
+    "damage_scaling": {
+      "4": "4d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "disguise-self",
@@ -1742,7 +1932,17 @@
       "wizard"
     ],
     "damage": "8d6",
-    "damage_type": "lightning"
+    "damage_type": "lightning",
+    "damage_scaling": {
+      "3": "8d6",
+      "4": "9d6",
+      "5": "10d6",
+      "6": "11d6",
+      "7": "12d6",
+      "8": "13d6",
+      "9": "14d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "disintegrate",
@@ -1761,7 +1961,11 @@
       "wizard"
     ],
     "damage": "10d6 + 40",
-    "damage_type": "force"
+    "damage_type": "force",
+    "damage_scaling": {
+      "6": "10d6 + 40"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "dispel-evil-and-good",
@@ -1834,7 +2038,11 @@
       "paladin"
     ],
     "damage": "1d4",
-    "damage_type": "radiant"
+    "damage_type": "radiant",
+    "damage_scaling": {
+      "1": "1d4"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "divine-word",
@@ -1942,7 +2150,11 @@
       "wizard"
     ],
     "damage": "3d6",
-    "damage_type": "psychic"
+    "damage_type": "psychic",
+    "damage_scaling": {
+      "5": "3d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "druidcraft",
@@ -1978,7 +2190,11 @@
       "sorcerer"
     ],
     "damage": "5d6",
-    "damage_type": "bludgeoning"
+    "damage_type": "bludgeoning",
+    "damage_scaling": {
+      "8": "5d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "eldritch-blast",
@@ -1996,7 +2212,14 @@
       "warlock"
     ],
     "damage": "1d10",
-    "damage_type": "force"
+    "damage_type": "force",
+    "damage_scaling": {
+      "1": "1d10",
+      "5": "1d10",
+      "11": "1d10",
+      "17": "1d10"
+    },
+    "scales_with": "character_level"
   },
   {
     "id": "enhance-ability",
@@ -2033,7 +2256,11 @@
       "wizard"
     ],
     "damage": "4d8",
-    "damage_type": "piercing"
+    "damage_type": "piercing",
+    "damage_scaling": {
+      "4": "4d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "enlarge-reduce",
@@ -2230,7 +2457,11 @@
       "wizard"
     ],
     "damage": "4d6",
-    "damage_type": "psychic"
+    "damage_type": "psychic",
+    "damage_scaling": {
+      "8": "4d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "find-familiar",
@@ -2318,7 +2549,11 @@
       "wizard"
     ],
     "damage": "7d8 + 30",
-    "damage_type": "necrotic"
+    "damage_type": "necrotic",
+    "damage_scaling": {
+      "7": "7d8 + 30"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "fire-bolt",
@@ -2337,7 +2572,14 @@
       "wizard"
     ],
     "damage": "1d10",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "1": "1d10",
+      "5": "2d10",
+      "11": "3d10",
+      "17": "4d10"
+    },
+    "scales_with": "character_level"
   },
   {
     "id": "fire-shield",
@@ -2355,7 +2597,11 @@
       "wizard"
     ],
     "damage": "2d8",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "4": "2d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "fire-storm",
@@ -2375,7 +2621,11 @@
       "sorcerer"
     ],
     "damage": "7d10",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "7": "7d10"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "flame-blade",
@@ -2393,7 +2643,14 @@
       "druid"
     ],
     "damage": "3d6",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "2": "3d6",
+      "4": "4d6",
+      "6": "5d6",
+      "8": "6d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "flame-strike",
@@ -2411,7 +2668,15 @@
       "cleric"
     ],
     "damage": "4d6 + 4d6",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "5": "4d6 + 4d6",
+      "6": "4d6 + 5d6",
+      "7": "4d6 + 6d6",
+      "8": "4d6 + 7d6",
+      "9": "4d6 + 8d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "flaming-sphere",
@@ -2430,7 +2695,18 @@
       "wizard"
     ],
     "damage": "2d6",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "2": "2d6",
+      "3": "3d6",
+      "4": "4d6",
+      "5": "5d6",
+      "6": "6d6",
+      "7": "7d6",
+      "8": "8d6",
+      "9": "9d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "flesh-to-stone",
@@ -2590,7 +2866,11 @@
       "wizard"
     ],
     "damage": "10d6",
-    "damage_type": "cold"
+    "damage_type": "cold",
+    "damage_scaling": {
+      "6": "10d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "gaseous-form",
@@ -2648,7 +2928,11 @@
       "wizard"
     ],
     "damage": "5d10",
-    "damage_type": "psychic"
+    "damage_type": "psychic",
+    "damage_scaling": {
+      "5": "5d10"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "gentle-repose",
@@ -2820,7 +3104,11 @@
       "cleric"
     ],
     "damage": "20",
-    "damage_type": "radiant"
+    "damage_type": "radiant",
+    "damage_scaling": {
+      "4": "20"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "guards-and-wards",
@@ -2908,7 +3196,11 @@
       "cleric"
     ],
     "damage": "14d6",
-    "damage_type": "necrotic"
+    "damage_type": "necrotic",
+    "damage_scaling": {
+      "6": "14d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "haste",
@@ -2979,7 +3271,18 @@
       "druid"
     ],
     "damage": "2d8",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "2": "2d8",
+      "3": "3d8",
+      "4": "4d8",
+      "5": "5d8",
+      "6": "6d8",
+      "7": "7d8",
+      "8": "8d8",
+      "9": "9d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "hellish-rebuke",
@@ -2997,7 +3300,19 @@
       "warlock"
     ],
     "damage": "2d10",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "1": "2d10",
+      "2": "3d10",
+      "3": "4d10",
+      "4": "5d10",
+      "5": "6d10",
+      "6": "7d10",
+      "7": "8d10",
+      "8": "9d10",
+      "9": "10d10"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "heroes-feast",
@@ -3159,7 +3474,16 @@
       "wizard"
     ],
     "damage": "2d8 + 4d6",
-    "damage_type": "bludgeoning"
+    "damage_type": "bludgeoning",
+    "damage_scaling": {
+      "4": "2d8 + 4d6",
+      "5": "3d8 + 4d6",
+      "6": "4d8 + 4d6",
+      "7": "5d8 + 4d6",
+      "8": "6d8 + 4d6",
+      "9": "7d8 + 4d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "identify",
@@ -3230,7 +3554,11 @@
       "wizard"
     ],
     "damage": "10d8",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "8": "10d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "inflict-wounds",
@@ -3248,7 +3576,19 @@
       "cleric"
     ],
     "damage": "3d10",
-    "damage_type": "necrotic"
+    "damage_type": "necrotic",
+    "damage_scaling": {
+      "1": "3d10",
+      "2": "4d10",
+      "3": "5d10",
+      "4": "6d10",
+      "5": "7d10",
+      "6": "8d10",
+      "7": "9d10",
+      "8": "10d10",
+      "9": "11d10"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "insect-plague",
@@ -3268,7 +3608,15 @@
       "sorcerer"
     ],
     "damage": "4d10",
-    "damage_type": "piercing"
+    "damage_type": "piercing",
+    "damage_scaling": {
+      "5": "4d10",
+      "6": "5d10",
+      "7": "6d10",
+      "8": "7d10",
+      "9": "8d10"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "instant-summons",
@@ -3582,7 +3930,19 @@
       "wizard"
     ],
     "damage": "3d4 + 3",
-    "damage_type": "force"
+    "damage_type": "force",
+    "damage_scaling": {
+      "1": "3d4 + 3",
+      "2": "4d4 + 4",
+      "3": "5d4 + 5",
+      "4": "6d4 + 6",
+      "5": "7d4 + 7",
+      "6": "8d4 + 8",
+      "7": "9d4 + 9",
+      "8": "10d4 + 10",
+      "9": "11d4 + 11"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "magic-mouth",
@@ -3755,7 +4115,11 @@
       "cleric"
     ],
     "damage": "6d6",
-    "damage_type": "bludgeoning"
+    "damage_type": "bludgeoning",
+    "damage_scaling": {
+      "3": "6d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "mending",
@@ -3812,7 +4176,11 @@
       "wizard"
     ],
     "damage": "20d6 + 20d6",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "9": "20d6 + 20d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "mind-blank",
@@ -3989,7 +4357,18 @@
       "druid"
     ],
     "damage": "2d10",
-    "damage_type": "radiant"
+    "damage_type": "radiant",
+    "damage_scaling": {
+      "2": "2d10",
+      "3": "3d10",
+      "4": "4d10",
+      "5": "5d10",
+      "6": "6d10",
+      "7": "7d10",
+      "8": "8d10",
+      "9": "9d10"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "move-earth",
@@ -4076,7 +4455,11 @@
       "wizard"
     ],
     "damage": "4d10",
-    "damage_type": "psychic"
+    "damage_type": "psychic",
+    "damage_scaling": {
+      "4": "4d10"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "phantom-steed",
@@ -4204,7 +4587,14 @@
       "druid"
     ],
     "damage": "1d12",
-    "damage_type": "poison"
+    "damage_type": "poison",
+    "damage_scaling": {
+      "1": "1d12",
+      "5": "2d12",
+      "11": "3d12",
+      "17": "4d12"
+    },
+    "scales_with": "character_level"
   },
   {
     "id": "polymorph",
@@ -4280,7 +4670,11 @@
       "wizard"
     ],
     "damage": "10d6",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "7": "10d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "prismatic-wall",
@@ -4298,7 +4692,11 @@
       "wizard"
     ],
     "damage": "10d6",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "9": "10d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "private-sanctum",
@@ -4332,7 +4730,14 @@
       "druid"
     ],
     "damage": "1d8",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "1": "1d8",
+      "5": "2d8",
+      "11": "3d8",
+      "17": "4d8"
+    },
+    "scales_with": "character_level"
   },
   {
     "id": "reincarnate",
@@ -4512,7 +4917,14 @@
       "wizard"
     ],
     "damage": "1d8",
-    "damage_type": "cold"
+    "damage_type": "cold",
+    "damage_scaling": {
+      "1": "1d8",
+      "5": "2d8",
+      "11": "3d8",
+      "17": "4d8"
+    },
+    "scales_with": "character_level"
   },
   {
     "id": "regenerate",
@@ -4668,7 +5080,14 @@
       "cleric"
     ],
     "damage": "1d8",
-    "damage_type": "radiant"
+    "damage_type": "radiant",
+    "damage_scaling": {
+      "1": "1d8",
+      "5": "2d8",
+      "11": "3d8",
+      "17": "4d8"
+    },
+    "scales_with": "character_level"
   },
   {
     "id": "sanctuary",
@@ -4703,7 +5122,11 @@
       "wizard"
     ],
     "damage": "2d6",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "2": "2d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "scrying",
@@ -4847,7 +5270,18 @@
       "wizard"
     ],
     "damage": "3d8",
-    "damage_type": "thunder"
+    "damage_type": "thunder",
+    "damage_scaling": {
+      "2": "3d8",
+      "3": "4d8",
+      "4": "5d8",
+      "5": "6d8",
+      "6": "7d8",
+      "7": "8d8",
+      "8": "9d8",
+      "9": "10d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "shield-of-faith",
@@ -4899,7 +5333,14 @@
       "wizard"
     ],
     "damage": "1d8",
-    "damage_type": "lightning"
+    "damage_type": "lightning",
+    "damage_scaling": {
+      "1": "1d8",
+      "5": "2d8",
+      "11": "3d8",
+      "17": "4d8"
+    },
+    "scales_with": "character_level"
   },
   {
     "id": "silent-image",
@@ -5058,7 +5499,19 @@
       "wizard"
     ],
     "damage": "2d8",
-    "damage_type": "thunder"
+    "damage_type": "thunder",
+    "damage_scaling": {
+      "1": "2d8",
+      "2": "3d8",
+      "3": "4d8",
+      "4": "5d8",
+      "5": "6d8",
+      "6": "7d8",
+      "7": "8d8",
+      "8": "9d8",
+      "9": "10d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "speak-with-plants",
@@ -5113,7 +5566,11 @@
       "ranger"
     ],
     "damage": "2d4",
-    "damage_type": "piercing"
+    "damage_type": "piercing",
+    "damage_scaling": {
+      "2": "2d4"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "spirit-guardians",
@@ -5131,7 +5588,11 @@
       "cleric"
     ],
     "damage": "3d8",
-    "damage_type": "radiant"
+    "damage_type": "radiant",
+    "damage_scaling": {
+      "3": "3d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "spiritual-weapon",
@@ -5149,7 +5610,18 @@
       "cleric"
     ],
     "damage": "1d8 + MOD",
-    "damage_type": "force"
+    "damage_type": "force",
+    "damage_scaling": {
+      "2": "1d8 + MOD",
+      "3": "1d8 + MOD",
+      "4": "2d8 + MOD",
+      "5": "2d8 + MOD",
+      "6": "3d8 + MOD",
+      "7": "3d8 + MOD",
+      "8": "4d8 + MOD",
+      "9": "4d8 + MOD"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "stinking-cloud",
@@ -5222,7 +5694,11 @@
       "druid"
     ],
     "damage": "2d6",
-    "damage_type": "thunder"
+    "damage_type": "thunder",
+    "damage_scaling": {
+      "9": "2d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "water-breathing",
@@ -5280,7 +5756,11 @@
       "wizard"
     ],
     "damage": "6d8",
-    "damage_type": "radiant"
+    "damage_type": "radiant",
+    "damage_scaling": {
+      "6": "6d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "sunburst",
@@ -5300,7 +5780,11 @@
       "wizard"
     ],
     "damage": "12d6",
-    "damage_type": "radiant"
+    "damage_type": "radiant",
+    "damage_scaling": {
+      "8": "12d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "symbol",
@@ -5371,7 +5855,11 @@
       "wizard"
     ],
     "damage": "3d10",
-    "damage_type": "force"
+    "damage_type": "force",
+    "damage_scaling": {
+      "7": "3d10"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "teleportation-circle",
@@ -5603,7 +6091,17 @@
       "wizard"
     ],
     "damage": "3d6",
-    "damage_type": "necrotic"
+    "damage_type": "necrotic",
+    "damage_scaling": {
+      "3": "3d6",
+      "4": "4d6",
+      "5": "5d6",
+      "6": "6d6",
+      "7": "7d6",
+      "8": "8d6",
+      "9": "9d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "vicious-mockery",
@@ -5621,7 +6119,14 @@
       "bard"
     ],
     "damage": "1d4",
-    "damage_type": "psychic"
+    "damage_type": "psychic",
+    "damage_scaling": {
+      "1": "1d4",
+      "5": "2d4",
+      "11": "3d4",
+      "17": "4d4"
+    },
+    "scales_with": "character_level"
   },
   {
     "id": "wall-of-fire",
@@ -5641,7 +6146,11 @@
       "wizard"
     ],
     "damage": "5d8",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "4": "5d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "wall-of-force",
@@ -5675,7 +6184,14 @@
       "wizard"
     ],
     "damage": "10d6",
-    "damage_type": "cold"
+    "damage_type": "cold",
+    "damage_scaling": {
+      "6": "10d6",
+      "7": "12d6",
+      "8": "14d6",
+      "9": "16d6"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "wall-of-stone",
@@ -5711,7 +6227,14 @@
       "druid"
     ],
     "damage": "7d8",
-    "damage_type": "piercing"
+    "damage_type": "piercing",
+    "damage_scaling": {
+      "6": "7d8",
+      "7": "8d8",
+      "8": "9d8",
+      "9": "10d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "warding-bond",
@@ -5765,7 +6288,11 @@
       "wizard"
     ],
     "damage": "2d4",
-    "damage_type": "fire"
+    "damage_type": "fire",
+    "damage_scaling": {
+      "2": "2d4"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "weird",
@@ -5783,7 +6310,11 @@
       "wizard"
     ],
     "damage": "4d10",
-    "damage_type": "psychic"
+    "damage_type": "psychic",
+    "damage_scaling": {
+      "9": "4d10"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "wind-walk",
@@ -5818,7 +6349,11 @@
       "ranger"
     ],
     "damage": "3d8",
-    "damage_type": "bludgeoning"
+    "damage_type": "bludgeoning",
+    "damage_scaling": {
+      "3": "3d8"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "wish",
@@ -5837,7 +6372,11 @@
       "wizard"
     ],
     "damage": "1d10",
-    "damage_type": "necrotic"
+    "damage_type": "necrotic",
+    "damage_scaling": {
+      "9": "1d10"
+    },
+    "scales_with": "slot_level"
   },
   {
     "id": "word-of-recall",

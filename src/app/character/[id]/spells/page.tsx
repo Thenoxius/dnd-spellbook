@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { Character } from '@/types/database';
 import { dndSpells, getSpellById } from '@/data/spells';
 import { dndSubclasses, getSubclassById } from '@/data/subclasses';
-import { getDamageTypeBadgeClasses } from '@/lib/helpers';
+import { getDamageTypeBadgeClasses, getEffectiveSpellDamage, getSpellUpcastText } from '@/lib/helpers';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -241,7 +241,7 @@ export default function SpellLibraryPage() {
                                   </Badge>
                                   {spell.damage && (
                                     <Badge variant="outline" className={getDamageTypeBadgeClasses(spell.damageType)}>
-                                      {spell.damage} {spell.damageType}
+                                      {getEffectiveSpellDamage(spell, character?.level ?? 1)} {spell.damageType}
                                     </Badge>
                                   )}
                                 </div>
@@ -271,6 +271,11 @@ export default function SpellLibraryPage() {
                                   </div>
                                 </div>
                                 <p className="text-slate-300 text-sm">{spell.description}</p>
+                                {getSpellUpcastText(spell) && (
+                                  <p className="text-slate-400 text-sm mt-2 italic">
+                                    {getSpellUpcastText(spell)}
+                                  </p>
+                                )}
                               </div>
                             )}
                           </div>

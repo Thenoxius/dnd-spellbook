@@ -1,4 +1,5 @@
 import { AbilityScoreName, SpellSlot, ClassProgression, ProgressionType } from '@/types/database';
+import { DndSpell } from '@/data/spells';
 
 // Calculate ability modifier: floor((score - 10) / 2)
 export function calculateModifier(score: number): number {
@@ -154,4 +155,54 @@ const defaultDamageTypeBadgeClasses = 'bg-red-900/50 border-red-700 text-red-300
 export function getDamageTypeBadgeClasses(damageType?: string): string {
   if (!damageType) return defaultDamageTypeBadgeClasses;
   return damageTypeBadgeClasses[damageType.toLowerCase()] || defaultDamageTypeBadgeClasses;
+}
+
+function ordinal(n: number): string {
+  const suffixes: Record<number, string> = { 1: 'st', 2: 'nd', 3: 'rd' };
+  const suffix = n % 100 >= 11 && n % 100 <= 13 ? 'th' : suffixes[n % 10] || 'th';
+  return `${n}${suffix}`;
+}
+
+// Cantrip damage scales with character level (thresholds at 1, 5, 11, 17).
+// Returns the dice for the highest threshold at or below the character's level,
+// falling back to the spell's flat `damage` value if there's no scaling data.
+export function getEffectiveSpellDamage(spell: DndSpell, characterLevel: number): string | undefined {
+  if (!spell.damageScaling || spell.scalesWith !== 'character_level') {
+    return spell.damage;
+  }
+
+  const thresholds = Object.keys(spell.damageScaling)
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  const applicable = thresholds.filter((level) => level <= characterLevel);
+  const level = applicable.length > 0 ? applicable[applicable.length - 1] : thresholds[0];
+
+  return spell.damageScaling[String(level)];
+}
+
+// Describes how a leveled spell's damage increases when cast with a higher-level slot,
+// e.g. "Damage increases by 1d6 for each slot level above 3rd."
+export function getSpellUpcastText(spell: DndSpell): string | undefined {
+  if (!spell.damageScaling || spell.scalesWith !== 'slot_level') return undefined;
+
+  const levels = Object.keys(spell.damageScaling)
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  if (levels.length < 2) return undefined;
+
+  const baseLevel = levels[0];
+  const baseDice = spell.damageScaling[String(baseLevel)];
+  const nextDice = spell.damageScaling[String(levels[1])];
+
+  const baseMatch = baseDice.match(/(\d+)d(\d+)/);
+  const nextMatch = nextDice.match(/(\d+)d(\d+)/);
+
+  if (baseMatch && nextMatch && baseMatch[2] === nextMatch[2]) {
+    const increment = Number(nextMatch[1]) - Number(baseMatch[1]);
+    return `Damage increases by ${increment}d${baseMatch[2]} for each slot level above ${ordinal(baseLevel)}.`;
+  }
+
+  return `Damage increases with slot level: ${levels.map((l) => `${ordinal(l)} level: ${spell.damageScaling![String(l)]}`).join(', ')}.`;
 }
