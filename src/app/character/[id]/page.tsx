@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Character, Spell, Feature, SpellSlot, CharacterWithRelations } from '@/types/database';
-import { formatAbilityScore, calculateModifier, calculateSpellSlots, calculateProficiencyBonus } from '@/lib/helpers';
+import { formatAbilityScore, calculateModifier, calculateSpellSlots, calculateProficiencyBonus, getDamageTypeBadgeClasses } from '@/lib/helpers';
 import { dndClasses, getClassProgression } from '@/data/classes';
 import { dndFeatures, getFeaturesByLevel } from '@/data/features';
 import { dndSpells, getSpellById } from '@/data/spells';
@@ -609,7 +609,7 @@ export default function CharacterPage() {
                                       </div>
                                       <div className="flex gap-2 flex-wrap">
                                         {spell.damage && (
-                                          <Badge variant="outline" className="bg-red-900/50 border-red-700 text-red-300">
+                                          <Badge variant="outline" className={getDamageTypeBadgeClasses(spell.damageType)}>
                                             {spell.damage} {spell.damageType}
                                           </Badge>
                                         )}

@@ -131,3 +131,27 @@ export function getProgressionsUpToLevel(
 export function calculateProficiencyBonus(level: number): number {
   return Math.ceil(level / 4) + 1;
 }
+
+// Tailwind badge classes per D&D 5e damage type, for visually distinguishing damage badges
+const damageTypeBadgeClasses: Record<string, string> = {
+  acid: 'bg-lime-900/50 border-lime-700 text-lime-300',
+  bludgeoning: 'bg-stone-800/50 border-stone-600 text-stone-300',
+  cold: 'bg-cyan-900/50 border-cyan-700 text-cyan-300',
+  fire: 'bg-orange-900/50 border-orange-700 text-orange-300',
+  force: 'bg-violet-900/50 border-violet-700 text-violet-300',
+  lightning: 'bg-yellow-900/50 border-yellow-700 text-yellow-300',
+  necrotic: 'bg-emerald-950/50 border-emerald-800 text-emerald-400',
+  piercing: 'bg-slate-800/50 border-slate-600 text-slate-300',
+  poison: 'bg-green-900/50 border-green-700 text-green-300',
+  psychic: 'bg-pink-900/50 border-pink-700 text-pink-300',
+  radiant: 'bg-amber-900/50 border-amber-700 text-amber-300',
+  slashing: 'bg-zinc-800/50 border-zinc-600 text-zinc-300',
+  thunder: 'bg-indigo-900/50 border-indigo-700 text-indigo-300',
+};
+
+const defaultDamageTypeBadgeClasses = 'bg-red-900/50 border-red-700 text-red-300';
+
+export function getDamageTypeBadgeClasses(damageType?: string): string {
+  if (!damageType) return defaultDamageTypeBadgeClasses;
+  return damageTypeBadgeClasses[damageType.toLowerCase()] || defaultDamageTypeBadgeClasses;
+}
