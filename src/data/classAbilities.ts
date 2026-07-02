@@ -17,6 +17,8 @@ export type RechargeType = 'short' | 'long';
 export interface ClassAbilityDef {
   id: string;
   classId: string;
+  /** When set, the ability is granted by this subclass rather than the base class. */
+  subclassId?: string;
   name: string;
   description: string;
   minLevel: number;
@@ -168,16 +170,43 @@ const classAbilityDefs: ClassAbilityDef[] = [
     maxUses: () => 1,
     recharge: long,
   },
+  // --- Subclass abilities ---
+  {
+    id: 'portent',
+    classId: 'wizard',
+    subclassId: 'school_of_divination',
+    name: 'Portent Dice',
+    description: 'Foretelling d20 rolls made after each long rest. Spend one to replace any attack roll, saving throw, or ability check made by a creature you can see.',
+    minLevel: 2,
+    maxUses: (level) => (level >= 14 ? 3 : 2),
+    recharge: long,
+  },
+  {
+    id: 'hexblades_curse',
+    classId: 'warlock',
+    subclassId: 'hexblade',
+    name: "Hexblade's Curse",
+    description: 'Curse a creature within 30 feet: bonus damage equal to your proficiency bonus, crits on 19-20, and regain HP when it dies.',
+    minLevel: 1,
+    maxUses: () => 1,
+    recharge: short,
+  },
 ];
 
 /** Resolve the limited-use abilities available to a character of the given class/level/stats. */
 export function getClassAbilities(
   classId: string,
   level: number,
-  mods: AbilityModifiers
+  mods: AbilityModifiers,
+  subclassId?: string | null
 ): ResolvedClassAbility[] {
   return classAbilityDefs
-    .filter((def) => def.classId === classId && level >= def.minLevel)
+    .filter(
+      (def) =>
+        def.classId === classId &&
+        level >= def.minLevel &&
+        (!def.subclassId || def.subclassId === subclassId)
+    )
     .map((def) => ({
       id: def.id,
       name: def.name,

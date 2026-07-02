@@ -215,7 +215,7 @@ export default function CreateCharacterPage() {
               <>
                 <div>
                   <Label htmlFor="race" className="text-white">Race</Label>
-                  <Select value={raceId} onValueChange={(value) => {
+                  <Select items={Object.fromEntries(dndRaces.map(r => [r.id, r.name]))} value={raceId} onValueChange={(value) => {
                     setRaceId(value || '');
                     setSubraceId(''); // Reset subrace when race changes
                   }}>
@@ -242,7 +242,7 @@ export default function CreateCharacterPage() {
                 {selectedRace && (
                   <div>
                     <Label htmlFor="subrace" className="text-white">Subrace (Optional)</Label>
-                    <Select value={subraceId} onValueChange={(value) => setSubraceId(value || '')}>
+                    <Select items={{ '': 'None', ...Object.fromEntries(getSubracesByRace(raceId).map(s => [s.id, s.name])) }} value={subraceId} onValueChange={(value) => setSubraceId(value || '')}>
                       <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white">
                         <SelectValue placeholder="Select a subrace" />
                       </SelectTrigger>
@@ -267,7 +267,7 @@ export default function CreateCharacterPage() {
                 )}
                 <div>
                   <Label htmlFor="background" className="text-white">Background</Label>
-                  <Select value={backgroundId} onValueChange={(value) => setBackgroundId(value || '')}>
+                  <Select items={Object.fromEntries(dndBackgrounds.map(b => [b.id, b.name]))} value={backgroundId} onValueChange={(value) => setBackgroundId(value || '')}>
                     <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white">
                       <SelectValue placeholder="Select a background" />
                     </SelectTrigger>
@@ -306,7 +306,7 @@ export default function CreateCharacterPage() {
               <>
                 <div>
                   <Label htmlFor="class" className="text-white">Class</Label>
-                  <Select value={classId} onValueChange={(value) => setClassId(value || '')}>
+                  <Select items={Object.fromEntries(dndClasses.map(c => [c.id, c.name]))} value={classId} onValueChange={(value) => setClassId(value || '')}>
                     <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white">
                       <SelectValue placeholder="Select a class" />
                     </SelectTrigger>
@@ -337,7 +337,7 @@ export default function CreateCharacterPage() {
                 {showSubclassSelection && availableSubclasses.length > 0 && (
                   <div>
                     <Label htmlFor="subclass" className="text-white">Subclass (Optional)</Label>
-                    <Select value={subclassId} onValueChange={(value) => setSubclassId(value || '')}>
+                    <Select items={{ '': 'None', ...Object.fromEntries(availableSubclasses.map(s => [s.id, s.name])) }} value={subclassId} onValueChange={(value) => setSubclassId(value || '')}>
                       <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white">
                         <SelectValue placeholder="Select a subclass" />
                       </SelectTrigger>

@@ -90,16 +90,20 @@ export default function SpellLibraryPage() {
     if (!character) return [];
 
     return dndSpells.filter(spell => {
-      // Check if spell is in base class IDs
-      const inBaseClass = spell.baseClassIds.includes(character.class_id);
+      // Check primary and (if multiclassed) secondary class spell lists
+      const inBaseClass =
+        spell.baseClassIds.includes(character.class_id) ||
+        (!!character.secondary_class_id && spell.baseClassIds.includes(character.secondary_class_id));
       
-      // Check if spell is in subclass bonus spells for current level
+      // Check if spell is granted by the subclass at or below the current level
+      // (bonus spells stay on the list once gained, so include all levels <= current)
       let inSubclassBonus = false;
       if (character.subclass_id) {
         const subclass = dndSubclasses.find(s => s.id === character.subclass_id);
         if (subclass) {
-          const bonusSpellsForLevel = subclass.bonusSpells[character.level] || [];
-          inSubclassBonus = bonusSpellsForLevel.includes(spell.id);
+          inSubclassBonus = Object.entries(subclass.bonusSpells)
+            .filter(([grantLevel]) => Number(grantLevel) <= character.level)
+            .some(([, spellIds]) => spellIds.includes(spell.id));
         }
       }
 

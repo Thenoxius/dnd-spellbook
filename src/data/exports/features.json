@@ -3726,5 +3726,133 @@
     "level_required": 19,
     "name": "Ability Score Improvement",
     "description": "When you reach 4th level, and again at 8th, 12th, 16th, and 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature."
+  },
+  {
+    "id": "hexblade_hexblades_curse",
+    "source_id": "hexblade",
+    "level_required": 1,
+    "name": "Hexblade's Curse",
+    "description": "As a bonus action, curse a creature you can see within 30 feet for 1 minute. You gain a bonus to damage rolls against the cursed target equal to your proficiency bonus, you score a critical hit against it on a 19 or 20, and if it dies you regain hit points equal to your warlock level + your Charisma modifier. Once used, you can't use it again until you finish a short or long rest.",
+    "source_type": "subclass"
+  },
+  {
+    "id": "hexblade_hex_warrior",
+    "source_id": "hexblade",
+    "level_required": 1,
+    "name": "Hex Warrior",
+    "description": "You gain proficiency with medium armor, shields, and martial weapons. When you finish a long rest, touch one weapon you are proficient with that lacks the two-handed property: you can use your Charisma modifier for attack and damage rolls with that weapon. This benefit also applies to any pact weapon.",
+    "source_type": "subclass"
+  },
+  {
+    "id": "hexblade_accursed_specter",
+    "source_id": "hexblade",
+    "level_required": 6,
+    "name": "Accursed Specter",
+    "description": "When you slay a humanoid, you can cause its spirit to rise as a specter that serves you until the end of your next long rest. It gains temporary hit points equal to half your warlock level and a bonus to attack rolls equal to your Charisma modifier. Once used, you can't use this feature again until you finish a long rest.",
+    "source_type": "subclass"
+  },
+  {
+    "id": "hexblade_armor_of_hexes",
+    "source_id": "hexblade",
+    "level_required": 10,
+    "name": "Armor of Hexes",
+    "description": "If the target cursed by your Hexblade's Curse hits you with an attack roll, roll a d6: on a 4 or higher, the attack misses you, regardless of its roll.",
+    "source_type": "subclass"
+  },
+  {
+    "id": "hexblade_master_of_hexes",
+    "source_id": "hexblade",
+    "level_required": 14,
+    "name": "Master of Hexes",
+    "description": "When the creature cursed by your Hexblade's Curse dies, you can apply the curse to a different creature you can see within 30 feet, provided you aren't incapacitated. This doesn't restore hit points to you.",
+    "source_type": "subclass"
+  },
+  {
+    "id": "divination_savant",
+    "source_id": "school_of_divination",
+    "level_required": 2,
+    "name": "Divination Savant",
+    "description": "The gold and time you must spend to copy a divination spell into your spellbook is halved.",
+    "source_type": "subclass"
+  },
+  {
+    "id": "divination_portent",
+    "source_id": "school_of_divination",
+    "level_required": 2,
+    "name": "Portent",
+    "description": "When you finish a long rest, roll two d20s and record the numbers. You can replace any attack roll, saving throw, or ability check made by you or a creature that you can see with one of these foretelling rolls. You must choose to do so before the roll, and you can replace a roll in this way only once per turn. Each foretelling roll can be used only once.",
+    "source_type": "subclass"
+  },
+  {
+    "id": "divination_expert_divination",
+    "source_id": "school_of_divination",
+    "level_required": 6,
+    "name": "Expert Divination",
+    "description": "When you cast a divination spell of 2nd level or higher using a spell slot, you regain one expended spell slot. The slot you regain must be of a level lower than the spell you cast and can't be higher than 5th level.",
+    "source_type": "subclass"
+  },
+  {
+    "id": "divination_third_eye",
+    "source_id": "school_of_divination",
+    "level_required": 10,
+    "name": "The Third Eye",
+    "description": "As an action, gain one of the following benefits until you are incapacitated or take a short or long rest: Darkvision 60 ft, Ethereal Sight 60 ft, Greater Comprehension (read any language), or See Invisibility 10 ft. You can't use this feature again until you finish a rest.",
+    "source_type": "subclass"
+  },
+  {
+    "id": "divination_greater_portent",
+    "source_id": "school_of_divination",
+    "level_required": 14,
+    "name": "Greater Portent",
+    "description": "The visions in your dreams intensify: roll three d20s for your Portent feature, rather than two.",
+    "source_type": "subclass"
+  },
+  {
+    "id": "mercy_implements",
+    "source_id": "way_of_mercy",
+    "level_required": 3,
+    "name": "Implements of Mercy",
+    "description": "You gain proficiency in the Insight and Medicine skills, and proficiency with the herbalism kit.",
+    "source_type": "subclass"
+  },
+  {
+    "id": "mercy_hand_of_healing",
+    "source_id": "way_of_mercy",
+    "level_required": 3,
+    "name": "Hand of Healing",
+    "description": "As an action, spend 1 ki point to touch a creature and restore hit points equal to a roll of your Martial Arts die + your Wisdom modifier. When you use Flurry of Blows, you can replace one of the unarmed strikes with a use of this feature without spending a ki point.",
+    "source_type": "subclass"
+  },
+  {
+    "id": "mercy_hand_of_harm",
+    "source_id": "way_of_mercy",
+    "level_required": 3,
+    "name": "Hand of Harm",
+    "description": "When you hit a creature with an unarmed strike, spend 1 ki point to deal extra necrotic damage equal to one roll of your Martial Arts die + your Wisdom modifier. You can use this feature only once per turn.",
+    "source_type": "subclass"
+  },
+  {
+    "id": "mercy_physicians_touch",
+    "source_id": "way_of_mercy",
+    "level_required": 6,
+    "name": "Physician's Touch",
+    "description": "When you use Hand of Healing on a creature, you can also end one disease or one of these conditions: blinded, deafened, paralyzed, poisoned, or stunned. When you use Hand of Harm on a creature, you can also subject it to the poisoned condition until the end of your next turn.",
+    "source_type": "subclass"
+  },
+  {
+    "id": "mercy_flurry",
+    "source_id": "way_of_mercy",
+    "level_required": 11,
+    "name": "Flurry of Healing and Harm",
+    "description": "When you use Flurry of Blows, you can replace each of the unarmed strikes with a use of Hand of Healing, without spending ki for those uses. When you use Hand of Harm as part of a Flurry of Blows, you don't need to spend the ki point for Hand of Harm. You can use these benefits a total number of times equal to your proficiency bonus, and regain all uses on a long rest.",
+    "source_type": "subclass"
+  },
+  {
+    "id": "mercy_ultimate_mercy",
+    "source_id": "way_of_mercy",
+    "level_required": 17,
+    "name": "Hand of Ultimate Mercy",
+    "description": "As an action, spend 5 ki points to touch the corpse of a creature that died within the past 24 hours and return it to life with 4d10 + your Wisdom modifier hit points, curing several conditions. Once used, you can't use it again until you finish a long rest.",
+    "source_type": "subclass"
   }
 ]

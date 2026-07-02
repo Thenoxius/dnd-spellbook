@@ -105,6 +105,8 @@ export interface Character {
   temp_hp: number;
   class_id: string;
   subclass_id: string | null;
+  secondary_class_id: string | null;
+  secondary_level: number;
   race_id: string;
   subrace_id: string | null;
   background_id: string;

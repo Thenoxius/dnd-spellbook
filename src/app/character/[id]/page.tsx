@@ -37,6 +37,8 @@ export default function CharacterPage() {
   const [activeTab, setActiveTab] = useState('combat');
   const [theme, setTheme] = useState('shadow-fiend');
   const [editLevel, setEditLevel] = useState(0);
+  const [editSecondaryClass, setEditSecondaryClass] = useState('');
+  const [editSecondaryLevel, setEditSecondaryLevel] = useState(0);
   const [editMaxHP, setEditMaxHP] = useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmName, setDeleteConfirmName] = useState('');
@@ -113,6 +115,8 @@ export default function CharacterPage() {
       setCharacter(characterWithRelations);
       setEditLevel(charResult.level);
       setEditMaxHP(charResult.hp_max);
+      setEditSecondaryClass(charResult.secondary_class_id || '');
+      setEditSecondaryLevel(charResult.secondary_level || 0);
     }
     
     setLoading(false);
@@ -170,7 +174,12 @@ export default function CharacterPage() {
       }
     : { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 };
   const classAbilities = character
-    ? getClassAbilities(character.class_id, character.level, abilityMods)
+    ? [
+        ...getClassAbilities(character.class_id, character.level, abilityMods, character.subclass_id),
+        ...(character.secondary_class_id
+          ? getClassAbilities(character.secondary_class_id, character.secondary_level || 0, abilityMods)
+          : []),
+      ]
     : [];
 
   const handleAbilityUseChange = async (abilityId: string, used: number, max: number) => {
@@ -224,8 +233,13 @@ export default function CharacterPage() {
   const spellcastingAbility = getSpellcastingAbility();
   const abilityScore = character ? character[spellcastingAbility.toLowerCase() as keyof typeof character] as number : 10;
   const spellcastingModifier = calculateModifier(abilityScore);
-  const proficiencyBonus = character ? Math.ceil(character.level / 4) + 1 : 2;
+  // Proficiency bonus derives from total character level across all classes
+  const totalLevel = character ? character.level + (character.secondary_level || 0) : 1;
+  const proficiencyBonus = Math.ceil(totalLevel / 4) + 1;
   const spellSaveDC = 8 + proficiencyBonus + spellcastingModifier;
+  const secondaryClass = character?.secondary_class_id
+    ? dndClasses.find(c => c.id === character.secondary_class_id)
+    : null;
 
   const toggleSpellExpansion = (spellId: string) => {
     setExpandedSpells(prev => {
@@ -246,11 +260,17 @@ export default function CharacterPage() {
 
   const getCharacterFeatures = () => {
     if (!character) return [];
-    return dndFeatures.filter(
-      feature =>
-        (feature.sourceId === character.class_id || feature.sourceId === character.subclass_id) &&
-        feature.levelRequired <= character.level
-    );
+    return dndFeatures.filter(feature => {
+      // Primary class and subclass features gate on primary class level
+      if (feature.sourceId === character.class_id || feature.sourceId === character.subclass_id) {
+        return feature.levelRequired <= character.level;
+      }
+      // Secondary class features gate on levels taken in that class
+      if (character.secondary_class_id && feature.sourceId === character.secondary_class_id) {
+        return feature.levelRequired <= (character.secondary_level || 0);
+      }
+      return false;
+    });
   };
 
   const getSpellSlotsByLevel = () => {
@@ -291,7 +311,10 @@ export default function CharacterPage() {
           <div className="flex-1">
             <h1 className="text-2xl md:text-3xl font-bold text-white">{character.name}</h1>
             <p className="text-slate-400">
-              Level {character.level} {character.class?.name} {character.subclass?.name && `• ${character.subclass.name}`}
+              {secondaryClass
+                ? `${character.class?.name} ${character.level} / ${secondaryClass.name} ${character.secondary_level}`
+                : `Level ${character.level} ${character.class?.name}`}
+              {character.subclass?.name && ` • ${character.subclass.name}`}
             </p>
           </div>
         </div>
@@ -631,9 +654,11 @@ export default function CharacterPage() {
                       {Object.entries(progression.customClassData).map(([key, value]) => (
                         <div key={key} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg">
                           <div>
-                            <div className="text-white font-medium">{key}</div>
+                            <div className="text-white font-medium capitalize">
+                              {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                            </div>
                           </div>
-                          <div className="text-purple-400 font-bold">{value}</div>
+                          <div className="text-purple-400 font-bold">{String(value)}</div>
                         </div>
                       ))}
                     </div>
@@ -973,6 +998,41 @@ export default function CharacterPage() {
                     className="bg-slate-900/50 border-slate-700 text-white mt-2"
                   />
                 </div>
+                <div className="pt-2 border-t border-slate-700">
+                  <Label htmlFor="edit-secondary-class" className="text-white">Multiclass (optional)</Label>
+                  <div className="flex gap-3 mt-2">
+                    <select
+                      id="edit-secondary-class"
+                      value={editSecondaryClass}
+                      onChange={(e) => {
+                        setEditSecondaryClass(e.target.value);
+                        if (e.target.value && editSecondaryLevel === 0) setEditSecondaryLevel(1);
+                        if (!e.target.value) setEditSecondaryLevel(0);
+                      }}
+                      className="flex-1 h-9 rounded-md px-3 text-sm bg-slate-900/50 border border-slate-700 text-white"
+                    >
+                      <option value="">None</option>
+                      {dndClasses
+                        .filter(c => c.id !== character.class_id)
+                        .map(c => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                    </select>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={19}
+                      value={editSecondaryLevel}
+                      disabled={!editSecondaryClass}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditSecondaryLevel(parseInt(e.target.value) || 0)}
+                      className="w-24 bg-slate-900/50 border-slate-700 text-white"
+                      aria-label="Secondary class level"
+                    />
+                  </div>
+                  <p className="text-slate-400 text-xs mt-2">
+                    Adds the class's features and abilities. The Level field above is your {character.class?.name} level; spell slots stay based on it.
+                  </p>
+                </div>
                 <div className="flex gap-4 pt-4">
                   <Button
                     variant="outline"
@@ -980,6 +1040,8 @@ export default function CharacterPage() {
                       if (character) {
                         setEditLevel(character.level);
                         setEditMaxHP(character.hp_max);
+                        setEditSecondaryClass(character.secondary_class_id || '');
+                        setEditSecondaryLevel(character.secondary_level || 0);
                       }
                     }}
                     className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 flex-1"
@@ -995,6 +1057,8 @@ export default function CharacterPage() {
                         .update({
                           level: editLevel,
                           hp_max: editMaxHP,
+                          secondary_class_id: editSecondaryClass || null,
+                          secondary_level: editSecondaryClass ? editSecondaryLevel : 0,
                           spell_slots: calculateSpellSlots(character.class_id, editLevel),
                         })
                         .eq('id', characterId);

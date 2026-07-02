@@ -63,13 +63,6 @@
     "subclass_level_required": 2
   },
   {
-    "id": "berserker",
-    "class_id": "barbarian",
-    "name": "Berserker",
-    "bonus_spells": "[]",
-    "subclass_level_required": 3
-  },
-  {
     "id": "champion",
     "class_id": "fighter",
     "name": "Champion",
@@ -84,51 +77,9 @@
     "subclass_level_required": 3
   },
   {
-    "id": "draconic",
-    "class_id": "sorcerer",
-    "name": "Draconic",
-    "bonus_spells": "[]",
-    "subclass_level_required": 3
-  },
-  {
-    "id": "evocation",
-    "class_id": "wizard",
-    "name": "Evocation",
-    "bonus_spells": "[]",
-    "subclass_level_required": 3
-  },
-  {
-    "id": "fiend",
-    "class_id": "warlock",
-    "name": "Fiend",
-    "bonus_spells": "[]",
-    "subclass_level_required": 3
-  },
-  {
     "id": "hunter",
     "class_id": "ranger",
     "name": "Hunter",
-    "bonus_spells": "[]",
-    "subclass_level_required": 3
-  },
-  {
-    "id": "land",
-    "class_id": "druid",
-    "name": "Land",
-    "bonus_spells": "[]",
-    "subclass_level_required": 3
-  },
-  {
-    "id": "life",
-    "class_id": "cleric",
-    "name": "Life",
-    "bonus_spells": "[]",
-    "subclass_level_required": 3
-  },
-  {
-    "id": "lore",
-    "class_id": "bard",
-    "name": "Lore",
     "bonus_spells": "[]",
     "subclass_level_required": 3
   },
@@ -588,31 +539,15 @@
     "subclass_level_required": 2
   },
   {
-    "id": "pact_of_the_chain",
+    "id": "hexblade",
     "class_id": "warlock",
-    "name": "Pact of the Chain",
-    "bonus_spells": "[]",
-    "subclass_level_required": 3
-  },
-  {
-    "id": "pact_of_the_blade",
-    "class_id": "warlock",
-    "name": "Pact of the Blade",
-    "bonus_spells": "[]",
-    "subclass_level_required": 3
-  },
-  {
-    "id": "pact_of_the_tome",
-    "class_id": "warlock",
-    "name": "Pact of the Tome",
-    "bonus_spells": "[]",
-    "subclass_level_required": 3
-  },
-  {
-    "id": "pact_of_the_talisman",
-    "class_id": "warlock",
-    "name": "Pact of the Talisman",
-    "bonus_spells": "[]",
-    "subclass_level_required": 3
+    "name": "The Hexblade",
+    "bonus_spells": {
+      "1": [
+        "shield",
+        "wrathful-smite"
+      ]
+    },
+    "subclass_level_required": 1
   }
 ]
