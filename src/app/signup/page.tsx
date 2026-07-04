@@ -75,8 +75,7 @@ export default function SignupPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full text-white"
-              style={{ backgroundColor: 'var(--accent-primary)' }}
+              className="btn-accent w-full"
             >
               {loading ? 'Creating account...' : 'Sign Up'}
             </Button>

@@ -96,6 +96,16 @@ export interface InventoryItem {
   notes: string;
 }
 
+// A feat, eldritch invocation, or homebrew option the character has taken.
+// Known feats/invocations resolve their text from local data by id; custom
+// entries carry their own name and description.
+export interface CharacterFeat {
+  id: string;
+  type: 'feat' | 'invocation' | 'custom';
+  name?: string;
+  description?: string;
+}
+
 export interface Character {
   id: string;
   name: string;
@@ -122,6 +132,7 @@ export interface Character {
   inventory: InventoryItem[];
   // Used counts per ability id; `${id}_rolls` keys bank entered die results (e.g. Portent d20s)
   ability_uses: Record<string, number | number[]>;
+  feats: CharacterFeat[];
   created_at: string;
   updated_at: string;
 }

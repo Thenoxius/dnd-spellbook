@@ -1,5 +1,6 @@
 import { AbilityScoreName, SpellSlot, ClassProgression, ProgressionType } from '@/types/database';
 import { DndSpell } from '@/data/spells';
+import { getClassProgression } from '@/data/classes';
 
 // Calculate ability modifier: floor((score - 10) / 2)
 export function calculateModifier(score: number): number {
@@ -17,45 +18,18 @@ export function formatAbilityScore(score: number): string {
   return `${score} (${formatModifier(modifier)})`;
 }
 
-// Calculate spell slots based on class and level (PHB 2014 rules)
+// Calculate spell slots based on class and level (PHB 2014 rules).
+// Derived from the class progression tables so non-casters get none,
+// half-casters (paladin/ranger) get the half-caster table, and warlock
+// pact slots scale in both count and level.
 export function calculateSpellSlots(classId: string, level: number): Record<number, SpellSlot> {
   const slots: Record<number, SpellSlot> = {};
-  
-  // Warlock uses Pact Magic: 2 slots that scale in level
-  if (classId === 'warlock') {
-    const pactSlotLevel = Math.min(Math.ceil(level / 2), 5); // Slot level scales: 1, 1, 2, 2, 3, 3, 4, 4, 5, 5
-    slots[pactSlotLevel] = { max: 2, used: 0 };
-    return slots;
-  }
-  
-  // Standard spell slot table from PHB 2014 for other classes
-  const spellSlotTable: Record<number, number[]> = {
-    1: [2], // Level 1: 2 level 1 slots
-    2: [3], // Level 2: 3 level 1 slots
-    3: [4, 2], // Level 3: 4 level 1, 2 level 2
-    4: [4, 3], // Level 4: 4 level 1, 3 level 2
-    5: [4, 3, 2], // Level 5: 4 level 1, 3 level 2, 2 level 3
-    6: [4, 3, 3], // Level 6: 4 level 1, 3 level 2, 3 level 3
-    7: [4, 3, 3, 1], // Level 7: 4 level 1, 3 level 2, 3 level 3, 1 level 4
-    8: [4, 3, 3, 2], // Level 8: 4 level 1, 3 level 2, 3 level 3, 2 level 4
-    9: [4, 3, 3, 3, 1], // Level 9: 4 level 1, 3 level 2, 3 level 3, 3 level 4, 1 level 5
-    10: [4, 3, 3, 3, 2], // Level 10: 4 level 1, 3 level 2, 3 level 3, 3 level 4, 2 level 5
-    11: [4, 3, 3, 3, 3, 1], // Level 11: 4 level 1, 3 level 2, 3 level 3, 3 level 4, 3 level 5, 1 level 6
-    12: [4, 3, 3, 3, 3, 1], // Level 12: same as 11
-    13: [4, 3, 3, 3, 3, 2, 1], // Level 13: 4 level 1, 3 level 2, 3 level 3, 3 level 4, 3 level 5, 2 level 6, 1 level 7
-    14: [4, 3, 3, 3, 3, 2, 1], // Level 14: same as 13
-    15: [4, 3, 3, 3, 3, 2, 2, 1], // Level 15: 4 level 1, 3 level 2, 3 level 3, 3 level 4, 3 level 5, 2 level 6, 2 level 7, 1 level 8
-    16: [4, 3, 3, 3, 3, 2, 2, 1], // Level 16: same as 15
-    17: [4, 3, 3, 3, 3, 2, 2, 2, 1], // Level 17: 4 level 1, 3 level 2, 3 level 3, 3 level 4, 3 level 5, 2 level 6, 2 level 7, 2 level 8, 1 level 9
-    18: [4, 3, 3, 3, 3, 3, 2, 2, 1], // Level 18: 4 level 1, 3 level 2, 3 level 3, 3 level 4, 3 level 5, 3 level 6, 2 level 7, 2 level 8, 1 level 9
-    19: [4, 3, 3, 3, 3, 3, 3, 2, 1], // Level 19: 4 level 1, 3 level 2, 3 level 3, 3 level 4, 3 level 5, 3 level 6, 3 level 7, 2 level 8, 1 level 9
-    20: [4, 3, 3, 3, 3, 3, 3, 3, 1], // Level 20: 4 level 1, 3 level 2, 3 level 3, 3 level 4, 3 level 5, 3 level 6, 3 level 7, 3 level 8, 1 level 9
-  };
+  const progression = getClassProgression(classId, level);
 
-  const levelSlots = spellSlotTable[level] || [];
-  
-  levelSlots.forEach((max, index) => {
-    slots[index + 1] = { max, used: 0 };
+  if (!progression?.spellSlots) return slots;
+
+  Object.entries(progression.spellSlots).forEach(([slotLevel, max]) => {
+    slots[Number(slotLevel)] = { max, used: 0 };
   });
 
   return slots;

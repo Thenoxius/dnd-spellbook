@@ -157,7 +157,7 @@ export default function SpellLibraryPage() {
           </div>
           <Button
             onClick={() => router.push('/spells/create')}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
+            className="btn-accent"
           >
             <Plus className="mr-2 h-4 w-4" />
             Create Spell
@@ -181,7 +181,7 @@ export default function SpellLibraryPage() {
                 <Button
                   variant={filterLevel === 'all' ? 'default' : 'outline'}
                   onClick={() => setFilterLevel('all')}
-                  className={filterLevel === 'all' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'}
+                  className={filterLevel === 'all' ? 'btn-accent' : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'}
                 >
                   All
                 </Button>
@@ -190,7 +190,7 @@ export default function SpellLibraryPage() {
                     key={level}
                     variant={filterLevel === level ? 'default' : 'outline'}
                     onClick={() => setFilterLevel(level)}
-                    className={filterLevel === level ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'}
+                    className={filterLevel === level ? 'btn-accent' : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'}
                   >
                     {level === 0 ? 'Cantrip' : `L${level}`}
                   </Button>
@@ -225,7 +225,7 @@ export default function SpellLibraryPage() {
                             variant={isPrepared ? 'default' : 'outline'}
                             size="icon"
                             onClick={() => toggleSpellPrepared(spell.id)}
-                            className={isPrepared ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'}
+                            className={isPrepared ? 'btn-accent' : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'}
                           >
                             {isPrepared ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
                           </Button>

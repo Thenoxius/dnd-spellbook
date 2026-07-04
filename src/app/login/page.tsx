@@ -74,8 +74,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full text-white"
-              style={{ backgroundColor: 'var(--accent-primary)' }}
+              className="btn-accent w-full"
             >
               {loading ? 'Logging in...' : 'Login'}
             </Button>

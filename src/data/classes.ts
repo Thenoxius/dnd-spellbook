@@ -1,5 +1,5 @@
 // D&D 5e Class Data with Progression Tables
-// Based on official D&D 5e rules and dnd5e.wikidot.com
+// Based on the 2014 Player's Handbook
 
 export interface ClassProgression {
   level: number;
@@ -28,7 +28,7 @@ function proficiencyBonus(level: number): number {
   return Math.ceil(level / 4) + 1;
 }
 
-// Standard spell slot table for full spellcasters (Bard, Cleric, Druid, Sorcerer, Wizard)
+// Standard spell slot table for full spellcasters (Bard, Cleric, Druid, Sorcerer, Wizard), PHB p. 113 etc.
 function standardSpellSlots(level: number): Record<number, number> {
   const slotTable: Record<number, number[]> = {
     1: [2],
@@ -41,16 +41,16 @@ function standardSpellSlots(level: number): Record<number, number> {
     8: [4, 3, 3, 2],
     9: [4, 3, 3, 3, 1],
     10: [4, 3, 3, 3, 2],
-    11: [4, 3, 3, 3, 3, 1],
-    12: [4, 3, 3, 3, 3, 1],
-    13: [4, 3, 3, 3, 3, 2, 1],
-    14: [4, 3, 3, 3, 3, 2, 1],
-    15: [4, 3, 3, 3, 3, 2, 2, 1],
-    16: [4, 3, 3, 3, 3, 2, 2, 1],
-    17: [4, 3, 3, 3, 3, 2, 2, 2, 1],
-    18: [4, 3, 3, 3, 3, 3, 2, 2, 1],
-    19: [4, 3, 3, 3, 3, 3, 3, 2, 1],
-    20: [4, 3, 3, 3, 3, 3, 3, 3, 1],
+    11: [4, 3, 3, 3, 2, 1],
+    12: [4, 3, 3, 3, 2, 1],
+    13: [4, 3, 3, 3, 2, 1, 1],
+    14: [4, 3, 3, 3, 2, 1, 1],
+    15: [4, 3, 3, 3, 2, 1, 1, 1],
+    16: [4, 3, 3, 3, 2, 1, 1, 1],
+    17: [4, 3, 3, 3, 2, 1, 1, 1, 1],
+    18: [4, 3, 3, 3, 3, 1, 1, 1, 1],
+    19: [4, 3, 3, 3, 3, 2, 1, 1, 1],
+    20: [4, 3, 3, 3, 3, 2, 2, 1, 1],
   };
 
   const slots = slotTable[level] || [];
@@ -61,29 +61,29 @@ function standardSpellSlots(level: number): Record<number, number> {
   return result;
 }
 
-// Half-caster spell slot table (Paladin, Ranger)
+// Half-caster spell slot table (Paladin, Ranger), PHB p. 83/91
 function halfCasterSpellSlots(level: number): Record<number, number> {
   const slotTable: Record<number, number[]> = {
     1: [],
     2: [2],
-    3: [2],
+    3: [3],
     4: [3],
-    5: [3],
-    6: [3, 1],
-    7: [3, 1],
-    8: [3, 2],
-    9: [3, 2],
-    10: [3, 2, 1],
-    11: [3, 2, 1],
-    12: [3, 2, 2],
-    13: [3, 2, 2],
-    14: [3, 2, 2, 1],
-    15: [3, 2, 2, 1],
-    16: [3, 2, 2, 2],
-    17: [3, 2, 2, 2],
-    18: [3, 2, 2, 3, 1],
-    19: [3, 2, 2, 3, 1],
-    20: [3, 2, 2, 3, 2],
+    5: [4, 2],
+    6: [4, 2],
+    7: [4, 3],
+    8: [4, 3],
+    9: [4, 3, 2],
+    10: [4, 3, 2],
+    11: [4, 3, 3],
+    12: [4, 3, 3],
+    13: [4, 3, 3, 1],
+    14: [4, 3, 3, 1],
+    15: [4, 3, 3, 2],
+    16: [4, 3, 3, 2],
+    17: [4, 3, 3, 3, 1],
+    18: [4, 3, 3, 3, 1],
+    19: [4, 3, 3, 3, 2],
+    20: [4, 3, 3, 3, 2],
   };
 
   const slots = slotTable[level] || [];
@@ -94,317 +94,270 @@ function halfCasterSpellSlots(level: number): Record<number, number> {
   return result;
 }
 
-// Warlock Pact Magic spell slots
+// Warlock Pact Magic spell slots: 1 slot at level 1, 2 at level 2, 3 at level 11, 4 at level 17.
+// Slot level scales 1st -> 5th over levels 1-9.
 function warlockSpellSlots(level: number): { max: number; slotLevel: number } {
   const slotLevel = Math.min(Math.ceil(level / 2), 5);
-  return { max: 2, slotLevel };
-}
-
-// Artificer spell slot table
-function artificerSpellSlots(level: number): Record<number, number> {
-  const slotTable: Record<number, number[]> = {
-    1: [],
-    2: [2],
-    3: [2],
-    4: [3],
-    5: [3],
-    6: [3, 1],
-    7: [3, 1],
-    8: [3, 2],
-    9: [3, 2],
-    10: [3, 2, 1],
-    11: [3, 2, 1],
-    12: [3, 2, 2],
-    13: [3, 2, 2],
-    14: [3, 2, 2, 1],
-    15: [3, 2, 2, 1],
-    16: [3, 2, 2, 2],
-    17: [3, 2, 2, 2],
-    18: [3, 2, 2, 3, 1],
-    19: [3, 2, 2, 3, 1],
-    20: [3, 2, 2, 3, 2],
-  };
-
-  const slots = slotTable[level] || [];
-  const result: Record<number, number> = {};
-  slots.forEach((count, index) => {
-    result[index + 1] = count;
-  });
-  return result;
+  const max = level >= 17 ? 4 : level >= 11 ? 3 : level >= 2 ? 2 : 1;
+  return { max, slotLevel };
 }
 
 
-// BARBARIAN
+// BARBARIAN (PHB p. 46)
 const barbarianFeatures: Record<number, string[]> = {
   1: ['rage', 'unarmored-defense'],
   2: ['reckless-attack', 'danger-sense'],
   3: ['primal-path'], // Subclass feature
+  4: ['ability-score-improvement'],
   5: ['extra-attack', 'fast-movement'],
-  6: ['path-feature-6'],
+  6: ['path-feature'],
   7: ['feral-instinct'],
-  9: ['brutal-critical', 'path-feature-9'],
-  10: ['relentless-endurance'],
-  11: ['path-feature-11'],
-  12: ['resilient-rage'],
-  13: ['path-feature-13'],
-  14: ['persistent-rage'],
-  15: ['path-feature-15'],
-  16: ['path-feature-16'],
+  8: ['ability-score-improvement'],
+  9: ['brutal-critical-1'],
+  10: ['path-feature'],
+  11: ['relentless-rage'],
+  12: ['ability-score-improvement'],
+  13: ['brutal-critical-2'],
+  14: ['path-feature'],
+  15: ['persistent-rage'],
+  16: ['ability-score-improvement'],
+  17: ['brutal-critical-3'],
   18: ['indomitable-might'],
-  19: ['path-feature-19'],
+  19: ['ability-score-improvement'],
   20: ['primal-champion'],
 };
 
-// BARD
+// BARD (PHB p. 52)
 const bardFeatures: Record<number, string[]> = {
-  1: ['bardic-inspiration', 'spellcasting'],
+  1: ['spellcasting', 'bardic-inspiration'],
   2: ['jack-of-all-trades', 'song-of-rest'],
-  3: ['bard-college'], // Subclass feature
-  5: ['font-of-inspiration'],
-  6: ['countercharm', 'bard-college-feature'],
-  7: ['college-feature-7'],
+  3: ['bard-college', 'expertise'], // Subclass feature
+  4: ['ability-score-improvement'],
+  5: ['bardic-inspiration-d8', 'font-of-inspiration'],
+  6: ['countercharm', 'college-feature'],
   8: ['ability-score-improvement'],
-  10: ['magical-secrets', 'bard-college-feature'],
-  12: ['magical-secrets', 'ability-score-improvement'],
-  14: ['magical-secrets', 'bard-college-feature'],
-  16: ['magical-secrets', 'ability-score-improvement'],
-  18: ['magical-secrets', 'bard-college-feature'],
-  19: ['magical-secrets', 'ability-score-improvement'],
+  9: ['song-of-rest-d8'],
+  10: ['bardic-inspiration-d10', 'expertise', 'magical-secrets'],
+  12: ['ability-score-improvement'],
+  13: ['song-of-rest-d10'],
+  14: ['magical-secrets', 'college-feature'],
+  15: ['bardic-inspiration-d12'],
+  16: ['ability-score-improvement'],
+  17: ['song-of-rest-d12'],
+  18: ['magical-secrets'],
+  19: ['ability-score-improvement'],
   20: ['superior-inspiration'],
 };
 
-// CLERIC
+// CLERIC (PHB p. 57) — domain features at 1, 2, 6, 8, 17
 const clericFeatures: Record<number, string[]> = {
   1: ['spellcasting', 'divine-domain'], // Subclass feature
-  2: ['channel-divinity', 'divine-intervention-2'],
-  3: ['channel-divinity-2', 'domain-feature-3'],
-  5: ['destroy-undead', 'domain-feature-5'],
-  6: ['channel-divinity-3', 'domain-feature-6'],
-  7: ['domain-feature-7'],
-  8: ['divine-strike', 'domain-feature-8'],
-  9: ['divine-intervention-9'],
+  2: ['channel-divinity-1', 'domain-feature'],
+  4: ['ability-score-improvement'],
+  5: ['destroy-undead-cr-half'],
+  6: ['channel-divinity-2', 'domain-feature'],
+  8: ['ability-score-improvement', 'destroy-undead-cr-1', 'domain-feature'],
   10: ['divine-intervention'],
-  11: ['domain-feature-11'],
-  12: ['domain-feature-12'],
-  13: ['domain-feature-13'],
-  14: ['domain-feature-14'],
-  15: ['domain-feature-15'],
-  16: ['domain-feature-16'],
-  17: ['domain-feature-17'],
-  18: ['domain-feature-18'],
-  19: ['domain-feature-19'],
+  11: ['destroy-undead-cr-2'],
+  12: ['ability-score-improvement'],
+  14: ['destroy-undead-cr-3'],
+  16: ['ability-score-improvement'],
+  17: ['destroy-undead-cr-4', 'domain-feature'],
+  18: ['channel-divinity-3'],
+  19: ['ability-score-improvement'],
   20: ['divine-intervention-improved'],
 };
 
-// DRUID
+// DRUID (PHB p. 65) — circle features at 2, 6, 10, 14
 const druidFeatures: Record<number, string[]> = {
   1: ['druidic', 'spellcasting'],
-  2: ['wild-shape', 'circle'], // Subclass feature
-  3: ['circle-feature-2'],
-  4: ['wild-shape-improved', 'circle-feature-4'],
-  5: ['circle-feature-5'],
-  6: ['wild-shape-companion', 'circle-feature-6'],
-  7: ['circle-feature-7'],
-  8: ['wild-shape-elemental', 'circle-feature-8'],
-  9: ['circle-feature-9'],
-  10: ['circle-feature-10'],
-  11: ['circle-feature-11'],
-  12: ['circle-feature-12'],
-  13: ['circle-feature-13'],
-  14: ['circle-feature-14'],
-  15: ['circle-feature-15'],
-  16: ['circle-feature-16'],
-  17: ['circle-feature-17'],
-  18: ['circle-feature-18'],
-  19: ['circle-feature-19'],
+  2: ['wild-shape', 'druid-circle'], // Subclass feature
+  4: ['wild-shape-improvement', 'ability-score-improvement'],
+  6: ['circle-feature'],
+  8: ['wild-shape-improvement', 'ability-score-improvement'],
+  10: ['circle-feature'],
+  12: ['ability-score-improvement'],
+  14: ['circle-feature'],
+  16: ['ability-score-improvement'],
+  18: ['timeless-body', 'beast-spells'],
+  19: ['ability-score-improvement'],
   20: ['archdruid'],
 };
 
-// FIGHTER
+// FIGHTER (PHB p. 71) — archetype features at 3, 7, 10, 15, 18; extra ASIs at 6 and 14
 const fighterFeatures: Record<number, string[]> = {
   1: ['fighting-style', 'second-wind'],
-  2: ['action-surge'],
+  2: ['action-surge-1'],
   3: ['martial-archetype'], // Subclass feature
   4: ['ability-score-improvement'],
   5: ['extra-attack'],
-  6: ['archetype-feature-3'],
-  7: ['archetype-feature-7'],
+  6: ['ability-score-improvement'],
+  7: ['archetype-feature'],
   8: ['ability-score-improvement'],
-  9: ['indomitable'],
-  10: ['archetype-feature-10'],
+  9: ['indomitable-1'],
+  10: ['archetype-feature'],
   11: ['extra-attack-2'],
   12: ['ability-score-improvement'],
   13: ['indomitable-2'],
-  14: ['archetype-feature-14'],
-  15: ['archetype-feature-15'],
+  14: ['ability-score-improvement'],
+  15: ['archetype-feature'],
   16: ['ability-score-improvement'],
   17: ['action-surge-2', 'indomitable-3'],
-  18: ['archetype-feature-18'],
+  18: ['archetype-feature'],
   19: ['ability-score-improvement'],
-  20: ['archetype-feature-20'],
+  20: ['extra-attack-3'],
 };
 
-// MONK
+// MONK (PHB p. 77) — tradition features at 3, 6, 11, 17
 const monkFeatures: Record<number, string[]> = {
   1: ['unarmored-defense', 'martial-arts'],
   2: ['ki', 'unarmored-movement'],
-  3: ['monastic-tradition'], // Subclass feature
-  4: ['slow-fall', 'deflect-missiles'],
+  3: ['monastic-tradition', 'deflect-missiles'], // Subclass feature
+  4: ['ability-score-improvement', 'slow-fall'],
   5: ['extra-attack', 'stunning-strike'],
-  6: ['ki-empowered-strikes', 'tradition-feature-3'],
-  7: ['stillness', 'tradition-feature-6'],
-  8: ['tradition-feature-7'],
-  9: ['unarmored-movement-improved', 'tradition-feature-9'],
-  10: ['tradition-feature-10'],
-  11: ['tradition-feature-11'],
-  12: ['tradition-feature-12'],
-  13: ['tradition-feature-13'],
-  14: ['tradition-feature-14'],
-  15: ['tradition-feature-15'],
-  16: ['tradition-feature-16'],
-  17: ['tradition-feature-17'],
-  18: ['tradition-feature-18'],
-  19: ['tradition-feature-19'],
-  20: ['tradition-feature-20'],
+  6: ['ki-empowered-strikes', 'tradition-feature'],
+  7: ['evasion', 'stillness-of-mind'],
+  8: ['ability-score-improvement'],
+  9: ['unarmored-movement-improvement'],
+  10: ['purity-of-body'],
+  11: ['tradition-feature'],
+  12: ['ability-score-improvement'],
+  13: ['tongue-of-the-sun-and-moon'],
+  14: ['diamond-soul'],
+  15: ['timeless-body'],
+  16: ['ability-score-improvement'],
+  17: ['tradition-feature'],
+  18: ['empty-body'],
+  19: ['ability-score-improvement'],
+  20: ['perfect-self'],
 };
 
-const monkKiPoints = (level: number): number => Math.floor(level / 2);
+// Monk ki points equal monk level, starting when Ki unlocks at level 2 (PHB p. 78)
+const monkKiPoints = (level: number): number => (level >= 2 ? level : 0);
 
-// PALADIN
+// PALADIN (PHB p. 83) — oath features at 3, 7, 15, 20
 const paladinFeatures: Record<number, string[]> = {
   1: ['divine-sense', 'lay-on-hands'],
-  2: ['fighting-style', 'divine-smite'],
+  2: ['fighting-style', 'spellcasting', 'divine-smite'],
   3: ['divine-health', 'sacred-oath'], // Subclass feature
-  5: ['extra-attack', 'oath-channel'],
+  4: ['ability-score-improvement'],
+  5: ['extra-attack'],
   6: ['aura-of-protection'],
-  7: ['aura-of-courage', 'oath-feature-7'],
+  7: ['oath-feature'],
   8: ['ability-score-improvement'],
-  9: ['oath-feature-9'],
-  10: ['aura-of-resistance'],
+  10: ['aura-of-courage'],
   11: ['improved-divine-smite'],
-  12: ['oath-feature-12'],
-  13: ['aura-of-courage-improved', 'oath-feature-13'],
+  12: ['ability-score-improvement'],
   14: ['cleansing-touch'],
-  15: ['oath-feature-15'],
+  15: ['oath-feature'],
   16: ['ability-score-improvement'],
-  17: ['oath-feature-17'],
-  18: ['aura-improvements', 'oath-feature-18'],
-  19: ['oath-feature-19'],
-  20: ['oath-feature-20'],
+  18: ['aura-improvements'],
+  19: ['ability-score-improvement'],
+  20: ['oath-feature'],
 };
 
-// RANGER
+// RANGER (PHB p. 91) — archetype features at 3, 7, 11, 15
 const rangerFeatures: Record<number, string[]> = {
   1: ['favored-enemy', 'natural-explorer'],
   2: ['fighting-style', 'spellcasting'],
-  3: ['ranger-archetype'], // Subclass feature
-  5: ['extra-attack', 'archetype-feature-3'],
-  6: ['archetype-feature-6'],
-  7: ['ranger-archetype-feature-7'],
-  8: ['ability-score-improvement', 'archetype-feature-8'],
-  9: ['archetype-feature-9'],
-  10: ['archetype-feature-10'],
-  11: ['archetype-feature-11'],
-  12: ['ability-score-improvement', 'archetype-feature-12'],
-  13: ['archetype-feature-13'],
-  14: ['archetype-feature-14'],
-  15: ['archetype-feature-15'],
-  16: ['ability-score-improvement', 'archetype-feature-16'],
-  17: ['archetype-feature-17'],
-  18: ['archetype-feature-18'],
-  19: ['ability-score-improvement', 'archetype-feature-19'],
+  3: ['ranger-archetype', 'primeval-awareness'], // Subclass feature
+  4: ['ability-score-improvement'],
+  5: ['extra-attack'],
+  6: ['favored-enemy-improvement', 'natural-explorer-improvement'],
+  7: ['archetype-feature'],
+  8: ['ability-score-improvement', 'lands-stride'],
+  10: ['natural-explorer-improvement', 'hide-in-plain-sight'],
+  11: ['archetype-feature'],
+  12: ['ability-score-improvement'],
+  14: ['favored-enemy-improvement', 'vanish'],
+  15: ['archetype-feature'],
+  16: ['ability-score-improvement'],
+  18: ['feral-senses'],
+  19: ['ability-score-improvement'],
   20: ['foe-slayer'],
 };
 
-// ROGUE
+// Ranger spells known (PHB p. 91): starts at 2, +1 at every odd level from 3
+const rangerSpellsKnown = (level: number): number => {
+  if (level < 2) return 0;
+  return 1 + Math.ceil(level / 2);
+};
+
+// ROGUE (PHB p. 95) — archetype features at 3, 9, 13, 17; extra ASI at 10
 const rogueFeatures: Record<number, string[]> = {
   1: ['expertise', 'sneak-attack', 'thieves-cant'],
   2: ['cunning-action'],
   3: ['roguish-archetype'], // Subclass feature
   4: ['ability-score-improvement'],
   5: ['uncanny-dodge'],
-  6: ['archetype-feature-3'],
-  7: ['evasion', 'archetype-feature-6'],
+  6: ['expertise'],
+  7: ['evasion'],
   8: ['ability-score-improvement'],
-  9: ['archetype-feature-9'],
-  10: ['archetype-feature-10'],
-  11: ['reliable-talent', 'archetype-feature-11'],
+  9: ['archetype-feature'],
+  10: ['ability-score-improvement'],
+  11: ['reliable-talent'],
   12: ['ability-score-improvement'],
-  13: ['archetype-feature-13'],
-  14: ['blind-sense', 'archetype-feature-14'],
-  15: ['slippery-mind', 'archetype-feature-15'],
+  13: ['archetype-feature'],
+  14: ['blindsense'],
+  15: ['slippery-mind'],
   16: ['ability-score-improvement'],
-  17: ['archetype-feature-17'],
-  18: ['elusive', 'archetype-feature-18'],
-  19: ['ability-score-improvement', 'archetype-feature-19'],
+  17: ['archetype-feature'],
+  18: ['elusive'],
+  19: ['ability-score-improvement'],
   20: ['stroke-of-luck'],
 };
 
-// SORCERER
+// SORCERER (PHB p. 99) — origin features at 1, 6, 14, 18; extra Metamagic at 10 and 17
 const sorcererFeatures: Record<number, string[]> = {
-  1: ['sorcerous-origin', 'spellcasting'],
+  1: ['spellcasting', 'sorcerous-origin'], // Subclass feature
   2: ['font-of-magic'],
-  3: ['metamagic', 'origin-feature-3'],
+  3: ['metamagic'],
   4: ['ability-score-improvement'],
-  5: ['origin-feature-5'],
-  6: ['origin-feature-6'],
-  7: ['origin-feature-7'],
+  6: ['origin-feature'],
   8: ['ability-score-improvement'],
-  9: ['origin-feature-9'],
-  10: ['origin-feature-10'],
-  11: ['metamagic-2', 'origin-feature-11'],
+  10: ['metamagic'],
   12: ['ability-score-improvement'],
-  13: ['origin-feature-13'],
-  14: ['origin-feature-14'],
-  15: ['origin-feature-15'],
+  14: ['origin-feature'],
   16: ['ability-score-improvement'],
-  17: ['metamagic-3', 'origin-feature-17'],
-  18: ['origin-feature-18'],
-  19: ['ability-score-improvement', 'origin-feature-19'],
-  20: ['sorcerous-restoration', 'origin-feature-20'],
+  17: ['metamagic'],
+  18: ['origin-feature'],
+  19: ['ability-score-improvement'],
+  20: ['sorcerous-restoration'],
 };
 
 const sorcererMetamagicKnown = (level: number): number => {
   if (level < 3) return 0;
-  if (level < 11) return 2;
+  if (level < 10) return 2;
   if (level < 17) return 3;
   return 4;
 };
 
-const sorcererSpellSlots = (level: number): number => {
-  if (level < 3) return 2;
-  if (level < 4) return 3;
-  if (level < 5) return 4;
-  if (level < 7) return 5;
-  if (level < 9) return 6;
-  if (level < 11) return 7;
-  if (level < 13) return 8;
-  if (level < 15) return 9;
-  if (level < 17) return 10;
-  if (level < 19) return 11;
-  return 12;
+// Sorcery points equal sorcerer level once Font of Magic unlocks at level 2
+const sorcererSorceryPoints = (level: number): number => (level >= 2 ? level : 0);
+
+const sorcererSpellsKnown = (level: number): number => {
+  const spellsKnown = [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12, 13, 13, 14, 14, 15, 15, 15, 15];
+  return spellsKnown[level] ?? 15;
 };
 
-// WARLOCK
+const sorcererCantripsKnown = (level: number): number => (level < 4 ? 4 : level < 10 ? 5 : 6);
+
+// WARLOCK (PHB p. 106) — patron features at 1, 6, 10, 14
 const warlockFeatures: Record<number, string[]> = {
-  1: ['otherworldly-patron', 'pact-magic'],
+  1: ['otherworldly-patron', 'pact-magic'], // Subclass feature
   2: ['eldritch-invocations'],
   3: ['pact-boon'],
   4: ['ability-score-improvement'],
-  5: ['patron-feature-6'],
-  6: ['patron-feature-6'],
-  7: ['patron-feature-10'],
+  6: ['patron-feature'],
   8: ['ability-score-improvement'],
-  9: ['patron-feature-10'],
-  10: ['patron-feature-10'],
+  10: ['patron-feature'],
   11: ['mystic-arcanum-6'],
   12: ['ability-score-improvement'],
   13: ['mystic-arcanum-7'],
-  14: ['patron-feature-14'],
+  14: ['patron-feature'],
   15: ['mystic-arcanum-8'],
   16: ['ability-score-improvement'],
   17: ['mystic-arcanum-9'],
-  18: ['patron-feature-18'],
   19: ['ability-score-improvement'],
   20: ['eldritch-master'],
 };
@@ -421,20 +374,8 @@ const warlockInvocationsKnown = (level: number): number => {
 };
 
 const warlockSpellsKnown = (level: number): number => {
-  if (level < 2) return 2;
-  if (level < 3) return 3;
-  if (level < 4) return 4;
-  if (level < 5) return 5;
-  if (level < 6) return 6;
-  if (level < 7) return 7;
-  if (level < 8) return 8;
-  if (level < 9) return 9;
-  if (level < 10) return 10;
-  if (level < 11) return 10;
-  if (level < 13) return 11;
-  if (level < 15) return 12;
-  if (level < 17) return 13;
-  return 14;
+  const spellsKnown = [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, 15];
+  return spellsKnown[level] ?? 15;
 };
 
 const warlockCantripsKnown = (level: number): number => {
@@ -443,29 +384,23 @@ const warlockCantripsKnown = (level: number): number => {
   return 4;
 };
 
-// WIZARD
+// WIZARD (PHB p. 113) — tradition features at 2, 6, 10, 14
 const wizardFeatures: Record<number, string[]> = {
-  1: ['arcane-recovery', 'spellcasting'],
+  1: ['spellcasting', 'arcane-recovery'],
   2: ['arcane-tradition'], // Subclass feature
-  3: ['tradition-feature-2'],
-  4: ['ability-score-improvement', 'tradition-feature-6'],
-  5: ['tradition-feature-10'],
-  6: ['tradition-feature-14'],
-  7: ['tradition-feature-14'],
-  8: ['ability-score-improvement', 'tradition-feature-14'],
-  9: ['tradition-feature-14'],
-  10: ['tradition-feature-14'],
-  11: ['tradition-feature-14'],
-  12: ['ability-score-improvement', 'tradition-feature-14'],
-  13: ['tradition-feature-14'],
-  14: ['tradition-feature-14'],
-  15: ['tradition-feature-14'],
-  16: ['ability-score-improvement', 'tradition-feature-14'],
-  17: ['tradition-feature-14'],
-  18: ['tradition-feature-14'],
-  19: ['ability-score-improvement', 'spell-mastery'],
+  4: ['ability-score-improvement'],
+  6: ['tradition-feature'],
+  8: ['ability-score-improvement'],
+  10: ['tradition-feature'],
+  12: ['ability-score-improvement'],
+  14: ['tradition-feature'],
+  16: ['ability-score-improvement'],
+  18: ['spell-mastery'],
+  19: ['ability-score-improvement'],
   20: ['signature-spells'],
 };
+
+const wizardCantripsKnown = (level: number): number => (level < 4 ? 3 : level < 10 ? 4 : 5);
 
 // Build complete progression data for all classes
 function buildClassProgression(
@@ -477,14 +412,14 @@ function buildClassProgression(
   spellsKnownFn?: (level: number) => number
 ): Record<number, ClassProgression> {
   const progression: Record<number, ClassProgression> = {};
-  
+
   for (let level = 1; level <= 20; level++) {
     const baseProgression: ClassProgression = {
       level,
       proficiencyBonus: proficiencyBonus(level),
       featuresUnlocked: features[level] || [],
     };
-    
+
     if (spellcaster && spellSlotsFn) {
       const slots = spellSlotsFn(level);
       if ('max' in slots) {
@@ -495,22 +430,22 @@ function buildClassProgression(
         baseProgression.spellSlots = slots;
       }
     }
-    
+
     if (customDataFn) {
       baseProgression.customClassData = customDataFn(level);
     }
-    
+
     if (cantripsFn) {
       baseProgression.cantripsKnown = cantripsFn(level);
     }
-    
+
     if (spellsKnownFn) {
       baseProgression.spellsKnown = spellsKnownFn(level);
     }
-    
+
     progression[level] = baseProgression;
   }
-  
+
   return progression;
 }
 
@@ -539,8 +474,8 @@ export const dndClasses: DndClass[] = [
       undefined,
       (level) => (level < 4 ? 2 : level < 10 ? 3 : 4),
       (level) => {
-        const spellsKnown = [0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 22, 22];
-        return spellsKnown[level];
+        const spellsKnown = [0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 15, 16, 18, 19, 19, 20, 22, 22, 22];
+        return spellsKnown[level] ?? 22;
       }
     ),
   },
@@ -548,11 +483,17 @@ export const dndClasses: DndClass[] = [
     id: 'cleric',
     name: 'Cleric',
     hitDie: 8,
-    primaryAbility: ['WIS', 'CHA'],
+    primaryAbility: ['WIS'],
     savingThrows: ['wis', 'cha'],
     spellcastingAbility: 'WIS',
     spellcaster: true,
-    progression: buildClassProgression(clericFeatures, true, standardSpellSlots),
+    progression: buildClassProgression(
+      clericFeatures,
+      true,
+      standardSpellSlots,
+      undefined,
+      (level) => (level < 4 ? 3 : level < 10 ? 4 : 5)
+    ),
   },
   {
     id: 'druid',
@@ -616,7 +557,8 @@ export const dndClasses: DndClass[] = [
       true,
       halfCasterSpellSlots,
       undefined,
-      (level) => (level < 4 ? 2 : 3)
+      undefined,
+      rangerSpellsKnown
     ),
   },
   {
@@ -640,9 +582,9 @@ export const dndClasses: DndClass[] = [
       sorcererFeatures,
       true,
       standardSpellSlots,
-      (level) => ({ metamagicKnown: sorcererMetamagicKnown(level), sorceryPoints: level }),
-      (level) => 4,
-      sorcererSpellSlots
+      (level) => ({ metamagicKnown: sorcererMetamagicKnown(level), sorceryPoints: sorcererSorceryPoints(level) }),
+      sorcererCantripsKnown,
+      sorcererSpellsKnown
     ),
   },
   {
@@ -675,7 +617,7 @@ export const dndClasses: DndClass[] = [
       true,
       standardSpellSlots,
       undefined,
-      (level) => 3
+      wizardCantripsKnown
     ),
   },
 ];

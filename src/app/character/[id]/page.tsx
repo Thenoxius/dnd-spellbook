@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Character, Spell, Feature, SpellSlot, CharacterWithRelations } from '@/types/database';
+import { Character, Spell, Feature, SpellSlot, CharacterWithRelations, CharacterFeat } from '@/types/database';
 import { formatAbilityScore, calculateModifier, calculateSpellSlots, calculateProficiencyBonus, getDamageTypeBadgeClasses, getEffectiveSpellDamage, getSpellUpcastText } from '@/lib/helpers';
 import { dndClasses, getClassProgression } from '@/data/classes';
 import { dndFeatures, getFeaturesByLevel } from '@/data/features';
 import { dndSpells, getSpellById } from '@/data/spells';
 import { dndSubclasses, getSubclassById } from '@/data/subclasses';
 import { getClassAbilities } from '@/data/classAbilities';
+import { dndFeats, getFeatById, getInvocations, getInvocationById, isInvocationFeature } from '@/data/feats';
 import { dndRaces, getRaceById } from '@/data/races';
 import { dndSubraces, getSubraceById } from '@/data/subraces';
 import { dndBackgrounds, getBackgroundById } from '@/data/backgrounds';
@@ -22,7 +23,7 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Plus, Minus, BookOpen, Shield, Package, Book, Edit, Settings, Check, Trash2, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, BookOpen, Shield, Package, Book, Edit, Settings, Check, Trash2, ArrowRight, Sparkles, X, Moon, Hourglass } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast, Toast } from '@/components/ui/toast';
 
@@ -43,6 +44,15 @@ export default function CharacterPage() {
   const [editMaxHP, setEditMaxHP] = useState(0);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirmName, setDeleteConfirmName] = useState('');
+  const [itemDialogOpen, setItemDialogOpen] = useState(false);
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemQuantity, setNewItemQuantity] = useState('1');
+  const [newItemNotes, setNewItemNotes] = useState('');
+  const [featDialogOpen, setFeatDialogOpen] = useState(false);
+  const [featDialogType, setFeatDialogType] = useState<'feat' | 'invocation' | 'custom'>('feat');
+  const [featSearch, setFeatSearch] = useState('');
+  const [customFeatName, setCustomFeatName] = useState('');
+  const [customFeatDescription, setCustomFeatDescription] = useState('');
   const [savingDetails, setSavingDetails] = useState(false);
   const [updatingHP, setUpdatingHP] = useState(false);
   const [togglingSlot, setTogglingSlot] = useState<string | null>(null);
@@ -66,7 +76,7 @@ export default function CharacterPage() {
     // Check URL for tab parameter
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
-    if (tabParam && ['combat', 'spells', 'inventory', 'settings'].includes(tabParam)) {
+    if (tabParam && ['combat', 'spells', 'feats', 'inventory', 'settings'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
     // Load theme from user profile
@@ -108,7 +118,7 @@ export default function CharacterPage() {
         ...charResult,
         class: dndClasses.find(c => c.id === charResult.class_id) || null,
         subclass: dndSubclasses.find(s => s.id === charResult.subclass_id) || null,
-        race: dndRaces.find(r => r.id === charResult.race_id) || null,
+        race: getRaceById(charResult.race_id) || null,
         subrace: dndSubraces.find(sr => sr.id === charResult.subrace_id) || null,
         background: dndBackgrounds.find(b => b.id === charResult.background_id) || null,
       };
@@ -277,6 +287,8 @@ export default function CharacterPage() {
   const getCharacterFeatures = () => {
     if (!character) return [];
     return dndFeatures.filter(feature => {
+      // Invocations are chosen individually, not granted by level (see Feats tab)
+      if (isInvocationFeature(feature.id)) return false;
       // Primary class and subclass features gate on primary class level
       if (feature.sourceId === character.class_id || feature.sourceId === character.subclass_id) {
         return feature.levelRequired <= character.level;
@@ -288,6 +300,49 @@ export default function CharacterPage() {
       return false;
     });
   };
+
+  const characterFeats: CharacterFeat[] = character?.feats || [];
+
+  // Resolve a stored feat entry to displayable text; known feats/invocations
+  // look up local data by id, custom entries carry their own text.
+  const resolveFeat = (feat: CharacterFeat): { name: string; description: string; badge: string; prerequisite?: string } => {
+    if (feat.type === 'feat') {
+      const data = getFeatById(feat.id);
+      return {
+        name: data?.name ?? feat.name ?? feat.id,
+        description: data?.description ?? feat.description ?? '',
+        badge: 'Feat',
+        prerequisite: data?.prerequisite,
+      };
+    }
+    if (feat.type === 'invocation') {
+      const data = getInvocationById(feat.id);
+      return {
+        name: (data?.name ?? feat.name ?? feat.id).replace('Eldritch Invocation: ', ''),
+        description: data?.description ?? feat.description ?? '',
+        badge: 'Invocation',
+      };
+    }
+    return { name: feat.name ?? 'Custom', description: feat.description ?? '', badge: 'Custom' };
+  };
+
+  const handleAddFeat = async (feat: CharacterFeat) => {
+    if (!character) return;
+    await updateCharacter({ feats: [...characterFeats, feat] });
+    showToast(`${resolveFeat(feat).name} added`, 'success');
+  };
+
+  const handleRemoveFeat = async (index: number) => {
+    if (!character) return;
+    const removed = characterFeats[index];
+    await updateCharacter({ feats: characterFeats.filter((_, i) => i !== index) });
+    showToast(`${resolveFeat(removed).name} removed`, 'success');
+  };
+
+  const isWarlock = character?.class_id === 'warlock' || character?.secondary_class_id === 'warlock';
+  const warlockLevel = character?.class_id === 'warlock' ? character.level : (character?.secondary_level || 0);
+  const invocationsKnownMax = getClassProgression('warlock', warlockLevel)?.customClassData?.invocationsKnown ?? 0;
+  const invocationsTaken = characterFeats.filter(f => f.type === 'invocation').length;
 
   const getSpellSlotsByLevel = () => {
     if (!character) return {};
@@ -336,43 +391,49 @@ export default function CharacterPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-slate-800/50 border border-slate-700 rounded-lg p-1 w-full" style={{ borderColor: 'var(--border-color)' }}>
+          <TabsList
+            className="border rounded-lg p-1 w-full"
+            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--card-bg)' }}
+          >
             <div className="flex w-full gap-1">
               <TabsTrigger
                 value="combat"
-                className="flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 border border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md data-[state=active]:bg-slate-700 data-[state=active]:text-white h-[38px] sm:h-[42px]"
+                className="spellbook-tab flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md h-[38px] sm:h-[42px]"
               >
                 <Shield className="h-4 w-4" />
                 <span className="hidden md:inline">Combat</span>
               </TabsTrigger>
               <TabsTrigger
                 value="spells"
-                className="flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 border border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md data-[state=active]:bg-slate-700 data-[state=active]:text-white h-[38px] sm:h-[42px]"
+                className="spellbook-tab flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md h-[38px] sm:h-[42px]"
               >
                 <BookOpen className="h-4 w-4" />
                 <span className="hidden md:inline">Spells</span>
               </TabsTrigger>
               <TabsTrigger
+                value="feats"
+                className="spellbook-tab flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md h-[38px] sm:h-[42px]"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span className="hidden md:inline">Feats</span>
+              </TabsTrigger>
+              <TabsTrigger
                 value="inventory"
-                className="flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 border border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md data-[state=active]:bg-slate-700 data-[state=active]:text-white h-[38px] sm:h-[42px]"
+                className="spellbook-tab flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md h-[38px] sm:h-[42px]"
               >
                 <Package className="h-4 w-4" />
                 <span className="hidden md:inline">Inventory</span>
               </TabsTrigger>
               <TabsTrigger
                 value="settings"
-                className="flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 border border-transparent text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md data-[state=active]:bg-slate-700 data-[state=active]:text-white h-[38px] sm:h-[42px]"
+                className="spellbook-tab flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md h-[38px] sm:h-[42px]"
               >
                 <Settings className="h-4 w-4" />
                 <span className="hidden md:inline">Settings</span>
               </TabsTrigger>
               <Button
                 onClick={() => router.push('/')}
-                className="flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 border text-white transition-all px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm hover:opacity-80 rounded-md h-[38px] sm:h-[42px]"
-                style={{
-                  backgroundColor: 'var(--accent-primary)',
-                  borderColor: 'var(--accent-primary)',
-                }}
+                className="btn-accent flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md h-[38px] sm:h-[42px]"
               >
                 <ArrowRight className="h-4 w-4" />
                 <span className="hidden md:inline">Back</span>
@@ -394,15 +455,16 @@ export default function CharacterPage() {
                       onClick={() => handleRest('short')}
                       className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 text-xs"
                     >
+                      <Hourglass className="mr-1 h-3.5 w-3.5" />
                       Short Rest
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleRest('long')}
-                      className="text-white text-xs hover:opacity-80"
-                      style={{ backgroundColor: 'var(--accent-primary)', borderColor: 'var(--accent-primary)' }}
+                      className="btn-accent text-xs"
                     >
+                      <Moon className="mr-1 h-3.5 w-3.5" />
                       Long Rest
                     </Button>
                   </div>
@@ -429,7 +491,7 @@ export default function CharacterPage() {
                     {updatingHP ? <LoadingSpinner size="sm" /> : <Minus className="h-5 w-5 md:h-6 md:w-6" />}
                   </Button>
                   <div className="text-center px-4 md:px-8">
-                    <div className="text-3xl md:text-5xl font-bold text-white">
+                    <div className={`text-3xl md:text-5xl font-bold text-white ${character.hp_current <= character.hp_max / 4 ? 'hp-low' : ''}`}>
                       {character.hp_current}
                     </div>
                     <div className="text-slate-400 text-sm md:text-base">/ {character.hp_max}</div>
@@ -672,7 +734,7 @@ export default function CharacterPage() {
                       <div key={stat} className="text-center">
                         <div className="text-slate-400 text-sm mb-1">{stat}</div>
                         <div className="text-xl font-bold text-white">{statValue}</div>
-                        <div className="text-purple-400 text-sm">
+                        <div className="text-accent text-sm">
                           {formatAbilityScore(statValue)}
                         </div>
                       </div>
@@ -681,35 +743,6 @@ export default function CharacterPage() {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Features */}
-            {characterFeatures.length > 0 && (
-              <Card className="bg-slate-800/50 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white">Features</CardTitle>
-                  <CardDescription className="text-slate-400">
-                    Class and subclass features
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[400px]">
-                    <div className="space-y-4">
-                      {characterFeatures.map((feature) => (
-                        <div key={feature.id} className="p-4 bg-slate-900/50 rounded-lg">
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="text-white font-medium">{feature.name}</h4>
-                            <Badge variant="outline" className="bg-slate-700 border-slate-600 text-white">
-                              Lv. {feature.levelRequired}
-                            </Badge>
-                          </div>
-                          <p className="text-slate-400 text-sm">{feature.description}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            )}
 
             {/* Class Progressions */}
             {(() => {
@@ -732,7 +765,7 @@ export default function CharacterPage() {
                               {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
                             </div>
                           </div>
-                          <div className="text-purple-400 font-bold">{String(value)}</div>
+                          <div className="text-accent font-bold">{String(value)}</div>
                         </div>
                       ))}
                     </div>
@@ -751,7 +784,7 @@ export default function CharacterPage() {
                   <div>
                     <div className="text-slate-400 text-sm">Spellcasting Ability</div>
                     <div className="text-xl font-bold text-white">{spellcastingAbility}</div>
-                    <div className="text-purple-400">{spellcastingModifier >= 0 ? '+' : ''}{spellcastingModifier}</div>
+                    <div className="text-accent">{spellcastingModifier >= 0 ? '+' : ''}{spellcastingModifier}</div>
                   </div>
                   <div>
                     <div className="text-slate-400 text-sm">Spell Save DC</div>
@@ -814,7 +847,7 @@ export default function CharacterPage() {
                   </div>
                   <Button
                     onClick={() => router.push(`/character/${characterId}/spells`)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    className="btn-accent"
                   >
                     <Book className="mr-2 h-4 w-4" />
                     Spell Library
@@ -903,6 +936,111 @@ export default function CharacterPage() {
             </Card>
           </TabsContent>
 
+          {/* Feats Tab */}
+          <TabsContent value="feats" className="space-y-6">
+            {/* Chosen feats & invocations */}
+            <Card className="bg-slate-800/50 border-slate-700">
+              <CardHeader>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div>
+                    <CardTitle className="text-white">Feats & Invocations</CardTitle>
+                    <CardDescription className="text-slate-400">
+                      {isWarlock
+                        ? `Options your character has chosen • ${invocationsTaken}/${invocationsKnownMax} invocations known`
+                        : 'Options your character has chosen'}
+                    </CardDescription>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      setFeatDialogType(isWarlock ? 'invocation' : 'feat');
+                      setFeatSearch('');
+                      setCustomFeatName('');
+                      setCustomFeatDescription('');
+                      setFeatDialogOpen(true);
+                    }}
+                    className="btn-accent"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Feat
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {characterFeats.length === 0 ? (
+                  <div className="text-center text-slate-400 py-8">
+                    No feats or invocations yet. Use the Add Feat button when your character gains one.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {characterFeats.map((feat, index) => {
+                      const resolved = resolveFeat(feat);
+                      return (
+                        <div key={`${feat.id}-${index}`} className="p-4 bg-slate-900/50 rounded-lg">
+                          <div className="flex items-start justify-between mb-2 gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="text-white font-medium">{resolved.name}</h4>
+                              <Badge
+                                variant="outline"
+                                className={
+                                  resolved.badge === 'Invocation'
+                                    ? 'bg-purple-900/50 border-purple-700 text-purple-300 text-xs'
+                                    : resolved.badge === 'Custom'
+                                    ? 'bg-slate-700 border-slate-600 text-slate-300 text-xs'
+                                    : 'bg-amber-900/50 border-amber-700 text-amber-300 text-xs'
+                                }
+                              >
+                                {resolved.badge}
+                              </Badge>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleRemoveFeat(index)}
+                              aria-label={`Remove ${resolved.name}`}
+                              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 h-7 w-7 shrink-0"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                          <p className="text-slate-400 text-sm whitespace-pre-line">{resolved.description}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Class & subclass features */}
+            {characterFeatures.length > 0 && (
+              <Card className="bg-slate-800/50 border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-white">Class Features</CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Features granted automatically by your class and subclass
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[400px]">
+                    <div className="space-y-4">
+                      {characterFeatures.map((feature) => (
+                        <div key={feature.id} className="p-4 bg-slate-900/50 rounded-lg">
+                          <div className="flex items-start justify-between mb-2">
+                            <h4 className="text-white font-medium">{feature.name}</h4>
+                            <Badge variant="outline" className="bg-slate-700 border-slate-600 text-white">
+                              Lv. {feature.levelRequired}
+                            </Badge>
+                          </div>
+                          <p className="text-slate-400 text-sm whitespace-pre-line">{feature.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
           {/* Inventory Tab */}
           <TabsContent value="inventory" className="space-y-6">
             <Card className="bg-slate-800/50 border-slate-700">
@@ -968,15 +1106,12 @@ export default function CharacterPage() {
                   </div>
                   <Button
                     onClick={() => {
-                      const name = prompt('Item name:');
-                      if (!name) return;
-                      const quantity = parseInt(prompt('Quantity:', '1') || '1') || 1;
-                      const notes = prompt('Notes (optional):') || '';
-                      const newItem = { name, quantity, notes };
-                      const newInventory = [...character.inventory, newItem];
-                      updateCharacter({ inventory: newInventory });
+                      setNewItemName('');
+                      setNewItemQuantity('1');
+                      setNewItemNotes('');
+                      setItemDialogOpen(true);
                     }}
-                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    className="btn-accent"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Item
@@ -1146,8 +1281,7 @@ export default function CharacterPage() {
                       setSavingDetails(false);
                     }}
                     disabled={savingDetails}
-                    className="text-white flex-1"
-                    style={{ backgroundColor: 'var(--accent-primary)' }}
+                    className="btn-accent flex-1"
                   >
                     {savingDetails ? <LoadingSpinner size="sm" /> : 'Save Changes'}
                   </Button>
@@ -1300,6 +1434,220 @@ export default function CharacterPage() {
                 Delete Character
               </Button>
             </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Add Item Dialog */}
+        <Dialog open={itemDialogOpen} onOpenChange={setItemDialogOpen}>
+          <DialogContent className="bg-slate-800 border-slate-700 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-white">Add Item</DialogTitle>
+              <DialogDescription className="text-slate-400">
+                Add an item to your inventory.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="item-name" className="text-white">Name</Label>
+                <Input
+                  id="item-name"
+                  value={newItemName}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewItemName(e.target.value)}
+                  placeholder="e.g. Rope (50 ft)"
+                  className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                />
+              </div>
+              <div>
+                <Label htmlFor="item-quantity" className="text-white">Quantity</Label>
+                <Input
+                  id="item-quantity"
+                  type="number"
+                  min={1}
+                  value={newItemQuantity}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewItemQuantity(e.target.value)}
+                  className="bg-slate-900/50 border-slate-700 text-white mt-2 w-24"
+                />
+              </div>
+              <div>
+                <Label htmlFor="item-notes" className="text-white">Notes (optional)</Label>
+                <Input
+                  id="item-notes"
+                  value={newItemNotes}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewItemNotes(e.target.value)}
+                  placeholder="e.g. Hempen, slightly frayed"
+                  className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setItemDialogOpen(false)}
+                className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={!newItemName.trim()}
+                onClick={() => {
+                  const quantity = Math.max(1, parseInt(newItemQuantity) || 1);
+                  const newItem = { name: newItemName.trim(), quantity, notes: newItemNotes.trim() };
+                  updateCharacter({ inventory: [...character.inventory, newItem] });
+                  setItemDialogOpen(false);
+                }}
+                className="btn-accent"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Item
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Add Feat Dialog */}
+        <Dialog open={featDialogOpen} onOpenChange={setFeatDialogOpen}>
+          <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="text-white">Add Feat</DialogTitle>
+              <DialogDescription className="text-slate-400">
+                Pick an option your character has gained, or write your own.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                {([
+                  ...(isWarlock ? [['invocation', 'Invocations'] as const] : []),
+                  ['feat', 'Feats'] as const,
+                  ['custom', 'Custom'] as const,
+                ]).map(([type, label]) => (
+                  <Button
+                    key={type}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFeatDialogType(type)}
+                    className={`flex-1 ${
+                      featDialogType === type ? 'btn-accent' : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'
+                    }`}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+
+              {featDialogType === 'custom' ? (
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="custom-feat-name" className="text-white">Name</Label>
+                    <Input
+                      id="custom-feat-name"
+                      value={customFeatName}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCustomFeatName(e.target.value)}
+                      placeholder="e.g. Boon of the Night Mother"
+                      className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="custom-feat-description" className="text-white">Description</Label>
+                    <textarea
+                      id="custom-feat-description"
+                      value={customFeatDescription}
+                      onChange={(e) => setCustomFeatDescription(e.target.value)}
+                      placeholder="What does it do?"
+                      rows={4}
+                      className="w-full rounded-md px-3 py-2 text-sm bg-slate-900/50 border border-slate-700 text-white mt-2"
+                    />
+                  </div>
+                  <Button
+                    disabled={!customFeatName.trim()}
+                    onClick={() => {
+                      handleAddFeat({
+                        id: `custom_${Date.now()}`,
+                        type: 'custom',
+                        name: customFeatName.trim(),
+                        description: customFeatDescription.trim(),
+                      });
+                      setFeatDialogOpen(false);
+                    }}
+                    className="btn-accent w-full"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Custom Feat
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <Input
+                    value={featSearch}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFeatSearch(e.target.value)}
+                    placeholder={featDialogType === 'invocation' ? 'Search invocations...' : 'Search feats...'}
+                    className="bg-slate-900/50 border-slate-700 text-white"
+                  />
+                  <ScrollArea className="h-[320px]">
+                    <div className="space-y-2 pr-2">
+                      {featDialogType === 'invocation'
+                        ? getInvocations()
+                            .filter(inv => !characterFeats.some(f => f.id === inv.id))
+                            .filter(inv => inv.name.toLowerCase().includes(featSearch.toLowerCase()))
+                            .map(inv => (
+                              <div key={inv.id} className="p-3 bg-slate-900/50 rounded-lg">
+                                <div className="flex items-start justify-between gap-2 mb-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-white font-medium text-sm">
+                                      {inv.name.replace('Eldritch Invocation: ', '')}
+                                    </span>
+                                    {inv.levelRequired > 1 && (
+                                      <Badge variant="outline" className="bg-slate-700 border-slate-600 text-slate-300 text-xs">
+                                        Lv. {inv.levelRequired}+
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      handleAddFeat({ id: inv.id, type: 'invocation' });
+                                      setFeatDialogOpen(false);
+                                    }}
+                                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 h-7 shrink-0"
+                                  >
+                                    <Plus className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                                <p className="text-slate-400 text-xs line-clamp-3">{inv.description}</p>
+                              </div>
+                            ))
+                        : dndFeats
+                            .filter(feat => !characterFeats.some(f => f.id === feat.id))
+                            .filter(feat => feat.name.toLowerCase().includes(featSearch.toLowerCase()))
+                            .map(feat => (
+                              <div key={feat.id} className="p-3 bg-slate-900/50 rounded-lg">
+                                <div className="flex items-start justify-between gap-2 mb-1">
+                                  <div>
+                                    <span className="text-white font-medium text-sm">{feat.name}</span>
+                                    {feat.prerequisite && (
+                                      <div className="text-slate-500 text-xs italic">Prerequisite: {feat.prerequisite}</div>
+                                    )}
+                                  </div>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      handleAddFeat({ id: feat.id, type: 'feat' });
+                                      setFeatDialogOpen(false);
+                                    }}
+                                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 h-7 shrink-0"
+                                  >
+                                    <Plus className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                                <p className="text-slate-400 text-xs line-clamp-3">{feat.description}</p>
+                              </div>
+                            ))}
+                    </div>
+                  </ScrollArea>
+                </>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
 

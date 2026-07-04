@@ -1,33 +1,45 @@
 # D&D 5e Spellbook & Character Tracker
 
-A mobile-first responsive web application for tracking D&D 5e (2014 Rules) characters, built with Next.js, TypeScript, Tailwind CSS, and Supabase.
+A mobile-first web application for tracking D&D 5e (2014 rules) characters, built with Next.js, TypeScript, Tailwind CSS, and Supabase. Designed to feel like a real spellbook: parchment textures, engraved serif headings, glowing spell slots, and six switchable magical themes.
 
 ## Features
 
-- **Character Management**: Create and manage multiple D&D 5e characters
-- **Character Creator**: Step-by-step wizard for creating new characters with:
+- **Character Management**: Create and manage multiple D&D 5e characters, tied to your account
+- **Character Creator**: Step-by-step wizard with:
   - Base stats configuration
-  - Race and background selection with automatic stat bonuses
+  - Race and background selection with automatic stat bonuses (including Tabaxi and subraces)
   - Class and level selection with conditional subclass options
-- **Combat Dashboard**: Track HP, spell slots, prepared spells, and class features
-- **Spell Library**: Browse and prepare spells filtered by class and subclass
-- **Inventory Management**: Track currency (CP, SP, EP, GP, PP) and inventory items
-- **Mobile-First Design**: Dark mode default, responsive layout optimized for mobile devices
+- **Combat Dashboard**: Track HP (with temp HP and a low-HP heartbeat), spell slots, and limited-use class abilities as clickable, glowing slots — including stat-linked uses (e.g. Bardic Inspiration = CHA modifier) and banked die results (Divination wizard Portent)
+- **Short & Long Rest**: One tap restores the right resources per PHB rules (warlock pact slots return on a short rest)
+- **Feats & Invocations**: Dedicated Feats tab with all class/subclass features, plus an Add button to pick PHB feats, Warlock Eldritch Invocations (with known-count tracking), or custom homebrew options
+- **Spell Library**: Browse and prepare spells filtered by class and subclass, with damage scaling by character/slot level and upcast descriptions
+- **Custom Spells**: Create your own spells
+- **Minimal Multiclassing**: Optional second class contributes features, abilities, and proficiency bonus
+- **Inventory Management**: Currency (CP/SP/EP/GP/PP) and items with quantities and notes
+- **Themes**: Six spellbook themes (Arcane Tome parchment default, Shadow Codex, Celestial Oath, Wildwood Grimoire, Infernal Pact, Arcane Sanctum) with theme-aware accents, ambient light motes, and readable contrast everywhere
+- **Auth**: Email/password accounts via Supabase Auth; characters are protected per user with Row Level Security
 
 ## Tech Stack
 
 - **Framework**: Next.js 16 with App Router
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **UI Components**: shadcn/ui
-- **Backend**: Supabase (PostgreSQL)
+- **Styling**: Tailwind CSS 4 + custom spellbook theme system (CSS variables)
+- **UI Components**: shadcn/ui on Base UI primitives
+- **Backend**: Supabase (PostgreSQL + Auth)
 - **Icons**: Lucide React
+
+## Architecture: local rulebook data + Supabase for user data
+
+Static D&D reference data (classes, races, subraces, backgrounds, subclasses, spells, features, feats, invocations) lives in the repo under `src/data/` as TypeScript + JSON — no database round-trips for rules lookups. Supabase stores only user data:
+
+- `characters`: all tracked character state (stats, HP, spell slots, prepared spells, feats, inventory, ability uses), protected by per-user RLS policies
+- `user_profiles`: user preferences such as the selected theme
 
 ## Setup Instructions
 
 ### 1. Prerequisites
 
-- Node.js 18+ installed
+- Node.js 18+
 - A Supabase account (free tier works)
 
 ### 2. Environment Configuration
@@ -44,9 +56,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ### 3. Database Setup
 
-1. Go to your Supabase project's SQL Editor
-2. Run the schema from `supabase/schema.sql` to create all tables
-3. Optionally, run `supabase/seed.sql` to populate sample data for testing
+Apply the migrations in `supabase/migrations/` in order, either via the Supabase CLI:
+
+```bash
+npx supabase link --project-ref your_project_ref
+npx supabase db push
+```
+
+or by running them in the Supabase SQL Editor. (`supabase/schema.sql` and the seed files are historical: the static rulebook tables they create were later dropped in favor of local data — the migrations are the source of truth.)
 
 ### 4. Install Dependencies
 
@@ -62,41 +79,24 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Database Schema
-
-The application uses the following tables:
-
-- `classes`: D&D classes (Barbarian, Bard, Cleric, etc.)
-- `subclasses`: Class subclasses with bonus spells
-- `races`: Character races with stat bonuses
-- `backgrounds`: Character backgrounds with skills and features
-- `spells`: Spell details with class associations
-- `features`: Class and subclass features
-- `characters`: User-created characters with all tracked data
-
 ## Usage
 
 ### Creating a Character
 
-1. Click "New Character" on the home screen
+1. Sign up / log in, then click "New Character"
 2. **Step 1**: Enter character name and adjust ability scores
-3. **Step 2**: Select race and background (stat bonuses auto-apply)
+3. **Step 2**: Select race and background (stat bonuses auto-apply, subrace shown when the race has any)
 4. **Step 3**: Choose class and level (subclass appears when level meets requirements)
 
 ### Managing Characters
 
-- **HP Tracker**: Use +/- buttons to adjust current HP
-- **Spell Slots**: Click dots to toggle between available/used
-- **Prepared Spells**: Click spells to view details, visit Spell Library to prepare/unprepare
-- **Features**: View all class/subclass features for your level
-- **Inventory**: Adjust currency with +/- buttons, add/remove items
-
-### Spell Library
-
-- Automatically filtered by your class and subclass
-- Search by name or school
-- Filter by spell level
-- Click checkmark to prepare/unprepare spells
+- **HP Tracker**: ±1/±10 buttons, temp HP, and rest buttons; below 25% HP the number beats like a heart
+- **Spell Slots**: Tap the glowing orbs to spend/restore slots
+- **Class Abilities**: Tap ability slots to spend uses; short/long rest recharges them per the rules
+- **Feats tab**: Review class features, and use "Add Feat" when your character gains a feat or invocation
+- **Spells tab**: Spell save DC, prepared spells with expandable details, link to the Spell Library
+- **Inventory**: Currency and items with quantity controls
+- **Settings**: Level, max HP, optional second class, theme selection, and character deletion
 
 ## Project Structure
 
@@ -104,28 +104,38 @@ The application uses the following tables:
 src/
 ├── app/
 │   ├── character/[id]/
-│   │   ├── page.tsx          # Main character dashboard
-│   │   └── spells/
-│   │       └── page.tsx      # Spell library
-│   ├── create/
-│   │   └── page.tsx          # Character creator
-│   ├── globals.css
-│   └── page.tsx              # Character selection
+│   │   ├── page.tsx          # Character dashboard (Combat/Spells/Feats/Inventory/Settings)
+│   │   ├── edit/page.tsx     # Level & HP editing
+│   │   └── spells/page.tsx   # Spell library
+│   ├── create/page.tsx       # Character creator wizard
+│   ├── login/  signup/       # Auth pages
+│   ├── spells/create/        # Custom spell creator
+│   ├── globals.css           # Spellbook theme system (6 themes, CSS variables)
+│   └── page.tsx              # Character roster
 ├── components/ui/            # shadcn/ui components
+├── data/                     # Local D&D 5e rulebook data
+│   ├── classes.ts            # Class progressions (PHB 2014 tables)
+│   ├── classAbilities.ts     # Limited-use abilities with max-uses formulas
+│   ├── feats.ts              # PHB feats + eldritch invocation catalog
+│   ├── races.ts / subraces.ts / backgrounds.ts / subclasses.ts
+│   ├── features.ts / spells.ts
+│   └── exports/              # JSON data files
 ├── lib/
-│   ├── helpers.ts            # D&D calculation helpers
-│   ├── supabase.ts           # Supabase client
-│   └── utils.ts              # Utility functions
+│   ├── helpers.ts            # D&D calculation helpers (slots, HP, modifiers)
+│   └── supabase.ts           # Supabase client
 └── types/
     └── database.ts           # TypeScript types
+supabase/
+└── migrations/               # Database migrations (source of truth for schema)
 ```
 
-## D&D 5e Rules Implementation
+## D&D 5e Rules Implementation (PHB 2014)
 
-- **Spell Slots**: Based on PHB 2014 spell slot progression table
-- **Subclass Levels**: Follows 2014 rules (Cleric/Sorcerer/Warlock: Lv1, Wizard/Druid: Lv2, others: Lv3)
-- **Ability Modifiers**: Calculated as `floor((score - 10) / 2)`
-- **HP Calculation**: Based on class hit die and CON modifier
+- **Spell Slots**: Full-caster, half-caster (paladin/ranger), and Warlock Pact Magic tables (pact slots: 1 → 2 → 3 at level 11 → 4 at level 17, slot level scales to 5th); non-casters get none
+- **Class Progressions**: Feature levels, ASI levels, cantrips/spells known, ki points, sorcery points, metamagic, and invocations known audited against the PHB
+- **Subclass Levels**: Cleric/Sorcerer/Warlock: Lv1, Wizard/Druid: Lv2, others: Lv3
+- **Ability Modifiers**: `floor((score - 10) / 2)`
+- **HP Calculation**: Class hit die + CON modifier (average per level)
 
 ## Development
 
@@ -137,7 +147,7 @@ npx shadcn@latest add [component-name]
 
 ### Database Migrations
 
-Run SQL changes in the Supabase SQL Editor or use the Supabase CLI.
+Add a timestamped SQL file to `supabase/migrations/` and apply it with `npx supabase db push`.
 
 ## License
 

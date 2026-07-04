@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { CharacterWithRelations } from '@/types/database';
 import { calculateSpellSlots } from '@/lib/helpers';
+import { getClassById } from '@/data/classes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -30,21 +31,19 @@ export default function EditCharacterPage() {
   }, [characterId]);
 
   const fetchCharacterData = async () => {
+    // Reference data (class, race, ...) lives in local files, not the database
     const charResult = await supabase
       .from('characters')
-      .select(`
-        *,
-        class:classes(*),
-        subclass:subclasses(*),
-        race:races(*),
-        subrace:subraces(*),
-        background:backgrounds(*)
-      `)
+      .select('*')
       .eq('id', characterId)
       .single();
 
     if (charResult.data) {
-      setCharacter(charResult.data as CharacterWithRelations);
+      const withRelations = {
+        ...charResult.data,
+        class: getClassById(charResult.data.class_id) || null,
+      } as CharacterWithRelations;
+      setCharacter(withRelations);
       setEditLevel(charResult.data.level);
       setEditMaxHP(charResult.data.hp_max);
     }
@@ -173,7 +172,7 @@ export default function EditCharacterPage() {
               <Button
                 onClick={handleSave}
                 disabled={saving}
-                className="bg-purple-600 hover:bg-purple-700 text-white flex-1"
+                className="btn-accent flex-1"
               >
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>

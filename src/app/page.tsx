@@ -124,7 +124,7 @@ export default function Home() {
             <Button
               onClick={handleCreateCharacter}
               size="lg"
-              className="bg-purple-600 hover:bg-purple-700 text-white flex-1 sm:flex-none text-sm md:text-base"
+              className="btn-accent flex-1 sm:flex-none text-sm md:text-base"
             >
               <Plus className="mr-1 h-4 w-4 md:mr-2 md:h-5 md:w-5" />
               <span className="hidden sm:inline">New Character</span>
@@ -145,7 +145,7 @@ export default function Home() {
             <CardContent>
               <Button
                 onClick={handleCreateCharacter}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                className="btn-accent w-full"
               >
                 <Plus className="mr-2 h-5 w-5" />
                 Create Character
@@ -157,7 +157,7 @@ export default function Home() {
             {characters.map((character) => (
               <Card
                 key={character.id}
-                className="bg-slate-800/50 border-slate-700 hover:bg-slate-800/70 transition-colors cursor-pointer relative"
+                className="clickable-card bg-slate-800/50 border-slate-700 hover:bg-slate-800/70 cursor-pointer relative"
                 onClick={() => handleSelectCharacter(character.id)}
               >
                 <Button
@@ -179,7 +179,7 @@ export default function Home() {
                     <div className="text-slate-300">
                       HP: {character.hp_current}/{character.hp_max}
                     </div>
-                    <div className="text-purple-400">
+                    <div className="text-accent">
                       {character.prepared_spells.length} spells
                     </div>
                   </div>

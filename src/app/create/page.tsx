@@ -96,10 +96,18 @@ export default function CreateCharacterPage() {
 
     setLoading(true);
 
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setLoading(false);
+      router.push('/login');
+      return;
+    }
+
     const hpMax = calculateMaxHP(classId, level, adjustedStats.CON);
     const spellSlots = calculateSpellSlots(classId, level);
 
     const { data, error } = await supabase.from('characters').insert({
+      user_id: user.id,
       name,
       level,
       hp_current: hpMax,
@@ -147,9 +155,15 @@ export default function CreateCharacterPage() {
           {[1, 2, 3].map((s) => (
             <div
               key={s}
-              className={`flex-1 h-2 rounded-full transition-colors ${
-                s <= step ? 'bg-purple-600' : 'bg-slate-700'
-              }`}
+              className={`flex-1 h-2 rounded-full transition-all ${s <= step ? '' : 'bg-slate-700'}`}
+              style={
+                s <= step
+                  ? {
+                      backgroundColor: 'var(--accent-primary)',
+                      boxShadow: '0 0 8px color-mix(in srgb, var(--slot-glow) 55%, transparent)',
+                    }
+                  : undefined
+              }
             />
           ))}
         </div>
@@ -234,12 +248,12 @@ export default function CreateCharacterPage() {
                     <div className="mt-2 text-sm text-slate-400">
                       <div>Stat Bonuses: {Object.entries(selectedRace.statBonuses).map(([k, v]) => `${k} +${v}`).join(', ')}</div>
                       {selectedRace.grantedSpells.length > 0 && (
-                        <div>Granted Spells: {selectedRace.grantedSpells.join(', ')}</div>
+                        <div>Racial Traits: {selectedRace.grantedSpells.join(', ')}</div>
                       )}
                     </div>
                   )}
                 </div>
-                {selectedRace && (
+                {selectedRace && getSubracesByRace(raceId).length > 0 && (
                   <div>
                     <Label htmlFor="subrace" className="text-white">Subrace (Optional)</Label>
                     <Select items={{ '': 'None', ...Object.fromEntries(getSubracesByRace(raceId).map(s => [s.id, s.name])) }} value={subraceId} onValueChange={(value) => setSubraceId(value || '')}>
@@ -293,7 +307,7 @@ export default function CreateCharacterPage() {
                       {(['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as AbilityScoreName[]).map((stat) => (
                         <div key={stat} className="text-center">
                           <div className="text-white font-medium">{stat}</div>
-                          <div className="text-purple-400">{formatAbilityScore(adjustedStats[stat])}</div>
+                          <div className="text-accent">{formatAbilityScore(adjustedStats[stat])}</div>
                         </div>
                       ))}
                     </div>
@@ -383,7 +397,7 @@ export default function CreateCharacterPage() {
                     (step === 1 && !name) ||
                     (step === 2 && (!raceId || !backgroundId))
                   }
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                  className="btn-accent flex-1"
                 >
                   Next
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -392,7 +406,7 @@ export default function CreateCharacterPage() {
                 <Button
                   onClick={handleSubmit}
                   disabled={!classId || loading}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                  className="btn-accent flex-1"
                 >
                   {loading ? 'Creating...' : 'Create Character'}
                 </Button>

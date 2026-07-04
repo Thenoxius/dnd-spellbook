@@ -274,7 +274,7 @@ export default function CreateSpellPage() {
               <Button
                 onClick={handleSubmit}
                 disabled={saving}
-                className="bg-purple-600 hover:bg-purple-700 text-white flex-1"
+                className="btn-accent flex-1"
               >
                 {saving ? 'Saving...' : 'Create Spell'}
               </Button>

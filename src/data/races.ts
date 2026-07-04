@@ -18,6 +18,13 @@ export const dndRaces: DndRace[] = racesData.map(race => ({
   grantedSpells: typeof race.granted_spells === 'string' ? JSON.parse(race.granted_spells) : race.granted_spells,
 }));
 
+// Older seeds used dash-separated ids for these races; existing characters may still reference them.
+const legacyRaceIdAliases: Record<string, string> = {
+  'half-elf': 'half_elf',
+  'half-orc': 'half_orc',
+};
+
 export function getRaceById(id: string): DndRace | undefined {
-  return dndRaces.find(race => race.id === id);
+  const resolvedId = legacyRaceIdAliases[id] || id;
+  return dndRaces.find(race => race.id === resolvedId);
 }
