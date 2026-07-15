@@ -1,10 +1,10 @@
 # D&D 5e Spellbook & Character Tracker
 
-A mobile-first web application for tracking D&D 5e (2014 rules) characters, built with Next.js, TypeScript, Tailwind CSS, and Supabase. Designed to feel like a real spellbook: parchment textures, engraved serif headings, glowing spell slots, and six switchable magical themes.
+A mobile-first, **fully local** web application for tracking D&D 5e (2014 rules) characters, built with Next.js, TypeScript, and Tailwind CSS. No accounts, no backend: characters live in your browser's IndexedDB and never leave your device. Designed to feel like a real spellbook: parchment textures, gold-foil headings, glowing rune-ringed spell slots, character tomes on a shelf, and six switchable magical themes.
 
 ## Features
 
-- **Character Management**: Create and manage multiple D&D 5e characters, tied to your account
+- **Character Management**: Create and manage multiple D&D 5e characters, stored on your device
 - **Character Creator**: Step-by-step wizard with:
   - Base stats configuration
   - Race and background selection with automatic stat bonuses (including Tabaxi and subraces)
@@ -16,8 +16,8 @@ A mobile-first web application for tracking D&D 5e (2014 rules) characters, buil
 - **Custom Spells**: Create your own spells
 - **Minimal Multiclassing**: Optional second class contributes features, abilities, and proficiency bonus
 - **Inventory Management**: Currency (CP/SP/EP/GP/PP) and items with quantities and notes
-- **Themes**: Six spellbook themes (Arcane Tome parchment default, Shadow Codex, Celestial Oath, Wildwood Grimoire, Infernal Pact, Arcane Sanctum) with theme-aware accents, ambient light motes, and readable contrast everywhere
-- **Auth**: Email/password accounts via Supabase Auth; characters are protected per user with Row Level Security
+- **Themes**: Six spellbook themes (Arcane Tome parchment default, Shadow Codex, Celestial Oath, Wildwood Grimoire, Infernal Pact, Arcane Sanctum), switchable from the home page palette dots or character settings, with theme-aware accents, ambient light motes, and readable contrast everywhere
+- **Backup & Restore**: Export everything to a JSON file and import it on another device — the safety net for local-first data
 
 ## Tech Stack
 
@@ -25,65 +25,31 @@ A mobile-first web application for tracking D&D 5e (2014 rules) characters, buil
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS 4 + custom spellbook theme system (CSS variables)
 - **UI Components**: shadcn/ui on Base UI primitives
-- **Backend**: Supabase (PostgreSQL + Auth)
+- **Storage**: Browser IndexedDB (hand-rolled layer in `src/lib/db.ts`) — no backend
 - **Icons**: Lucide React
 
-## Architecture: local rulebook data + Supabase for user data
+## Architecture: everything local
 
-Static D&D reference data (classes, races, subraces, backgrounds, subclasses, spells, features, feats, invocations) lives in the repo under `src/data/` as TypeScript + JSON — no database round-trips for rules lookups. Supabase stores only user data:
+Static D&D reference data (classes, races, subraces, backgrounds, subclasses, spells, features, feats, invocations) lives in the repo under `src/data/` as TypeScript + JSON — no round-trips for rules lookups. User data lives in the browser:
 
-- `characters`: all tracked character state (stats, HP, spell slots, prepared spells, feats, inventory, ability uses), protected by per-user RLS policies
-- `user_profiles`: user preferences such as the selected theme
+- `characters` (IndexedDB): all tracked character state — stats, HP, spell slots, prepared spells, feats, inventory, ability uses
+- `customSpells` (IndexedDB): homebrew spells, stored in the same shape as the bundled spell data so they merge into the library
+- Theme preference in `localStorage`, applied before first paint
 
-## Setup Instructions
-
-### 1. Prerequisites
-
-- Node.js 18+
-- A Supabase account (free tier works)
-
-### 2. Environment Configuration
-
-1. Create a new Supabase project at [supabase.com](https://supabase.com)
-2. Go to your Supabase project settings → API
-3. Copy your project URL and anon key
-4. Create a `.env.local` file in the project root:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-### 3. Database Setup
-
-Apply the migrations in `supabase/migrations/` in order, either via the Supabase CLI:
-
-```bash
-npx supabase link --project-ref your_project_ref
-npx supabase db push
-```
-
-or by running them in the Supabase SQL Editor. (`supabase/schema.sql` and the seed files are historical: the static rulebook tables they create were later dropped in favor of local data — the migrations are the source of truth.)
-
-### 4. Install Dependencies
+## Setup
 
 ```bash
 npm install
-```
-
-### 5. Run Development Server
-
-```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000) in your browser. That's the whole setup — no accounts, no API keys, no database to configure.
 
 ## Usage
 
 ### Creating a Character
 
-1. Sign up / log in, then click "New Character"
+1. Click "New Character"
 2. **Step 1**: Enter character name and adjust ability scores
 3. **Step 2**: Select race and background (stat bonuses auto-apply, subrace shown when the race has any)
 4. **Step 3**: Choose class and level (subclass appears when level meets requirements)
@@ -108,10 +74,9 @@ src/
 │   │   ├── edit/page.tsx     # Level & HP editing
 │   │   └── spells/page.tsx   # Spell library
 │   ├── create/page.tsx       # Character creator wizard
-│   ├── login/  signup/       # Auth pages
 │   ├── spells/create/        # Custom spell creator
 │   ├── globals.css           # Spellbook theme system (6 themes, CSS variables)
-│   └── page.tsx              # Character roster
+│   └── page.tsx              # Character roster (tome shelf) + backup/restore
 ├── components/ui/            # shadcn/ui components
 ├── data/                     # Local D&D 5e rulebook data
 │   ├── classes.ts            # Class progressions (PHB 2014 tables)
@@ -119,14 +84,13 @@ src/
 │   ├── feats.ts              # PHB feats + eldritch invocation catalog
 │   ├── races.ts / subraces.ts / backgrounds.ts / subclasses.ts
 │   ├── features.ts / spells.ts
-│   └── exports/              # JSON data files
+│   └── exports/              # JSON data files (incl. the one-time character seed)
 ├── lib/
-│   ├── helpers.ts            # D&D calculation helpers (slots, HP, modifiers)
-│   └── supabase.ts           # Supabase client
+│   ├── db.ts                 # IndexedDB persistence (characters, custom spells, backup)
+│   ├── theme.ts              # Theme catalog + localStorage preference
+│   └── helpers.ts            # D&D calculation helpers (slots, HP, modifiers)
 └── types/
     └── database.ts           # TypeScript types
-supabase/
-└── migrations/               # Database migrations (source of truth for schema)
 ```
 
 ## D&D 5e Rules Implementation (PHB 2014)
@@ -144,10 +108,6 @@ supabase/
 ```bash
 npx shadcn@latest add [component-name]
 ```
-
-### Database Migrations
-
-Add a timestamped SQL file to `supabase/migrations/` and apply it with `npx supabase db push`.
 
 ## License
 

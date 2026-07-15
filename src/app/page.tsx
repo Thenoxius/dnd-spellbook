@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { listCharacters, deleteCharacter, exportBackup, importBackup, type BackupData } from '@/lib/db';
-import { loadTheme } from '@/lib/theme';
+import { THEMES, applyTheme, loadTheme } from '@/lib/theme';
 import { Character } from '@/types/database';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,10 +19,13 @@ export default function Home() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [characterToDelete, setCharacterToDelete] = useState<Character | null>(null);
   const [deleteConfirmName, setDeleteConfirmName] = useState('');
+  const [theme, setTheme] = useState('arcane-tome');
   const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', loadTheme());
+    const stored = loadTheme();
+    setTheme(stored);
+    document.documentElement.setAttribute('data-theme', stored);
     fetchCharacters();
   }, []);
 
@@ -95,7 +98,24 @@ export default function Home() {
     <div className="min-h-screen p-4 md:p-8" style={{ background: 'var(--page-bg)' }}>
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4">
-          <h1 className="text-2xl md:text-4xl font-bold text-white">D&D Spellbook</h1>
+          <div>
+            <h1 className="text-2xl md:text-4xl font-bold text-white">D&D Spellbook</h1>
+            <div className="theme-dots mt-2">
+              {THEMES.map((t) => (
+                <button
+                  key={t.id}
+                  title={t.name}
+                  aria-label={`Switch to the ${t.name} theme`}
+                  className={`theme-dot ${theme === t.id ? 'theme-dot-active' : ''}`}
+                  style={{ background: `linear-gradient(135deg, ${t.from}, ${t.accent})` }}
+                  onClick={() => {
+                    setTheme(t.id);
+                    applyTheme(t.id);
+                  }}
+                />
+              ))}
+            </div>
+          </div>
           <div className="flex gap-2 sm:gap-4 w-full sm:w-auto">
             <Button
               onClick={handleCreateCharacter}
@@ -133,7 +153,7 @@ export default function Home() {
             {characters.map((character) => (
               <Card
                 key={character.id}
-                className="clickable-card bg-slate-800/50 border-slate-700 hover:bg-slate-800/70 cursor-pointer relative"
+                className="tome-card clickable-card cursor-pointer relative"
                 onClick={() => handleSelectCharacter(character.id)}
               >
                 <Button

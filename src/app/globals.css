@@ -378,6 +378,192 @@ body::after {
   }
 }
 
+/* --------------------------------------------------------------------------
+   Illuminated page titles: gold-foil gradient ink with a slow shimmer
+   sweeping across, like light catching embossed lettering.
+   -------------------------------------------------------------------------- */
+
+h1 {
+  background: linear-gradient(
+    100deg,
+    var(--text-highlight) 0%,
+    color-mix(in srgb, var(--text-highlight) 25%, white) 45%,
+    var(--text-highlight) 65%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  animation: foil-shimmer 7s ease-in-out infinite;
+}
+
+@keyframes foil-shimmer {
+  0%, 100% { background-position: 100% 0; }
+  50% { background-position: 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  h1 {
+    animation: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Engraved plate frame: a hairline inner border set just inside each card,
+   like the tooled line around a plate in a bound tome.
+   -------------------------------------------------------------------------- */
+
+[data-slot="card"] {
+  position: relative;
+}
+
+[data-slot="card"]::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid color-mix(in srgb, var(--border-color) 55%, transparent);
+  border-radius: calc(var(--radius) - 4px);
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Rune ring: available slots carry a slowly turning dashed circle, like a
+   summoning ring holding the stored magic in place.
+   -------------------------------------------------------------------------- */
+
+.spell-slot {
+  position: relative;
+}
+
+.spell-slot-available::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  border: 1px dashed color-mix(in srgb, var(--slot-glow) 55%, transparent);
+  animation: rune-spin 9s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rune-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spell-slot-available::after {
+    animation: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Character roster: every character is a tome on the shelf — dark leather
+   whatever the page theme, gold-embossed lettering, the theme's accent as
+   the spine and a ribbon bookmark. Doubled selectors so these outrank the
+   parchment theme's ink remaps and Tailwind utilities.
+   -------------------------------------------------------------------------- */
+
+.tome-card.tome-card {
+  position: relative;
+  overflow: hidden;
+  background:
+    var(--paper-noise),
+    radial-gradient(ellipse at 30% 0%, color-mix(in srgb, var(--accent-primary) 18%, transparent), transparent 60%),
+    linear-gradient(150deg, #33241a, #191009 70%);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 35%, #6b543a);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 190, 0.12),
+    0 12px 26px -14px rgba(0, 0, 0, 0.65);
+}
+
+/* Spine — inset/border reset first so the engraved-frame rule above (same
+   pseudo-element) doesn't bleed through. */
+.tome-card::before {
+  content: "";
+  position: absolute;
+  inset: auto;
+  border: 0;
+  left: 10px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--accent-primary) 80%, white),
+    var(--accent-primary)
+  );
+  box-shadow: 0 0 8px color-mix(in srgb, var(--slot-glow) 45%, transparent);
+}
+
+/* Ribbon bookmark */
+.tome-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 44px;
+  width: 14px;
+  height: 42px;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--accent-primary) 85%, white),
+    var(--accent-primary)
+  );
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+  opacity: 0.9;
+}
+
+.tome-card.tome-card .text-white,
+.tome-card.tome-card [data-slot="card-title"] {
+  color: #ecd9a8;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.tome-card.tome-card .text-slate-400 { color: #b7a17c; }
+.tome-card.tome-card .text-slate-300 { color: #cdbb93; }
+
+/* Accent text (spell count) needs to stay bright on the dark leather even
+   in light themes whose highlight color is dark. */
+.tome-card.tome-card .text-accent {
+  color: color-mix(in srgb, var(--slot-glow) 70%, white);
+}
+
+.tome-card.clickable-card:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 190, 0.16),
+    0 0 20px color-mix(in srgb, var(--slot-glow) 40%, transparent),
+    0 16px 32px -14px rgba(0, 0, 0, 0.7);
+}
+
+/* --------------------------------------------------------------------------
+   Theme dots: a compact palette switcher for the home page. Each dot wears
+   its theme's gradient; the active one glows.
+   -------------------------------------------------------------------------- */
+
+.theme-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.theme-dot:hover {
+  transform: scale(1.15);
+}
+
+.theme-dot-active {
+  border-color: var(--text-highlight);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--slot-glow) 70%, transparent);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
