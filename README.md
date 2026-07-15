@@ -84,7 +84,7 @@ src/
 │   ├── feats.ts              # PHB feats + eldritch invocation catalog
 │   ├── races.ts / subraces.ts / backgrounds.ts / subclasses.ts
 │   ├── features.ts / spells.ts
-│   └── exports/              # JSON data files (incl. the one-time character seed)
+│   └── exports/              # JSON data files
 ├── lib/
 │   ├── db.ts                 # IndexedDB persistence (characters, custom spells, backup)
 │   ├── theme.ts              # Theme catalog + localStorage preference

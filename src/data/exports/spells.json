@@ -233,7 +233,8 @@
     "description": "You hurl a bubble of acid. Choose one creature within range, or choose two creatures within range that are within 5 feet of each other. A target must succeed on a dexterity saving throw or take 1d6 acid damage. This spell's damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6).",
     "base_class_ids": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ],
     "damage": "1d6",
     "damage_type": "acid",
@@ -259,7 +260,8 @@
     "description": "Your spell bolsters your allies with toughness and resolve. Choose up to three creatures within range. Each target's hit point maximum and current hit points increase by 5 for the duration.",
     "base_class_ids": [
       "cleric",
-      "paladin"
+      "paladin",
+      "artificer"
     ]
   },
   {
@@ -276,7 +278,8 @@
     "description": "You set an alarm against unwanted intrusion. Choose a door, a window, or an area within range that is no larger than a 20-foot cube. Until the spell ends, an alarm alerts you whenever a Tiny or larger creature touches or enters the warded area. When you cast the spell, you can designate creatures that won't set off the alarm. You also choose whether the alarm is mental or audible. A mental alarm alerts you with a ping in your mind if you are within 1 mile of the warded area. This ping awakens you if you are sleeping. An audible alarm produces the sound of a hand bell for 10 seconds within 60 feet.",
     "base_class_ids": [
       "ranger",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -293,7 +296,8 @@
     "description": "You assume a different form. When you cast the spell, choose one of the following options, the effects of which last for the duration of the spell. While the spell lasts, you can end one option as an action to gain the benefits of a different one. ***Aquatic Adaptation.*** You adapt your body to an aquatic environment, sprouting gills and growing webbing between your fingers. You can breathe underwater and gain a swimming speed equal to your walking speed. ***Change Appearance.*** You transform your appearance. You decide what you look like, including your height, weight, facial features, sound of your voice, hair length, coloration, and distinguishing characteristics, if any. You can make yourself appear as a member of another race, though none of your statistics change. You also can't appear as a creature of a different size than you, and your basic shape stays the same; if you're bipedal, you can't use this spell to become quadrupedal, for instance. At any time for the duration of the spell, you can use your action to change your appearance in this way again. ***Natural Weapons.*** You grow claws, fangs, spines, horns, or a different natural weapon of your choice. Your unarmed strikes deal 1d6 bludgeoning, piercing, or slashing damage, as appropriate to the natural weapon you chose, and you are proficient with your unarmed strikes. Finally, the natural weapon is magic and you have a +1 bonus to the attack and damage rolls you make using it.",
     "base_class_ids": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -426,7 +430,8 @@
     "base_class_ids": [
       "bard",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -493,7 +498,8 @@
     "description": "You create an invisible, magical eye within range that hovers in the air for the duration. You mentally receive visual information from the eye, which has normal vision and darkvision out to 30 feet. The eye can look in every direction. As an action, you can move the eye up to 30 feet in any direction. There is no limit to how far away from you the eye can move, but it can't enter another plane of existence. A solid barrier blocks the eye's movement, but the eye can pass through an opening as small as 1 inch in diameter.",
     "base_class_ids": [
       "cleric",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -531,7 +537,8 @@
     "ritual": false,
     "description": "You touch a closed door, window, gate, chest, or other entryway, and it becomes locked for the duration. You and the creatures you designate when you cast this spell can open the object normally. You can also set a password that, when spoken within 5 feet of the object, suppresses this spell for 1 minute. Otherwise, it is impassable until it is broken or the spell is dispelled or suppressed. Casting knock on the object suppresses arcane lock for 10 minutes. While affected by this spell, the object is more difficult to break or force open; the DC to break it or pick any locks on it increases by 10.",
     "base_class_ids": [
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -605,7 +612,8 @@
     "description": "Bolstering yourself with a necromantic facsimile of life, you gain 1d4 + 4 temporary hit points for the duration.",
     "base_class_ids": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -859,7 +867,8 @@
     "description": "Roll a d20 at the end of each of your turns for the duration of the spell. On a roll of 11 or higher, you vanish from your current plane of existence and appear in the Ethereal Plane (the spell fails and the casting is wasted if you were already on that plane). At the start of your next turn, and when the spell ends if you are on the Ethereal Plane, you return to an unoccupied space of your choice that you can see within 10 feet of the space you vanished from. If no unoccupied space is available within that range, you appear in the nearest unoccupied space (chosen at random if more than one space is equally near). You can dismiss this spell as an action. While on the Ethereal Plane, you can see and hear the plane you originated from, which is cast in shades of gray, and you can't see anything there more than 60 feet away. You can only affect and be affected by other creatures on the Ethereal Plane. Creatures that aren't there can't perceive you or interact with you, unless they have the ability to do so.",
     "base_class_ids": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -876,7 +885,8 @@
     "description": "Your body becomes blurred, shifting and wavering to all who can see you. For the duration, any creature has disadvantage on attack rolls against you. An attacker is immune to this effect if it doesn't rely on sight, as with blindsight, or can see through illusions, as with truesight.",
     "base_class_ids": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -1095,7 +1105,8 @@
     "description": "You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one ability check of its choice. It can roll the die before or after making the ability check. The spell then ends.",
     "base_class_ids": [
       "cleric",
-      "druid"
+      "druid",
+      "artificer"
     ]
   },
   {
@@ -1499,7 +1510,8 @@
     "description": "A flame, equivalent in brightness to a torch, springs forth from an object that you touch. The effect looks like a regular flame, but it creates no heat and doesn't use oxygen. A continual flame can be covered or hidden but not smothered or quenched.",
     "base_class_ids": [
       "cleric",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -1594,7 +1606,8 @@
     "base_class_ids": [
       "cleric",
       "druid",
-      "paladin"
+      "paladin",
+      "artificer"
     ]
   },
   {
@@ -1646,7 +1659,8 @@
     "description": "You pull wisps of shadow material from the Shadowfell to create a nonliving object of vegetable matter within range: soft goods, rope, wood, or something similar. You can also use this spell to create mineral objects such as stone, crystal, or metal. The object created must be no larger than a 5-foot cube, and the object must be of a form and material that you have seen before. The duration depends on the object's material. If the object is composed of multiple materials, use the shortest duration. | Material | Duration | |---|---| | Vegetable matter | 1 day | | Stone or crystal | 12 hours | | Precious metals | 1 hour | | Gems | 10 minutes | | Adamantine or mithral | 1 minute | Using any material created by this spell as another spell's material component causes that spell to fail.",
     "base_class_ids": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -1666,7 +1680,8 @@
       "cleric",
       "druid",
       "paladin",
-      "ranger"
+      "ranger",
+      "artificer"
     ]
   },
   {
@@ -1684,7 +1699,8 @@
     "base_class_ids": [
       "bard",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -1721,7 +1737,8 @@
       "druid",
       "ranger",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -1832,7 +1849,8 @@
       "paladin",
       "ranger",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -1912,7 +1930,8 @@
     "base_class_ids": [
       "bard",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -2003,7 +2022,8 @@
       "paladin",
       "sorcerer",
       "warlock",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -2237,7 +2257,8 @@
       "bard",
       "cleric",
       "druid",
-      "sorcerer"
+      "sorcerer",
+      "artificer"
     ]
   },
   {
@@ -2276,7 +2297,8 @@
     "description": "You cause a creature or an object you can see within range to grow larger or smaller for the duration. Choose either a creature or an object that is neither worn nor carried. If the target is unwilling, it can make a Constitution saving throw. On a success, the spell has no effect. If the target is a creature, everything it is wearing and carrying changes size with it. Any item dropped by an affected creature returns to normal size at once. ***Enlarge.*** The target's size doubles in all dimensions, and its weight is multiplied by eight. This growth increases its size by one category-from Medium to Large, for example. If there isn't enough room for the target to double its size, the creature or object attains the maximum possible size in the space available. Until the spell ends, the target also has advantage on Strength checks and Strength saving throws. The target's weapons also grow to match its new size. While these weapons are enlarged, the target's attacks with them deal 1d4 extra damage. ***Reduce.*** The target's size is halved in all dimensions, and its weight is reduced to one-eighth of normal. This reduction decreases its size by one category-from Medium to Small, for example. Until the spell ends, the target also has disadvantage on Strength checks and Strength saving throws. The target's weapons also shrink to match its new size. While these weapons are reduced, the target's attacks with them deal 1d4 less damage (this can't reduce the damage below 1).",
     "base_class_ids": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -2347,7 +2369,8 @@
     "base_class_ids": [
       "sorcerer",
       "warlock",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -2382,7 +2405,8 @@
     "ritual": false,
     "description": "You convert raw materials into products of the same material. For example, you can fabricate a wooden bridge from a clump of trees, a rope from a patch of hemp, and clothes from flax or wool. Choose raw materials that you can see within range. You can fabricate a Large or smaller object (contained within a 10-foot cube, or eight connected 5-foot cubes), given a sufficient quantity of raw material. If you are working with metal, stone, or another mineral substance, however, the fabricated object can be no larger than Medium (contained within a single 5-foot cube). The quality of objects made by the spell is commensurate with the quality of the raw materials. Creatures or magic items can't be created or transmuted by this spell. You also can't use it to create items that ordinarily require a high degree of craftsmanship, such as jewelry, weapons, glass, or armor, unless you have proficiency with the type of artisan's tools used to craft such objects.",
     "base_class_ids": [
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -2398,7 +2422,8 @@
     "ritual": false,
     "description": "Each object in a 20-foot cube within range is outlined in blue, green, or violet light (your choice). Any creature in the area when the spell is cast is also outlined in light if it fails a dexterity saving throw. For the duration, objects and affected creatures shed dim light in a 10-foot radius. Any attack roll against an affected creature or object has advantage if the attacker can see it, and the affected creature or object can't benefit from being invisible.",
     "base_class_ids": [
-      "druid"
+      "druid",
+      "artificer"
     ]
   },
   {
@@ -2435,7 +2460,8 @@
     "base_class_ids": [
       "bard",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -2569,7 +2595,8 @@
     "description": "You hurl a mote of fire at a creature or object within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 fire damage. A flammable object hit by this spell ignites if it isn't being worn or carried. This spell's damage increases by 1d10 when you reach 5th level (2d10), 11th level (3d10), and 17th level (4d10).",
     "base_class_ids": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ],
     "damage": "1d10",
     "damage_type": "fire",
@@ -2756,7 +2783,8 @@
     "base_class_ids": [
       "sorcerer",
       "warlock",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -2847,7 +2875,8 @@
       "bard",
       "cleric",
       "druid",
-      "ranger"
+      "ranger",
+      "artificer"
     ]
   },
   {
@@ -3016,7 +3045,8 @@
     "base_class_ids": [
       "bard",
       "cleric",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3049,7 +3079,8 @@
     "ritual": false,
     "description": "Slick grease covers the ground in a 10-foot square centered on a point within range and turns it into difficult terrain for the duration. When the grease appears, each creature standing in its area must succeed on a dexterity saving throw or fall prone. A creature that enters the area or ends its turn there must also succeed on a dexterity saving throw or fall prone.",
     "base_class_ids": [
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3085,7 +3116,8 @@
     "base_class_ids": [
       "bard",
       "cleric",
-      "druid"
+      "druid",
+      "artificer"
     ]
   },
   {
@@ -3216,7 +3248,8 @@
     "description": "Choose a willing creature that you can see within range. Until the spell ends, the target's speed is doubled, it gains a +2 bonus to AC, it has advantage on dexterity saving throws, and it gains an additional action on each of its turns. That action can be used only to take the Attack (one weapon attack only), Dash, Disengage, Hide, or Use an Object action. When the spell ends, the target can't move or take actions until after its next turn, as a wave of lethargy sweeps over it.",
     "base_class_ids": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3268,7 +3301,8 @@
     "description": "Choose a manufactured metal object, such as a metal weapon or a suit of heavy or medium metal armor, that you can see within range. You cause the object to glow red-hot. Any creature in physical contact with the object takes 2d8 fire damage when you cast the spell. Until the spell ends, you can use a bonus action on each of your subsequent turns to cause this damage again. If a creature is holding or wearing the object and takes the damage from it, the creature must succeed on a constitution saving throw or drop the object if it can. If it doesn't drop the object, it has disadvantage on attack rolls and ability checks until the start of your next turn.",
     "base_class_ids": [
       "bard",
-      "druid"
+      "druid",
+      "artificer"
     ],
     "damage": "2d8",
     "damage_type": "fire",
@@ -3499,7 +3533,8 @@
     "description": "You choose one object that you must touch throughout the casting of the spell. If it is a magic item or some other magic-imbued object, you learn its properties and how to use them, whether it requires attunement to use, and how many charges it has, if any. You learn whether any spells are affecting the item and what they are. If the item was created by a spell, you learn which spell created it. If you instead touch a creature throughout the casting, you learn what spells, if any, are currently affecting it.",
     "base_class_ids": [
       "bard",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3650,7 +3685,8 @@
       "bard",
       "sorcerer",
       "warlock",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3686,7 +3722,8 @@
       "druid",
       "ranger",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3742,7 +3779,8 @@
       "cleric",
       "druid",
       "paladin",
-      "ranger"
+      "ranger",
+      "artificer"
     ]
   },
   {
@@ -3759,7 +3797,8 @@
     "description": "One creature or object of your choice that you can see within range rises vertically, up to 20 feet, and remains suspended there for the duration. The spell can levitate a target that weighs up to 500 pounds. An unwilling creature that succeeds on a constitution saving throw is unaffected. The target can move only by pushing or pulling against a fixed object or surface within reach (such as a wall or a ceiling), which allows it to move as if it were climbing. You can change the target's altitude by up to 20 feet in either direction on your turn. If you are the target, you can move up or down as part of your move. Otherwise, you can use your action to move the target, which must remain within the spell's range. When the spell ends, the target floats gently to the ground if it is still aloft.",
     "base_class_ids": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3778,7 +3817,8 @@
       "bard",
       "cleric",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3839,7 +3879,8 @@
       "bard",
       "druid",
       "ranger",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3875,7 +3916,8 @@
       "bard",
       "sorcerer",
       "warlock",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3958,7 +4000,8 @@
     "description": "You plant a message to an object in the range of the spell. The message is verbalized when the trigger conditions are met. Choose an object that you see, and that is not worn or carried by another creature. Then say the message, which should not exceed 25 words but listening can take up to 10 minutes. Finally, establish the circumstances that trigger the spell to deliver your message. When these conditions are satisfied, a magical mouth appears on the object and it articulates the message imitating your voice, the same tone used during implantation of the message. If the selected object has a mouth or something that approaches such as the mouth of a statue, the magic mouth come alive at this point, giving the illusion that the words come from the mouth of the object. When you cast this spell, you may decide that the spell ends when the message is delivered or it can persist and repeat the message whenever circumstances occur. The triggering circumstance can be as general or as detailed as you like, though it must be based on visual or audible conditions that occur within 30 feet of the object. For example, you could instruct the mouth to speak when any creature moves within 30 feet of the object or when a silver bell rings within 30 feet of it.",
     "base_class_ids": [
       "bard",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -3975,7 +4018,8 @@
     "description": "You touch a nonmagical weapon. Until the spell ends, that weapon becomes a magic weapon with a +1 bonus to attack rolls and damage rolls.",
     "base_class_ids": [
       "paladin",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -4138,7 +4182,8 @@
       "bard",
       "druid",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -4156,7 +4201,8 @@
     "base_class_ids": [
       "bard",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -4584,7 +4630,8 @@
       "sorcerer",
       "warlock",
       "wizard",
-      "druid"
+      "druid",
+      "artificer"
     ],
     "damage": "1d12",
     "damage_type": "poison",
@@ -4650,7 +4697,8 @@
       "bard",
       "sorcerer",
       "warlock",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -4806,7 +4854,8 @@
       "druid",
       "ranger",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -4844,7 +4893,8 @@
       "cleric",
       "druid",
       "paladin",
-      "ranger"
+      "ranger",
+      "artificer"
     ]
   },
   {
@@ -4862,7 +4912,8 @@
     "base_class_ids": [
       "cleric",
       "druid",
-      "paladin"
+      "paladin",
+      "artificer"
     ]
   },
   {
@@ -4914,7 +4965,8 @@
     "description": "A frigid beam of blue-white light streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, it takes 1d8 cold damage, and its speed is reduced by 10 feet until the start of your next turn. The spell's damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).",
     "base_class_ids": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ],
     "damage": "1d8",
     "damage_type": "cold",
@@ -4993,7 +5045,8 @@
     "description": "You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one saving throw of its choice. It can roll the die before or after making the saving throw. The spell then ends.",
     "base_class_ids": [
       "cleric",
-      "druid"
+      "druid",
+      "artificer"
     ]
   },
   {
@@ -5045,7 +5098,8 @@
     "description": "You touch a creature that has died within the last minute. That creature returns to life with 1 hit point. This spell can't return to life a creature that has died of old age, nor can it restore any missing body parts.",
     "base_class_ids": [
       "cleric",
-      "paladin"
+      "paladin",
+      "artificer"
     ]
   },
   {
@@ -5061,7 +5115,8 @@
     "ritual": false,
     "description": "You touch a length of rope that is up to 60 feet long. One end of the rope then rises into the air until the whole rope hangs perpendicular to the ground. At the upper end of the rope, an invisible entrance opens to an extradimensional space that lasts until the spell ends. The extradimensional space can be reached by climbing to the top of the rope. The space can hold as many as eight Medium or smaller creatures. The rope can be pulled into the space, making the rope disappear from view outside the space. Attacks and spells can't cross through the entrance into or out of the extradimensional space, but those inside can see out of it as if through a 3-foot-by-5-foot window centered on the rope. Anything inside the extradimensional space drops out when the spell ends.",
     "base_class_ids": [
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -5102,7 +5157,8 @@
     "ritual": false,
     "description": "You ward a creature within range against attack. Until the spell ends, any creature who targets the warded creature with an attack or a harmful spell must first make a wisdom saving throw. On a failed save, the creature must choose a new target or lose the attack or spell. This spell doesn't protect the warded creature from area effects, such as the explosion of a fireball. If the warded creature makes an attack or casts a spell that affects an enemy creature, this spell ends.",
     "base_class_ids": [
-      "cleric"
+      "cleric",
+      "artificer"
     ]
   },
   {
@@ -5179,7 +5235,8 @@
     "base_class_ids": [
       "bard",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -5330,7 +5387,8 @@
     "description": "Lightning springs from your hand to deliver a shock to a creature you try to touch. Make a melee spell attack against the target. You have advantage on the attack roll if the target is wearing armor made of metal. On a hit, the target takes 1d8 lightning damage, and it can't take reactions until the start of its next turn. The spell's damage increases by 1d8 when you reach 5th level (2d8), 11th level (3d8), and 17th level (4d8).",
     "base_class_ids": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ],
     "damage": "1d8",
     "damage_type": "lightning",
@@ -5442,7 +5500,8 @@
     "ritual": false,
     "description": "You touch a living creature that has 0 hit points. The creature becomes stable. This spell has no effect on undead or constructs.",
     "base_class_ids": [
-      "cleric"
+      "cleric",
+      "artificer"
     ]
   },
   {
@@ -5546,7 +5605,8 @@
     "base_class_ids": [
       "sorcerer",
       "warlock",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -5656,7 +5716,8 @@
     "base_class_ids": [
       "cleric",
       "druid",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -5675,7 +5736,8 @@
       "druid",
       "ranger",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -5716,7 +5778,8 @@
       "druid",
       "ranger",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -6208,7 +6271,8 @@
     "base_class_ids": [
       "druid",
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ]
   },
   {
@@ -6268,7 +6332,8 @@
       "cleric",
       "druid",
       "ranger",
-      "sorcerer"
+      "sorcerer",
+      "artificer"
     ]
   },
   {
@@ -6285,7 +6350,8 @@
     "description": "You conjure a mass of thick, sticky webbing at a point of your choice within range. The webs fill a 20-foot cube from that point for the duration. The webs are difficult terrain and lightly obscure their area. If the webs aren't anchored between two solid masses (such as walls or trees) or layered across a floor, wall, or ceiling, the conjured web collapses on itself, and the spell ends at the start of your next turn. Webs layered over a flat surface have a depth of 5 feet. Each creature that starts its turn in the webs or that enters them during its turn must make a dexterity saving throw. On a failed save, the creature is restrained as long as it remains in the webs or until it breaks free. A creature restrained by the webs can use its action to make a Strength check against your spell save DC. If it succeeds, it is no longer restrained. The webs are flammable. Any 5-foot cube of webs exposed to fire burns away in 1 round, dealing 2d4 fire damage to any creature that starts its turn in the fire.",
     "base_class_ids": [
       "sorcerer",
-      "wizard"
+      "wizard",
+      "artificer"
     ],
     "damage": "2d4",
     "damage_type": "fire",

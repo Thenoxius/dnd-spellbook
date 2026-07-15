@@ -46,6 +46,17 @@ const long = () => 'long' as const;
 
 const classAbilityDefs: ClassAbilityDef[] = [
   {
+    id: 'flash_of_genius',
+    classId: 'artificer',
+    name: 'Flash of Genius',
+    description:
+      'When you or a creature within 30 feet makes an ability check or saving throw, use your reaction to add your Intelligence modifier to the roll. Uses equal your Intelligence modifier.',
+    minLevel: 7,
+    maxUses: (_level, mods) => Math.max(1, mods.int),
+    recharge: long,
+    linkedStat: 'int',
+  },
+  {
     id: 'rage',
     classId: 'barbarian',
     name: 'Rage',

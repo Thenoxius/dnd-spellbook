@@ -1,15 +1,11 @@
-// Local persistence layer. Like fog-atlas, the whole app now runs out of the
+// Local persistence layer. Like fog-atlas, the whole app runs out of the
 // browser's IndexedDB: characters and custom spells live on this device only —
 // no accounts, no backend, works offline. Static rules data (spells, classes,
-// races, …) ships with the app in src/data.
-//
-// The first time the app runs on a device, the store is seeded from
-// src/data/exports/characters.json — the characters exported from the old
-// Supabase backend — so nothing is lost in the migration.
+// races, …) ships with the app in src/data. New devices start with a blank
+// slate; the Backup/Restore buttons on the home page move data between them.
 
 import type { Character } from '@/types/database';
 import type { DndSpell } from '@/data/spells';
-import seedCharacters from '@/data/exports/characters.json';
 
 const DB_NAME = 'dnd-spellbook';
 const DB_VERSION = 1;
@@ -76,37 +72,7 @@ function normalizeCharacter(raw: any): Character {
   } as Character;
 }
 
-// One-time migration: if the character store is empty on this device, import
-// the characters exported from the old backend. Deleting every character
-// after that point stays deleted — the seed only targets never-initialized
-// devices, tracked with a localStorage flag.
-const SEED_FLAG = 'dnd-spellbook-seeded';
-let seedPromise: Promise<void> | null = null;
-
-function ensureSeeded(): Promise<void> {
-  if (!seedPromise) {
-    seedPromise = (async () => {
-      if (localStorage.getItem(SEED_FLAG)) return;
-      const count = await withStore('readonly', (s) => s.count(), CHARACTER_STORE);
-      if (count === 0) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        for (const raw of seedCharacters as any[]) {
-          const { user_id: _userId, ...character } = raw;
-          void _userId;
-          await withStore('readwrite', (s) => s.put(normalizeCharacter(character)), CHARACTER_STORE);
-        }
-      }
-      localStorage.setItem(SEED_FLAG, '1');
-    })().catch((err) => {
-      seedPromise = null;
-      throw err;
-    });
-  }
-  return seedPromise;
-}
-
 export async function listCharacters(): Promise<Character[]> {
-  await ensureSeeded();
   const all = await withStore('readonly', (s) => s.getAll() as IDBRequest<Character[]>, CHARACTER_STORE);
   return all
     .map(normalizeCharacter)
@@ -114,7 +80,6 @@ export async function listCharacters(): Promise<Character[]> {
 }
 
 export async function getCharacter(id: string): Promise<Character | undefined> {
-  await ensureSeeded();
   const record = await withStore(
     'readonly',
     (s) => s.get(id) as IDBRequest<Character | undefined>,
@@ -141,7 +106,6 @@ export async function updateCharacter(id: string, patch: Partial<Character>): Pr
 }
 
 export async function deleteCharacter(id: string): Promise<void> {
-  await ensureSeeded();
   await withStore('readwrite', (s) => s.delete(id), CHARACTER_STORE);
 }
 
@@ -184,7 +148,6 @@ export async function exportBackup(): Promise<BackupData> {
 export async function importBackup(data: BackupData): Promise<{ characters: number; customSpells: number }> {
   const characters = Array.isArray(data.characters) ? data.characters : [];
   const customSpells = Array.isArray(data.customSpells) ? data.customSpells : [];
-  await ensureSeeded();
   for (const c of characters) {
     if (c && typeof c.id === 'string') {
       await withStore('readwrite', (s) => s.put(normalizeCharacter(c)), CHARACTER_STORE);

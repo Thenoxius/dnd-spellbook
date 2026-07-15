@@ -536,6 +536,62 @@ h1 {
 }
 
 /* --------------------------------------------------------------------------
+   Illuminated section headers: every card title carries a thin gold rule
+   fading out to the right, like a chapter heading's flourish line.
+   -------------------------------------------------------------------------- */
+
+[data-slot="card-title"] {
+  position: relative;
+  padding-bottom: 7px;
+}
+
+[data-slot="card-title"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--accent-primary) 60%, transparent),
+    transparent 70%
+  );
+}
+
+/* --------------------------------------------------------------------------
+   Chapter tabs: the dashboard's tab bar reads as engraved chapter markers.
+   -------------------------------------------------------------------------- */
+
+.spellbook-tab {
+  font-family: var(--font-cinzel), Georgia, serif;
+  letter-spacing: 0.04em;
+}
+
+/* --------------------------------------------------------------------------
+   Stat medallions: ability scores sit on engraved coins — a soft-lit disc
+   with a tooled rim, the score embossed in the middle.
+   -------------------------------------------------------------------------- */
+
+.stat-medallion {
+  padding: 10px 4px;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 50% 28%, color-mix(in srgb, var(--accent-primary) 10%, transparent), transparent 70%),
+    color-mix(in srgb, var(--card-bg) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 12%, transparent),
+    inset 0 -6px 12px -8px rgba(0, 0, 0, 0.35);
+}
+
+.stat-medallion > div:first-child {
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+/* --------------------------------------------------------------------------
    Theme dots: a compact palette switcher for the home page. Each dot wears
    its theme's gradient; the active one glows.
    -------------------------------------------------------------------------- */

@@ -41,6 +41,7 @@ export function calculateMaxHP(classId: string, level: number, conScore: number)
   
   // Hit dice by class (PHB 2014)
   const hitDice: Record<string, number> = {
+    artificer: 8,
     barbarian: 12,
     fighter: 10,
     paladin: 10,

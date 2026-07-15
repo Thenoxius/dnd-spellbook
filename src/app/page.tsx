@@ -131,11 +131,11 @@ export default function Home() {
         {loading ? (
           <div className="text-center text-white py-12">Loading characters...</div>
         ) : characters.length === 0 ? (
-          <Card className="bg-slate-800/50 border-slate-700">
+          <Card className="tome-card">
             <CardHeader>
-              <CardTitle className="text-white">No Characters Yet</CardTitle>
+              <CardTitle className="text-white">Your Shelf Is Empty</CardTitle>
               <CardDescription className="text-slate-400">
-                Create your first character to get started
+                Bind your first character into the book — everything stays on this device.
               </CardDescription>
             </CardHeader>
             <CardContent>

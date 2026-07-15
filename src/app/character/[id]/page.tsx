@@ -704,7 +704,7 @@ export default function CharacterPage() {
                   {(['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as const).map((stat) => {
                     const statValue = character[stat.toLowerCase() as keyof Character] as number;
                     return (
-                      <div key={stat} className="text-center">
+                      <div key={stat} className="stat-medallion text-center">
                         <div className="text-slate-400 text-sm mb-1">{stat}</div>
                         <div className="text-xl font-bold text-white">{statValue}</div>
                         <div className="text-accent text-sm">

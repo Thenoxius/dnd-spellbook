@@ -168,6 +168,7 @@ export const SPELL_SCHOOLS = [
 export type SpellSchool = typeof SPELL_SCHOOLS[number];
 
 export const SUBCLASS_LEVEL_REQUIREMENTS: Record<string, number> = {
+  artificer: 3,
   cleric: 1,
   sorcerer: 1,
   warlock: 1,

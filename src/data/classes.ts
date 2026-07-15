@@ -94,6 +94,64 @@ function halfCasterSpellSlots(level: number): Record<number, number> {
   return result;
 }
 
+// Artificer spell slot table (TCE p. 10). A half-caster that rounds UP:
+// slots from level 1, never 4th/5th-level slots before 13/17.
+function artificerSpellSlots(level: number): Record<number, number> {
+  const slotTable: Record<number, number[]> = {
+    1: [2],
+    2: [2],
+    3: [3],
+    4: [3],
+    5: [4, 2],
+    6: [4, 2],
+    7: [4, 3],
+    8: [4, 3],
+    9: [4, 3, 2],
+    10: [4, 3, 2],
+    11: [4, 3, 3],
+    12: [4, 3, 3],
+    13: [4, 3, 3, 1],
+    14: [4, 3, 3, 1],
+    15: [4, 3, 3, 2],
+    16: [4, 3, 3, 2],
+    17: [4, 3, 3, 3, 1],
+    18: [4, 3, 3, 3, 1],
+    19: [4, 3, 3, 3, 2],
+    20: [4, 3, 3, 3, 2],
+  };
+
+  const slots = slotTable[level] || [];
+  const result: Record<number, number> = {};
+  slots.forEach((count, index) => {
+    result[index + 1] = count;
+  });
+  return result;
+}
+
+// ARTIFICER (TCE p. 9) — specialist features at 3, 5, 9, 15; ASI also at 19
+const artificerFeatures: Record<number, string[]> = {
+  1: ['magical-tinkering', 'spellcasting'],
+  2: ['infuse-item'],
+  3: ['artificer-specialist', 'the-right-tool-for-the-job'], // Subclass feature
+  4: ['ability-score-improvement'],
+  5: ['specialist-feature'],
+  6: ['tool-expertise'],
+  7: ['flash-of-genius'],
+  8: ['ability-score-improvement'],
+  9: ['specialist-feature'],
+  10: ['magic-item-adept'],
+  11: ['spell-storing-item'],
+  12: ['ability-score-improvement'],
+  14: ['magic-item-savant'],
+  15: ['specialist-feature'],
+  16: ['ability-score-improvement'],
+  18: ['magic-item-master'],
+  19: ['ability-score-improvement'],
+  20: ['soul-of-artifice'],
+};
+
+const artificerCantripsKnown = (level: number): number => (level < 10 ? 2 : level < 14 ? 3 : 4);
+
 // Warlock Pact Magic spell slots: 1 slot at level 1, 2 at level 2, 3 at level 11, 4 at level 17.
 // Slot level scales 1st -> 5th over levels 1-9.
 function warlockSpellSlots(level: number): { max: number; slotLevel: number } {
@@ -450,6 +508,26 @@ function buildClassProgression(
 }
 
 export const dndClasses: DndClass[] = [
+  {
+    id: 'artificer',
+    name: 'Artificer',
+    hitDie: 8,
+    primaryAbility: ['INT'],
+    savingThrows: ['con', 'int'],
+    spellcastingAbility: 'INT',
+    spellcaster: true,
+    progression: buildClassProgression(
+      artificerFeatures,
+      true,
+      artificerSpellSlots,
+      // Infusions known / infused items track the TCE table
+      (level) => ({
+        infusionsKnown: level >= 18 ? 12 : level >= 14 ? 10 : level >= 10 ? 8 : level >= 6 ? 6 : level >= 2 ? 4 : 0,
+        infusedItems: level >= 18 ? 6 : level >= 14 ? 5 : level >= 10 ? 4 : level >= 6 ? 3 : level >= 2 ? 2 : 0,
+      }),
+      artificerCantripsKnown
+    ),
+  },
   {
     id: 'barbarian',
     name: 'Barbarian',
