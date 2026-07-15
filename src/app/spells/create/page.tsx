@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { addCustomSpell } from '@/lib/db';
+import { dndClasses } from '@/data/classes';
 import { Class } from '@/types/database';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,8 +20,8 @@ const SPELL_SCHOOLS = [
 
 export default function CreateSpellPage() {
   const router = useRouter();
-  const [classes, setClasses] = useState<Class[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Classes are bundled data — nothing to fetch
+  const classes = dndClasses as Class[];
   const [saving, setSaving] = useState(false);
 
   const [name, setName] = useState('');
@@ -34,16 +35,6 @@ export default function CreateSpellPage() {
   const [ritual, setRitual] = useState(false);
   const [description, setDescription] = useState('');
   const [selectedClasses, setSelectedClasses] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    fetchClasses();
-  }, []);
-
-  const fetchClasses = async () => {
-    const { data } = await supabase.from('classes').select('*');
-    if (data) setClasses(data);
-    setLoading(false);
-  };
 
   const handleClassToggle = (classId: string) => {
     setSelectedClasses(prev => {
@@ -65,40 +56,32 @@ export default function CreateSpellPage() {
 
     setSaving(true);
 
-    // Generate a unique ID for the spell
+    // Generate a unique ID for the spell. Stored in the same shape as the
+    // bundled spell data so it merges straight into the standard lists.
     const spellId = name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now();
 
-    const { error } = await supabase.from('spells').insert({
-      id: spellId,
-      name,
-      level,
-      school,
-      casting_time: castingTime,
-      range,
-      components,
-      duration,
-      concentration,
-      ritual,
-      description,
-      base_class_ids: Array.from(selectedClasses),
-    });
-
-    setSaving(false);
-
-    if (error) {
-      alert(`Error creating spell: ${error.message}`);
-    } else {
+    try {
+      await addCustomSpell({
+        id: spellId,
+        name,
+        level,
+        school,
+        castingTime,
+        range,
+        components,
+        duration,
+        concentration,
+        ritual,
+        description,
+        baseClassIds: Array.from(selectedClasses),
+      });
+      setSaving(false);
       router.back();
+    } catch (error) {
+      setSaving(false);
+      alert(`Error creating spell: ${error instanceof Error ? error.message : error}`);
     }
   };
-
-  if (loading) {
-    return (
-      <div style={{ background: 'var(--page-bg)' }} className="min-h-screen flex items-center justify-center">
-        <div className="text-white">Loading...</div>
-      </div>
-    );
-  }
 
   return (
     <div style={{ background: 'var(--page-bg)' }} className="min-h-screen p-4 md:p-8">

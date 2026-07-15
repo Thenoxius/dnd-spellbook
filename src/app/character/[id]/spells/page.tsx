@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { getCharacter as dbGetCharacter, updateCharacter as dbUpdateCharacter, listCustomSpells } from '@/lib/db';
 import { Character } from '@/types/database';
-import { dndSpells, getSpellById } from '@/data/spells';
+import { dndSpells } from '@/data/spells';
 import { dndSubclasses, getSubclassById } from '@/data/subclasses';
 import { getDamageTypeBadgeClasses, getEffectiveSpellDamage, getSpellUpcastText } from '@/lib/helpers';
 import { Button } from '@/components/ui/button';
@@ -34,13 +34,10 @@ export default function SpellLibraryPage() {
   }, [characterId]);
 
   const fetchData = async () => {
-    const { data: charResult, error } = await supabase
-      .from('characters')
-      .select('*')
-      .eq('id', characterId)
-      .single();
-
-    if (error) {
+    let charResult;
+    try {
+      charResult = await dbGetCharacter(characterId);
+    } catch (error) {
       console.error('Error fetching character:', error);
       setLoading(false);
       return;
@@ -50,8 +47,9 @@ export default function SpellLibraryPage() {
       setCharacter(charResult);
     }
 
-    // Use local data for spells and subclasses
-    setSpells(dndSpells);
+    // Bundled spell data plus any homebrew spells stored on this device
+    const customSpells = await listCustomSpells().catch(() => []);
+    setSpells([...dndSpells, ...customSpells]);
     setSubclasses(dndSubclasses);
     setLoading(false);
   };
@@ -64,13 +62,11 @@ export default function SpellLibraryPage() {
       ? character.prepared_spells.filter(id => id !== spellId)
       : [...character.prepared_spells, spellId];
 
-    const { error } = await supabase
-      .from('characters')
-      .update({ prepared_spells: newPreparedSpells })
-      .eq('id', characterId);
-
-    if (!error) {
+    try {
+      await dbUpdateCharacter(characterId, { prepared_spells: newPreparedSpells });
       setCharacter(prev => prev ? { ...prev, prepared_spells: newPreparedSpells } : null);
+    } catch (error) {
+      console.error('Error updating prepared spells:', error);
     }
   };
 
@@ -89,7 +85,7 @@ export default function SpellLibraryPage() {
     const getAvailableSpells = () => {
     if (!character) return [];
 
-    return dndSpells.filter(spell => {
+    return spells.filter(spell => {
       // Check primary and (if multiclassed) secondary class spell lists
       const inBaseClass =
         spell.baseClassIds.includes(character.class_id) ||

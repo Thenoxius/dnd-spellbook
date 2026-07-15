@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { addCharacter } from '@/lib/db';
 import { AbilityScoreName, SUBCLASS_LEVEL_REQUIREMENTS } from '@/types/database';
 import { calculateMaxHP, calculateSpellSlots, applyStatBonuses, formatAbilityScore } from '@/lib/helpers';
 import { dndClasses } from '@/data/classes';
@@ -27,18 +27,6 @@ export default function CreateCharacterPage() {
   // Character data
   const [name, setName] = useState('');
 
-  useEffect(() => {
-    // Check authentication
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/login');
-        return;
-      }
-    };
-
-    checkAuth();
-  }, []);
   const [stats, setStats] = useState<Record<AbilityScoreName, number>>({
     STR: 10,
     DEX: 10,
@@ -96,48 +84,46 @@ export default function CreateCharacterPage() {
 
     setLoading(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setLoading(false);
-      router.push('/login');
-      return;
-    }
-
     const hpMax = calculateMaxHP(classId, level, adjustedStats.CON);
     const spellSlots = calculateSpellSlots(classId, level);
 
-    const { data, error } = await supabase.from('characters').insert({
-      user_id: user.id,
-      name,
-      level,
-      hp_current: hpMax,
-      hp_max: hpMax,
-      temp_hp: 0,
-      class_id: classId,
-      subclass_id: subclassId || null,
-      race_id: raceId,
-      subrace_id: subraceId || null,
-      background_id: backgroundId,
-      str: adjustedStats.STR,
-      dex: adjustedStats.DEX,
-      con: adjustedStats.CON,
-      int: adjustedStats.INT,
-      wis: adjustedStats.WIS,
-      cha: adjustedStats.CHA,
-      spell_slots: spellSlots,
-      prepared_spells: [],
-      currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
-      inventory: [],
-    }).select().single();
+    let created;
+    try {
+      created = await addCharacter({
+        name,
+        level,
+        hp_current: hpMax,
+        hp_max: hpMax,
+        temp_hp: 0,
+        class_id: classId,
+        subclass_id: subclassId || null,
+        secondary_class_id: null,
+        secondary_level: 0,
+        race_id: raceId,
+        subrace_id: subraceId || null,
+        background_id: backgroundId,
+        str: adjustedStats.STR,
+        dex: adjustedStats.DEX,
+        con: adjustedStats.CON,
+        int: adjustedStats.INT,
+        wis: adjustedStats.WIS,
+        cha: adjustedStats.CHA,
+        spell_slots: spellSlots,
+        prepared_spells: [],
+        currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
+        inventory: [],
+        ability_uses: {},
+        feats: [],
+      });
+    } catch (error) {
+      setLoading(false);
+      console.error('Error creating character:', error);
+      alert(`Error creating character: ${error instanceof Error ? error.message : error}`);
+      return;
+    }
 
     setLoading(false);
-
-    if (error) {
-      console.error('Error creating character:', error);
-      alert(`Error creating character: ${error.message}`);
-    } else {
-      router.push(`/character/${data.id}`);
-    }
+    router.push(`/character/${created.id}`);
   };
 
   return (

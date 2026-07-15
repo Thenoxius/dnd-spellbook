@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import {
+  getCharacter as dbGetCharacter,
+  updateCharacter as dbUpdateCharacter,
+  deleteCharacter as dbDeleteCharacter,
+} from '@/lib/db';
 import { CharacterWithRelations } from '@/types/database';
 import { calculateSpellSlots } from '@/lib/helpers';
 import { getClassById } from '@/data/classes';
@@ -31,21 +35,17 @@ export default function EditCharacterPage() {
   }, [characterId]);
 
   const fetchCharacterData = async () => {
-    // Reference data (class, race, ...) lives in local files, not the database
-    const charResult = await supabase
-      .from('characters')
-      .select('*')
-      .eq('id', characterId)
-      .single();
+    // Reference data (class, race, ...) lives in local files, not the store
+    const data = await dbGetCharacter(characterId).catch(() => undefined);
 
-    if (charResult.data) {
+    if (data) {
       const withRelations = {
-        ...charResult.data,
-        class: getClassById(charResult.data.class_id) || null,
-      } as CharacterWithRelations;
+        ...data,
+        class: getClassById(data.class_id) || null,
+      } as unknown as CharacterWithRelations;
       setCharacter(withRelations);
-      setEditLevel(charResult.data.level);
-      setEditMaxHP(charResult.data.hp_max);
+      setEditLevel(data.level);
+      setEditMaxHP(data.hp_max);
     }
     setLoading(false);
   };
@@ -54,6 +54,7 @@ export default function EditCharacterPage() {
     if (!character) return;
 
     setSaving(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updates: any = {
       level: editLevel,
       hp_max: editMaxHP,
@@ -64,17 +65,13 @@ export default function EditCharacterPage() {
       updates.spell_slots = calculateSpellSlots(character.class_id, editLevel);
     }
 
-    const { error } = await supabase
-      .from('characters')
-      .update(updates)
-      .eq('id', characterId);
-
-    setSaving(false);
-
-    if (error) {
-      alert(`Error updating character: ${error.message}`);
-    } else {
+    try {
+      await dbUpdateCharacter(characterId, updates);
+      setSaving(false);
       router.push(`/character/${characterId}`);
+    } catch (error) {
+      setSaving(false);
+      alert(`Error updating character: ${error instanceof Error ? error.message : error}`);
     }
   };
 
@@ -85,15 +82,11 @@ export default function EditCharacterPage() {
       return;
     }
 
-    const { error } = await supabase
-      .from('characters')
-      .delete()
-      .eq('id', characterId);
-
-    if (error) {
-      alert(`Error deleting character: ${error.message}`);
-    } else {
+    try {
+      await dbDeleteCharacter(characterId);
       router.push('/');
+    } catch (error) {
+      alert(`Error deleting character: ${error instanceof Error ? error.message : error}`);
     }
   };
 

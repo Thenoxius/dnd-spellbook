@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { useState, useEffect, useRef } from 'react';
+import { listCharacters, deleteCharacter, exportBackup, importBackup, type BackupData } from '@/lib/db';
+import { loadTheme } from '@/lib/theme';
 import { Character } from '@/types/database';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, LogOut } from 'lucide-react';
+import { Plus, Trash2, Download, Upload } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
@@ -18,49 +19,18 @@ export default function Home() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [characterToDelete, setCharacterToDelete] = useState<Character | null>(null);
   const [deleteConfirmName, setDeleteConfirmName] = useState('');
-  const [theme, setTheme] = useState('shadow-fiend');
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Check authentication
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/login');
-        return;
-      }
-    };
-
-    checkAuth();
+    document.documentElement.setAttribute('data-theme', loadTheme());
     fetchCharacters();
-    fetchUserTheme();
   }, []);
 
-  const fetchUserTheme = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('theme')
-        .eq('user_id', user.id)
-        .single();
-
-      if (profile) {
-        setTheme(profile.theme);
-        document.documentElement.setAttribute('data-theme', profile.theme);
-      }
-    }
-  };
-
   const fetchCharacters = async () => {
-    const { data, error } = await supabase
-      .from('characters')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
+    try {
+      setCharacters(await listCharacters());
+    } catch (error) {
       console.error('Error fetching characters:', error);
-    } else {
-      setCharacters(data || []);
     }
     setLoading(false);
   };
@@ -86,24 +56,39 @@ export default function Home() {
       return;
     }
 
-    const { error } = await supabase
-      .from('characters')
-      .delete()
-      .eq('id', characterToDelete.id);
-
-    if (error) {
-      alert(`Error deleting character: ${error.message}`);
-    } else {
+    try {
+      await deleteCharacter(characterToDelete.id);
       setDeleteDialogOpen(false);
       setCharacterToDelete(null);
       setDeleteConfirmName('');
       fetchCharacters();
+    } catch (error) {
+      alert(`Error deleting character: ${error instanceof Error ? error.message : error}`);
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
+  // Everything lives in this browser's storage, so a JSON file is the backup
+  // story: download a snapshot, or restore/merge one on a new device.
+  const handleExport = async () => {
+    const data = await exportBackup();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dnd-spellbook-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportFile = async (file: File) => {
+    try {
+      const data = JSON.parse(await file.text()) as BackupData;
+      const result = await importBackup(data);
+      alert(`Imported ${result.characters} character(s) and ${result.customSpells} custom spell(s).`);
+      fetchCharacters();
+    } catch (error) {
+      alert(`Could not import that file: ${error instanceof Error ? error.message : error}`);
+    }
   };
 
   return (
@@ -112,15 +97,6 @@ export default function Home() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4">
           <h1 className="text-2xl md:text-4xl font-bold text-white">D&D Spellbook</h1>
           <div className="flex gap-2 sm:gap-4 w-full sm:w-auto">
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              size="lg"
-              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 flex-1 sm:flex-none text-sm md:text-base"
-            >
-              <LogOut className="mr-1 h-4 w-4 md:mr-2 md:h-5 md:w-5" />
-              <span className="hidden sm:inline">Logout</span>
-            </Button>
             <Button
               onClick={handleCreateCharacter}
               size="lg"
@@ -188,6 +164,44 @@ export default function Home() {
             ))}
           </div>
         )}
+
+        {/* Local-first: everything stays in this browser. Backup / restore. */}
+        <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-slate-400 text-xs md:text-sm">
+          <p>
+            Your characters are stored on this device only — nothing leaves your browser.
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExport}
+              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+            >
+              <Download className="mr-1 h-4 w-4" />
+              Backup
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => importInputRef.current?.click()}
+              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+            >
+              <Upload className="mr-1 h-4 w-4" />
+              Restore
+            </Button>
+            <input
+              ref={importInputRef}
+              type="file"
+              accept="application/json"
+              hidden
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleImportFile(file);
+                e.target.value = '';
+              }}
+            />
+          </div>
+        </div>
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

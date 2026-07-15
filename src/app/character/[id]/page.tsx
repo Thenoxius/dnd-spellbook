@@ -2,7 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import {
+  getCharacter as dbGetCharacter,
+  updateCharacter as dbUpdateCharacter,
+  deleteCharacter as dbDeleteCharacter,
+} from '@/lib/db';
+import { THEMES, applyTheme, loadTheme } from '@/lib/theme';
 import { Character, Spell, Feature, SpellSlot, CharacterWithRelations, CharacterFeat } from '@/types/database';
 import { formatAbilityScore, calculateModifier, calculateSpellSlots, calculateProficiencyBonus, getDamageTypeBadgeClasses, getEffectiveSpellDamage, getSpellUpcastText } from '@/lib/helpers';
 import { dndClasses, getClassProgression } from '@/data/classes';
@@ -59,17 +64,6 @@ export default function CharacterPage() {
   const { toast, showToast } = useToast();
 
   useEffect(() => {
-    // Check authentication
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/login');
-        return;
-      }
-    };
-
-    checkAuth();
-
     if (characterId) {
       fetchCharacterData();
     }
@@ -79,49 +73,32 @@ export default function CharacterPage() {
     if (tabParam && ['combat', 'spells', 'feats', 'inventory', 'settings'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
-    // Load theme from user profile
-    fetchUserTheme();
+    // Apply the device's stored theme
+    const stored = loadTheme();
+    setTheme(stored);
+    document.documentElement.setAttribute('data-theme', stored);
   }, [characterId]);
 
-  const fetchUserTheme = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('theme')
-        .eq('user_id', user.id)
-        .single();
-
-      if (profile) {
-        setTheme(profile.theme);
-        document.documentElement.setAttribute('data-theme', profile.theme);
-      }
-    }
-  };
-
   const fetchCharacterData = async () => {
-    const { data: charResult, error } = await supabase
-      .from('characters')
-      .select('*')
-      .eq('id', characterId)
-      .single();
-
-    if (error) {
+    let charResult;
+    try {
+      charResult = await dbGetCharacter(characterId);
+    } catch (error) {
       console.error('Error fetching character:', error);
       setLoading(false);
       return;
     }
 
     if (charResult) {
-      // Map character data to use local data instead of Supabase relations
-      const characterWithRelations: CharacterWithRelations = {
+      // Attach the bundled reference data (class, race, …) the UI reads from
+      const characterWithRelations = {
         ...charResult,
         class: dndClasses.find(c => c.id === charResult.class_id) || null,
         subclass: dndSubclasses.find(s => s.id === charResult.subclass_id) || null,
         race: getRaceById(charResult.race_id) || null,
         subrace: dndSubraces.find(sr => sr.id === charResult.subrace_id) || null,
         background: dndBackgrounds.find(b => b.id === charResult.background_id) || null,
-      };
+      } as unknown as CharacterWithRelations;
       
       setCharacter(characterWithRelations);
       setEditLevel(charResult.level);
@@ -134,16 +111,12 @@ export default function CharacterPage() {
   };
 
   const updateCharacter = async (updates: Partial<Character>) => {
-    const { error } = await supabase
-      .from('characters')
-      .update(updates)
-      .eq('id', characterId);
-
-    if (error) {
-      console.error('Error updating character:', error);
-      showToast(`Error updating character: ${error.message}`, 'error');
-    } else {
+    try {
+      await dbUpdateCharacter(characterId, updates);
       setCharacter(prev => prev ? { ...prev, ...updates } : null);
+    } catch (error) {
+      console.error('Error updating character:', error);
+      showToast(`Error updating character: ${error instanceof Error ? error.message : error}`, 'error');
     }
   };
 
@@ -1261,22 +1234,18 @@ export default function CharacterPage() {
                     onClick={async () => {
                       if (!character) return;
                       setSavingDetails(true);
-                      const { error } = await supabase
-                        .from('characters')
-                        .update({
+                      try {
+                        await dbUpdateCharacter(characterId, {
                           level: editLevel,
                           hp_max: editMaxHP,
                           secondary_class_id: editSecondaryClass || null,
                           secondary_level: editSecondaryClass ? editSecondaryLevel : 0,
                           spell_slots: calculateSpellSlots(character.class_id, editLevel),
-                        })
-                        .eq('id', characterId);
-
-                      if (error) {
-                        showToast(`Error updating character: ${error.message}`, 'error');
-                      } else {
+                        });
                         fetchCharacterData();
                         showToast('Character details updated successfully', 'success');
+                      } catch (error) {
+                        showToast(`Error updating character: ${error instanceof Error ? error.message : error}`, 'error');
                       }
                       setSavingDetails(false);
                     }}
@@ -1299,27 +1268,12 @@ export default function CharacterPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-                  {[
-                    { id: 'arcane-tome', name: 'Arcane Tome', from: '#ead9b5', to: '#d3bc8d', accent: '#7c3aed', ink: '#3b2a17' },
-                    { id: 'shadow-fiend', name: 'Shadow Codex', from: '#1e1b4b', to: '#581c87', accent: '#9333ea', ink: '#ffffff' },
-                    { id: 'royal-oath', name: 'Celestial Oath', from: '#0f172a', to: '#1e3a5f', accent: '#fbbf24', ink: '#ffffff' },
-                    { id: 'wildwood-sentry', name: 'Wildwood Grimoire', from: '#14532d', to: '#166534', accent: '#22c55e', ink: '#ffffff' },
-                    { id: 'crimson-pact', name: 'Infernal Pact', from: '#450a0a', to: '#7f1d1d', accent: '#dc2626', ink: '#ffffff' },
-                    { id: 'arcane-sanctum', name: 'Arcane Sanctum', from: '#0f172a', to: '#0e7490', accent: '#06b6d4', ink: '#ffffff' },
-                  ].map((themeOption) => (
+                  {THEMES.map((themeOption) => (
                     <div
                       key={themeOption.id}
-                      onClick={async () => {
+                      onClick={() => {
                         setTheme(themeOption.id);
-                        document.documentElement.setAttribute('data-theme', themeOption.id);
-                        // Save to user profile
-                        const { data: { user } } = await supabase.auth.getUser();
-                        if (user) {
-                          await supabase
-                            .from('user_profiles')
-                            .update({ theme: themeOption.id })
-                            .eq('user_id', user.id);
-                        }
+                        applyTheme(themeOption.id);
                       }}
                       className={`relative cursor-pointer rounded-lg overflow-hidden transition-all ${
                         theme === themeOption.id
@@ -1417,15 +1371,11 @@ export default function CharacterPage() {
                     return;
                   }
 
-                  const { error } = await supabase
-                    .from('characters')
-                    .delete()
-                    .eq('id', characterId);
-
-                  if (error) {
-                    alert(`Error deleting character: ${error.message}`);
-                  } else {
+                  try {
+                    await dbDeleteCharacter(characterId);
                     router.push('/');
+                  } catch (error) {
+                    alert(`Error deleting character: ${error instanceof Error ? error.message : error}`);
                   }
                 }}
                 disabled={deleteConfirmName !== character?.name}

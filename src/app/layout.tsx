@@ -28,12 +28,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    // suppressHydrationWarning: the inline script in <body> swaps data-theme
+    // to the stored choice before hydration — an expected, deliberate mismatch.
     <html
       lang="en"
       data-theme="arcane-tome"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${cinzel.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {/* Apply the stored theme before first paint so pages never flash
+            the default parchment on dark-theme devices. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('dnd-spellbook-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}",
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }
