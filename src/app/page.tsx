@@ -21,6 +21,8 @@ export default function Home() {
   const [characterToDelete, setCharacterToDelete] = useState<Character | null>(null);
   const [deleteConfirmName, setDeleteConfirmName] = useState('');
   const [theme, setTheme] = useState('arcane-tome');
+  /** The dot currently hovered or focused; drives the name readout only. */
+  const [previewTheme, setPreviewTheme] = useState<string | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
 
   const fetchCharacters = async () => {
@@ -116,22 +118,34 @@ export default function Home() {
             </Button>
           </div>
 
-          {/* Theme picker: full-size tap targets, the theme name as the
-              accessible name, and a check mark so the selection never rests on
-              colour alone. The named list lives in a character's Settings. */}
+          {/* Theme picker. The readout beside the label names the selection and
+              previews whatever dot is hovered or focused, which beats a floating
+              tooltip here: it cannot overflow a 320px row, cannot cover the dots
+              and cannot get stuck on a touch device. Screen readers already get
+              the name from each button's aria-label, so the readout is hidden
+              from them to avoid announcing it twice. */}
           <div className="mt-4 flex flex-wrap items-center gap-0.5">
             <span className="text-ink-faint mr-1 text-xs">Theme</span>
+            <span
+              aria-hidden="true"
+              className={`mr-1 min-w-[7.5rem] text-xs ${previewTheme ? 'text-ink-faint italic' : 'text-ink-muted'}`}
+            >
+              {(THEMES.find((t) => t.id === (previewTheme ?? theme)) ?? THEMES[0]).name}
+            </span>
             {THEMES.map((t) => (
               <button
                 key={t.id}
                 type="button"
                 aria-label={t.name}
                 aria-pressed={theme === t.id}
-                title={t.name}
                 onClick={() => {
                   setTheme(t.id);
                   applyTheme(t.id);
                 }}
+                onMouseEnter={() => setPreviewTheme(t.id)}
+                onMouseLeave={() => setPreviewTheme(null)}
+                onFocus={() => setPreviewTheme(t.id)}
+                onBlur={() => setPreviewTheme(null)}
                 className="flex h-11 w-11 items-center justify-center rounded-lg"
               >
                 <span
@@ -151,25 +165,30 @@ export default function Home() {
         {loading ? (
           <div className="text-ink-muted py-12 text-center">Loading characters...</div>
         ) : characters.length === 0 ? (
-          <Card className="shelf-empty mx-auto max-w-md text-center">
-            <CardHeader>
-              <CardTitle className="text-ink">Your Shelf Is Empty</CardTitle>
-              <CardDescription className="text-ink-muted">
-                Bind your first character into the book — everything stays on this device.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={handleCreateCharacter} className="btn-accent h-11 w-full">
-                <Plus className="mr-2 h-5 w-5" />
-                Create Character
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="shelf" style={{ '--shelf-cols': 1 } as React.CSSProperties}>
+            <Card className="shelf-empty text-center">
+              <CardHeader>
+                <CardTitle className="text-ink">Your Shelf Is Empty</CardTitle>
+                <CardDescription className="text-ink-muted">
+                  Bind your first character into the book — everything stays on this device.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={handleCreateCharacter} className="btn-accent h-11 w-full">
+                  <Plus className="mr-2 h-5 w-5" />
+                  Create Character
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         ) : (
-          /* auto-fill with a capped column width: one character reads as a
-             single book on a shelf rather than a stretched banner, and the
-             shelf fills naturally as more are bound in. */
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,17rem),1fr))] gap-4">
+          /* The shelf is only as wide as the books on it (capped at three
+             columns), so one, two and many all look deliberately composed
+             instead of one card stranded in a wide canvas. */
+          <div
+            className="shelf"
+            style={{ '--shelf-cols': Math.min(characters.length, 3) } as React.CSSProperties}
+          >
             {characters.map((character) => {
               const cls = getClassById(character.class_id);
               return (

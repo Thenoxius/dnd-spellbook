@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getCharacter as dbGetCharacter, updateCharacter as dbUpdateCharacter, listCustomSpells } from '@/lib/db';
-import { Character } from '@/types/database';
+import { Character, SpellSlot } from '@/types/database';
 import { dndSpells, type DndSpell } from '@/data/spells';
 import { dndSubclasses } from '@/data/subclasses';
 import { getDamageTypeBadgeClasses, getEffectiveSpellDamage, getSpellUpcastText } from '@/lib/helpers';
@@ -14,6 +14,19 @@ import { ArrowLeft, Check, Search, Plus, ChevronDown } from 'lucide-react';
 
 const LEVEL_FILTERS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
+type LevelFilter = number | 'all' | 'castable';
+
+/** Highest spell level the character has slots for, read straight from their
+ *  own slot table. Doing it this way rather than from class progression means
+ *  warlock pact magic, half-casters and any future table all work for free. */
+function highestSlotLevel(slots: Record<number, SpellSlot> | undefined): number {
+  if (!slots) return 0;
+  return Object.entries(slots).reduce(
+    (max, [level, slot]) => (slot && slot.max > 0 ? Math.max(max, Number(level)) : max),
+    0
+  );
+}
+
 export default function SpellLibraryPage() {
   const router = useRouter();
   const params = useParams();
@@ -23,14 +36,40 @@ export default function SpellLibraryPage() {
   const [spells, setSpells] = useState<DndSpell[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterLevel, setFilterLevel] = useState<number | 'all'>('all');
+  // Opening on everything a level-3 cleric could ever learn buries the handful
+  // they can actually cast, so the library starts at what is castable now.
+  const [filterLevel, setFilterLevel] = useState<LevelFilter>('castable');
   const [expandedSpells, setExpandedSpells] = useState<Set<string>>(new Set());
+  const chipRailRef = useRef<HTMLDivElement>(null);
+  const [railFade, setRailFade] = useState<'none' | 'start' | 'end' | 'both'>('none');
+
+  /** Show the fade only on the side that still has chips hidden behind it. */
+  const updateRailFade = useCallback(() => {
+    const rail = chipRailRef.current;
+    if (!rail) return;
+    const slack = rail.scrollWidth - rail.clientWidth;
+    if (slack <= 1) return setRailFade('none');
+    const atStart = rail.scrollLeft <= 1;
+    const atEnd = rail.scrollLeft >= slack - 1;
+    setRailFade(atStart ? 'end' : atEnd ? 'start' : 'both');
+  }, []);
 
   useEffect(() => {
-    if (characterId) {
-      fetchData();
-    }
-  }, [characterId]);
+    updateRailFade();
+    const rail = chipRailRef.current;
+    if (!rail) return;
+    const observer = new ResizeObserver(updateRailFade);
+    observer.observe(rail);
+    return () => observer.disconnect();
+  }, [updateRailFade, loading]);
+
+  // Keep the active chip in view — it may sit off-screen after a reload, and a
+  // keyboard user tabbing along the rail needs it scrolled to as well.
+  useEffect(() => {
+    const rail = chipRailRef.current;
+    const active = rail?.querySelector<HTMLElement>('[data-active="true"]');
+    active?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }, [filterLevel, loading]);
 
   const fetchData = async () => {
     let charResult;
@@ -51,6 +90,12 @@ export default function SpellLibraryPage() {
     setSpells([...dndSpells, ...customSpells]);
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (characterId) {
+      fetchData();
+    }
+  }, [characterId]);
 
   const toggleSpellPrepared = async (spellId: string) => {
     if (!character) return;
@@ -107,11 +152,18 @@ export default function SpellLibraryPage() {
 
   const getFilteredSpells = () => {
     const availableSpells = getAvailableSpells();
+    const castableUpTo = highestSlotLevel(character?.spell_slots);
 
     return availableSpells.filter(spell => {
       const matchesSearch = spell.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            spell.school.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesLevel = filterLevel === 'all' || spell.level === filterLevel;
+      // Cantrips need no slot, so they are always castable.
+      const matchesLevel =
+        filterLevel === 'all'
+          ? true
+          : filterLevel === 'castable'
+            ? spell.level === 0 || spell.level <= castableUpTo
+            : spell.level === filterLevel;
       return matchesSearch && matchesLevel;
     });
   };
@@ -134,6 +186,25 @@ export default function SpellLibraryPage() {
 
   const filteredSpells = getFilteredSpells();
   const preparedCount = character.prepared_spells.length;
+  const castableUpTo = highestSlotLevel(character.spell_slots);
+
+  // One short line under the filters, so the count always says what it counted.
+  const filterSummary =
+    filterLevel === 'all'
+      ? 'your full class list'
+      : filterLevel === 'castable'
+        ? castableUpTo > 0
+          ? `castable now (cantrips to Lv ${castableUpTo})`
+          : 'castable now (cantrips only)'
+        : filterLevel === 0
+          ? 'cantrips'
+          : `level ${filterLevel}`;
+
+  const emptyMessage = searchQuery
+    ? `No spells match “${searchQuery}” under this filter.`
+    : filterLevel === 'castable'
+      ? 'Nothing castable on your class list yet.'
+      : `No ${filterSummary} spells on your class list.`;
 
   return (
     <div style={{ background: 'var(--page-bg)' }} className="min-h-screen">
@@ -178,12 +249,24 @@ export default function SpellLibraryPage() {
             />
           </div>
           {/* A deliberate horizontal scroller: the chips slide, the page does
-              not. Ten levels never fit across a phone in one static row. */}
+              not. Twelve filters never fit across a phone in one static row. */}
           <div
-            className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
+            ref={chipRailRef}
+            onScroll={updateRailFade}
+            data-fade={railFade}
+            className="chip-scroller -mx-4 flex gap-1.5 px-4 pb-1 md:mx-0 md:flex-wrap md:px-0"
             role="group"
             aria-label="Filter by spell level"
           >
+            <button
+              type="button"
+              className="chip"
+              data-active={filterLevel === 'castable'}
+              aria-pressed={filterLevel === 'castable'}
+              onClick={() => setFilterLevel('castable')}
+            >
+              Castable
+            </button>
             <button
               type="button"
               className="chip"
@@ -209,13 +292,13 @@ export default function SpellLibraryPage() {
         </div>
 
         <p className="text-ink-faint py-3 text-xs">
-          {filteredSpells.length} {filteredSpells.length === 1 ? 'spell' : 'spells'} available for your class
+          {filteredSpells.length} {filteredSpells.length === 1 ? 'spell' : 'spells'} · {filterSummary}
         </p>
 
         {/* Natural page scroll — no nested scroll container to fight with. */}
         {filteredSpells.length === 0 ? (
           <div className="row-plate text-ink-muted p-8 text-center text-sm">
-            No spells match your filters
+            {emptyMessage}
           </div>
         ) : (
           <ul className="space-y-1.5">

@@ -408,8 +408,9 @@ export default function CharacterPage() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--page-bg)' }}>
-      {/* pb-24 on mobile keeps the last card clear of the docked navigation. */}
-      <div className="mx-auto max-w-5xl px-4 pt-4 pb-24 md:px-8 md:pt-8 md:pb-10">
+      {/* has-docked-nav reserves exactly the bar's height (plus safe area), so
+          the last card always clears it without a magic number here. */}
+      <div className="has-docked-nav mx-auto max-w-5xl px-4 pt-4 md:px-8 md:pt-8">
         {/* Header: who you are, plus the one action that leaves this screen.
             Back is a quiet header control so it never reads as a sixth chapter. */}
         <header className="mb-5 flex items-start gap-2 md:mb-6">

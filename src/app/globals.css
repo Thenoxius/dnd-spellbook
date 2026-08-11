@@ -28,6 +28,10 @@
    ========================================================================== */
 
 :root {
+  /* One source of truth for the docked bar's button height, so the bar, its
+     buttons and the page's bottom padding cannot drift apart. */
+  --nav-item-height: 48px;
+
   /* Shared texture: SVG fractal noise, tiled. Reads as paper fibers on light
      themes and worn leather grain on dark ones. */
   --paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
@@ -536,6 +540,55 @@
   color: var(--brand-ink);
 }
 
+/* The chip rail scrolls sideways on a phone, but the native scrollbar is a
+   heavy grey slab under a row of small controls. Hide the bar, keep the
+   scrolling, and let a soft edge fade say "there is more this way".
+   scroll-padding keeps a focused chip clear of the fade. */
+.chip-scroller {
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-padding-inline: 32px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chip-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.chip-scroller[data-fade="start"] {
+  mask-image: linear-gradient(to right, transparent 0, black 30px);
+}
+
+.chip-scroller[data-fade="end"] {
+  mask-image: linear-gradient(to right, black calc(100% - 30px), transparent 100%);
+}
+
+.chip-scroller[data-fade="both"] {
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black 30px,
+    black calc(100% - 30px),
+    transparent 100%
+  );
+}
+
+/* From md the whole rail fits, so it stops scrolling and the fade goes away. */
+@media (min-width: 768px) {
+  .chip-scroller {
+    overflow-x: visible;
+    mask-image: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip-scroller {
+    scroll-behavior: auto;
+  }
+}
+
 /* Compact filter chips (spell levels). */
 .chip {
   display: inline-flex;
@@ -622,6 +675,11 @@
    destination carries its own accessible name at every width.
    ========================================================================== */
 
+/* Geometry lives here, not in a utility. shadcn's TabsList carries
+   `group-data-horizontal/tabs:h-8`, a variant-scoped height that tailwind-merge
+   cannot collapse against a plain `h-auto` from the call site and that outranks
+   it on specificity — the bar stayed 32px tall while its 48px buttons hung 8px
+   past the viewport. An unlayered rule settles it. */
 .app-nav {
   background-color: color-mix(in srgb, var(--surface) 88%, black 12%);
   border: 1px solid var(--edge);
@@ -629,9 +687,42 @@
   backdrop-filter: blur(12px);
 }
 
+.app-nav--docked {
+  --nav-gutter: 6px;
+  /* Room for the button, its 1px border, and the 2px focus ring offset. */
+  height: auto;
+  min-height: calc(var(--nav-item-height) + var(--nav-gutter) * 2);
+  padding: var(--nav-gutter);
+  padding-bottom: var(--nav-gutter);
+  overflow: visible;
+}
+
 @supports (padding: max(0px)) {
   .app-nav--docked {
-    padding-bottom: max(6px, env(safe-area-inset-bottom));
+    padding-bottom: max(var(--nav-gutter), env(safe-area-inset-bottom));
+  }
+}
+
+/* Pages that sit under the docked bar reserve exactly its height plus a
+   breathing gap, so the last card always clears it. */
+.has-docked-nav {
+  padding-bottom: calc(var(--nav-item-height) + var(--nav-gutter, 6px) * 2 + 1rem);
+}
+
+@supports (padding: max(0px)) {
+  .has-docked-nav {
+    padding-bottom: calc(
+      var(--nav-item-height) + var(--nav-gutter, 6px) + max(var(--nav-gutter, 6px), env(safe-area-inset-bottom)) + 1rem
+    );
+  }
+}
+
+@media (min-width: 768px) {
+  .app-nav--docked {
+    min-height: 0;
+  }
+  .has-docked-nav {
+    padding-bottom: 2.5rem;
   }
 }
 
@@ -643,7 +734,7 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
-  min-height: 48px;
+  min-height: var(--nav-item-height);
   padding: 4px 2px;
   border-radius: 10px;
   border: 1px solid transparent;
@@ -1044,11 +1135,52 @@ body::after {
   color: color-mix(in srgb, var(--tome-ink) 72%, transparent);
 }
 
+/* Lighter than the glow itself: the cleric and paladin covers are the palest
+   leathers in the set, and at 68% the numerals landed just under 4.5:1 there. */
 .tome__stat {
-  color: color-mix(in srgb, var(--slot-glow) 68%, white);
+  color: color-mix(in srgb, var(--slot-glow) 50%, white);
 }
 
-/* The empty shelf keeps the same material, without pretending to be a book. */
+/* The shelf region. It only grows as wide as the books standing on it, so one
+   character reads as one book on a short shelf rather than a lone card adrift
+   in a 1024px canvas. --shelf-cols comes from the roster length, capped at 3.
+   Below sm the cap is dropped so a phone still gets full-width tomes. */
+.shelf {
+  --shelf-col: 19rem;
+  --shelf-gap: 1rem;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--shelf-col)), 1fr));
+  gap: var(--shelf-gap);
+  padding-bottom: 16px;
+}
+
+@media (min-width: 640px) {
+  .shelf {
+    max-width: calc(
+      var(--shelf-cols, 3) * var(--shelf-col) + (var(--shelf-cols, 3) - 1) * var(--shelf-gap)
+    );
+  }
+}
+
+/* The board the books stand on — a hairline and its shadow, not an illustration. */
+.shelf::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--edge) 90%, transparent),
+    color-mix(in srgb, var(--edge) 40%, transparent)
+  );
+  box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.6);
+}
+
+/* The empty shelf keeps the same material and the same baseline, so the
+   before and after states read as the same piece of furniture. */
 .shelf-empty {
   border: 1px dashed color-mix(in srgb, var(--edge) 75%, transparent);
   background-color: color-mix(in srgb, var(--surface) 60%, transparent);
