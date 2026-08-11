@@ -1,83 +1,75 @@
 # Deployment Guide
 
-This guide will help you deploy the D&D Spellbook application using GitHub Actions and Vercel.
+The app deploys to Vercel from GitHub Actions. There is no backend and no
+database: everything a character owns lives in the browser's IndexedDB, so a
+deployment is just static assets plus Next.js rendering. No environment
+variables are needed to build it.
 
-## Prerequisites
+## One-time setup
 
-1. A Supabase project (already set up)
-2. A Vercel account
-3. A GitHub account with the repository
+You need three repository secrets. Until they exist the workflow stops on its
+first step and tells you which ones are missing.
 
-## Step 1: Set up Vercel
+### 1. Create the Vercel project
 
-1. Go to [vercel.com](https://vercel.com) and sign up/login
-2. Click "Add New Project"
-3. Import your GitHub repository
-4. Configure the project:
-   - **Framework Preset**: Next.js
-   - **Root Directory**: `./`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `.next`
-5. Add environment variables:
-   - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anon key
-6. Deploy the project
+1. Sign in at [vercel.com](https://vercel.com).
+2. **Add New → Project** and import `Thenoxius/dnd-spellbook`.
+3. Framework preset **Next.js**; leave the build and output settings alone.
+4. Deploy once so the project exists.
 
-## Step 2: Get Vercel Credentials
+If you would rather not click through the dashboard, run `npx vercel link` in
+the repo instead — it creates the project and writes `.vercel/project.json`
+with the two ids you need below. That file is gitignored.
 
-After deploying, you'll need to get your Vercel credentials for GitHub Actions:
+### 2. Collect the three values
 
-1. Go to Vercel → Settings → Tokens
-2. Create a new token with "Full Account" scope
-3. Copy the token (this is your `VERCEL_TOKEN`)
+| Secret | Where to find it |
+|---|---|
+| `VERCEL_TOKEN` | vercel.com → Account Settings → Tokens → Create |
+| `VERCEL_ORG_ID` | Vercel → Account Settings → General (or `.vercel/project.json` → `orgId`) |
+| `VERCEL_PROJECT_ID` | The project → Settings → General (or `.vercel/project.json` → `projectId`) |
 
-4. Go to your Vercel project → Settings → General
-5. Copy the Project ID (this is your `VERCEL_PROJECT_ID`)
+### 3. Add them to GitHub
 
-6. Go to Vercel → Settings → General
-7. Copy the Organization ID (this is your `VERCEL_ORG_ID`)
+Repository → **Settings → Secrets and variables → Actions → New repository
+secret**, once for each of the three.
 
-## Step 3: Configure GitHub Secrets
+## What the workflow does
 
-1. Go to your GitHub repository → Settings → Secrets and variables → Actions
-2. Add the following secrets:
-   - `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anon key
-   - `VERCEL_TOKEN`: Your Vercel token from Step 2
-   - `VERCEL_ORG_ID`: Your Vercel organization ID from Step 2
-   - `VERCEL_PROJECT_ID`: Your Vercel project ID from Step 2
+`.github/workflows/deploy.yml` runs on every push to `main`, on pull requests
+targeting `main`, and on demand via **Actions → Deploy → Run workflow**.
 
-## Step 4: Enable GitHub Actions
+- Pull requests get a **preview** deployment with its own URL.
+- Pushes to `main` get the **production** deployment.
+- The job declares a GitHub `environment`, so the deployment and its URL appear
+  on the repository's Environments panel and next to each commit — that is what
+  makes a "live environment" visible in GitHub at all.
+- The deployed URL is also printed in the run's summary.
 
-The GitHub Actions workflow is already configured in `.github/workflows/deploy.yml`. It will:
-- Automatically deploy to Vercel when you push to `main` or `master` branch
-- Run on pull requests to `main` or `master` branch
-- Build the application with the correct environment variables
+## Testing on a phone
 
-## Step 5: Test the Deployment
+Open the production URL on the device. Because storage is per-browser, a phone
+starts with an empty shelf — it does not see the characters on your laptop.
+Two options:
 
-1. Push your changes to the `main` branch
-2. Go to the "Actions" tab in your GitHub repository
-3. Watch the deployment workflow run
-4. Once complete, visit your Vercel URL to test the application
-
-## Accessing the App
-
-After successful deployment, you can:
-- Share the Vercel URL with friends
-- Access it from mobile devices
-- Test the application on different devices
+- Create a throwaway character on the phone, or
+- Use **Backup** on the laptop to download the JSON, move it to the phone
+  (AirDrop, mail, cloud drive), and use **Restore** there.
 
 ## Troubleshooting
 
-**Build fails:**
-- Check that all environment variables are set correctly in GitHub Secrets
-- Verify that the build command works locally: `npm run build`
+**The workflow fails on "Check the Vercel credentials are present"**
+One or more of the three secrets is missing or empty. The error names them.
 
-**Authentication issues:**
-- Ensure Supabase Auth is enabled in your Supabase dashboard
-- Check that the RLS policies are applied correctly
+**"Project not found" during `vercel pull`**
+`VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` belong to different accounts or
+projects, or the token was issued for a different scope. Re-copy both ids from
+the same project.
 
-**Theme not loading:**
-- Verify that the user_profiles table exists
-- Check that the trigger is working for new user signups
+**The build fails**
+Reproduce locally with `npm run build`. The workflow also runs `npx tsc
+--noEmit` first, so a type error stops the run before Vercel is involved.
+
+**No environment shows up in GitHub even though the deploy succeeded**
+Check that the job still has its `environment:` block — that, not the
+deployment itself, is what registers the environment with GitHub.
