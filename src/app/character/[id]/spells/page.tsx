@@ -4,15 +4,15 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getCharacter as dbGetCharacter, updateCharacter as dbUpdateCharacter, listCustomSpells } from '@/lib/db';
 import { Character } from '@/types/database';
-import { dndSpells } from '@/data/spells';
-import { dndSubclasses, getSubclassById } from '@/data/subclasses';
+import { dndSpells, type DndSpell } from '@/data/spells';
+import { dndSubclasses } from '@/data/subclasses';
 import { getDamageTypeBadgeClasses, getEffectiveSpellDamage, getSpellUpcastText } from '@/lib/helpers';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, Check, X, Search, Plus } from 'lucide-react';
+import { ArrowLeft, Check, Search, Plus, ChevronDown } from 'lucide-react';
+
+const LEVEL_FILTERS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
 export default function SpellLibraryPage() {
   const router = useRouter();
@@ -20,8 +20,7 @@ export default function SpellLibraryPage() {
   const characterId = params.id as string;
 
   const [character, setCharacter] = useState<Character | null>(null);
-  const [spells, setSpells] = useState<any[]>([]);
-  const [subclasses, setSubclasses] = useState<any[]>([]);
+  const [spells, setSpells] = useState<DndSpell[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterLevel, setFilterLevel] = useState<number | 'all'>('all');
@@ -50,7 +49,6 @@ export default function SpellLibraryPage() {
     // Bundled spell data plus any homebrew spells stored on this device
     const customSpells = await listCustomSpells().catch(() => []);
     setSpells([...dndSpells, ...customSpells]);
-    setSubclasses(dndSubclasses);
     setLoading(false);
   };
 
@@ -90,7 +88,7 @@ export default function SpellLibraryPage() {
       const inBaseClass =
         spell.baseClassIds.includes(character.class_id) ||
         (!!character.secondary_class_id && spell.baseClassIds.includes(character.secondary_class_id));
-      
+
       // Check if spell is granted by the subclass at or below the current level
       // (bonus spells stay on the list once gained, so include all levels <= current)
       let inSubclassBonus = false;
@@ -109,7 +107,7 @@ export default function SpellLibraryPage() {
 
   const getFilteredSpells = () => {
     const availableSpells = getAvailableSpells();
-    
+
     return availableSpells.filter(spell => {
       const matchesSearch = spell.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            spell.school.toLowerCase().includes(searchQuery.toLowerCase());
@@ -121,7 +119,7 @@ export default function SpellLibraryPage() {
   if (loading) {
     return (
       <div style={{ background: 'var(--page-bg)' }} className="min-h-screen flex items-center justify-center">
-        <div className="text-white">Loading spell library...</div>
+        <div className="text-ink">Loading spell library...</div>
       </div>
     );
   }
@@ -129,7 +127,7 @@ export default function SpellLibraryPage() {
   if (!character) {
     return (
       <div style={{ background: 'var(--page-bg)' }} className="min-h-screen flex items-center justify-center">
-        <div className="text-white">Character not found</div>
+        <div className="text-ink">Character not found</div>
       </div>
     );
   }
@@ -139,155 +137,165 @@ export default function SpellLibraryPage() {
 
   return (
     <div style={{ background: 'var(--page-bg)' }} className="min-h-screen">
-      <div className="max-w-4xl mx-auto p-4 md:p-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="icon" onClick={() => router.push(`/character/${characterId}?tab=spells`)} className="text-white hover:text-white">
+      <div className="mx-auto max-w-4xl px-4 pb-10 md:px-8">
+        {/* Header. Create Spell is an icon action on mobile so it never wraps
+            around the title, and grows a label once there is room. */}
+        <header className="flex items-start gap-2 pt-4 pb-3 md:pt-8">
+          <button
+            type="button"
+            onClick={() => router.push(`/character/${characterId}?tab=spells`)}
+            className="header-action mt-0.5 shrink-0"
+            aria-label="Back to character"
+          >
             <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl md:text-3xl font-bold text-white">Spell Library</h1>
-            <p className="text-slate-400">
-              {character.name} • {preparedCount} spells prepared
+          </button>
+          <div className="min-w-0 flex-1">
+            <h1 className="foil-title text-xl font-bold md:text-3xl">Spell Library</h1>
+            <p className="text-ink-muted truncate text-sm">
+              {character.name} • {preparedCount} prepared
             </p>
           </div>
           <Button
             onClick={() => router.push('/spells/create')}
-            className="btn-accent"
+            aria-label="Create a custom spell"
+            className="btn-accent h-11 min-w-11 shrink-0 px-3"
           >
-            <Plus className="mr-2 h-4 w-4" />
-            Create Spell
+            <Plus className="h-5 w-5 sm:mr-2" />
+            <span className="hidden sm:inline">Create Spell</span>
           </Button>
+        </header>
+
+        {/* Search and level filters ride along as you scroll the list. */}
+        <div className="toolbar-sticky -mx-4 space-y-2 px-4 py-2.5 md:-mx-8 md:px-8">
+          <div className="relative">
+            <Search className="text-ink-faint pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+            <Input
+              placeholder="Search spells..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Search spells by name or school"
+              className="field h-11 pl-9"
+            />
+          </div>
+          {/* A deliberate horizontal scroller: the chips slide, the page does
+              not. Ten levels never fit across a phone in one static row. */}
+          <div
+            className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
+            role="group"
+            aria-label="Filter by spell level"
+          >
+            <button
+              type="button"
+              className="chip"
+              data-active={filterLevel === 'all'}
+              aria-pressed={filterLevel === 'all'}
+              onClick={() => setFilterLevel('all')}
+            >
+              All
+            </button>
+            {LEVEL_FILTERS.map(level => (
+              <button
+                key={level}
+                type="button"
+                className="chip"
+                data-active={filterLevel === level}
+                aria-pressed={filterLevel === level}
+                onClick={() => setFilterLevel(level)}
+              >
+                {level === 0 ? 'Cantrip' : `Lv ${level}`}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Search and Filters */}
-        <Card className="bg-slate-800/50 border-slate-700 mb-6">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
-                <Input
-                  placeholder="Search spells..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-slate-900/50 border-slate-700 text-white pl-10"
-                />
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                <Button
-                  variant={filterLevel === 'all' ? 'default' : 'outline'}
-                  onClick={() => setFilterLevel('all')}
-                  className={filterLevel === 'all' ? 'btn-accent' : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'}
-                >
-                  All
-                </Button>
-                {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => (
-                  <Button
-                    key={level}
-                    variant={filterLevel === level ? 'default' : 'outline'}
-                    onClick={() => setFilterLevel(level)}
-                    className={filterLevel === level ? 'btn-accent' : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'}
-                  >
-                    {level === 0 ? 'Cantrip' : `L${level}`}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <p className="text-ink-faint py-3 text-xs">
+          {filteredSpells.length} {filteredSpells.length === 1 ? 'spell' : 'spells'} available for your class
+        </p>
 
-        {/* Spell List */}
-        <Card className="bg-slate-800/50 border-slate-700">
-          <CardHeader>
-            <CardTitle className="text-white">Available Spells</CardTitle>
-            <CardDescription className="text-slate-400">
-              {filteredSpells.length} spells available for your class
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {filteredSpells.length === 0 ? (
-              <div className="text-center text-slate-400 py-8">
-                No spells match your filters
-              </div>
-            ) : (
-              <ScrollArea className="h-[600px]">
-                <div className="space-y-4">
-                  {filteredSpells.map(spell => {
-                    const isPrepared = character.prepared_spells.includes(spell.id);
-                    return (
-                      <div key={spell.id} className="p-4 bg-slate-900/50 rounded-lg">
-                        <div className="flex items-start gap-4">
-                          <Button
-                            variant={isPrepared ? 'default' : 'outline'}
-                            size="icon"
-                            onClick={() => toggleSpellPrepared(spell.id)}
-                            className={isPrepared ? 'btn-accent' : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'}
-                          >
-                            {isPrepared ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
-                          </Button>
-                          <div className="flex-1">
-                            <div
-                              onClick={() => toggleSpellExpansion(spell.id)}
-                              className="cursor-pointer"
-                            >
-                              <div className="flex items-start justify-between mb-2">
-                                <h4 className="text-white font-medium">{spell.name}</h4>
-                                <div className="flex gap-2 flex-wrap">
-                                  <Badge variant="outline" className="bg-slate-700 border-slate-600 text-white">
-                                    {spell.level === 0 ? 'Cantrip' : `Level ${spell.level}`}
-                                  </Badge>
-                                  <Badge variant="outline" className="bg-slate-700 border-slate-600 text-white">
-                                    {spell.school}
-                                  </Badge>
-                                  {spell.damage && (
-                                    <Badge variant="outline" className={getDamageTypeBadgeClasses(spell.damageType)}>
-                                      {getEffectiveSpellDamage(spell, character?.level ?? 1)} {spell.damageType}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="text-slate-400 text-sm">
-                                {spell.castingTime} • {spell.range} • {spell.components}
-                              </div>
-                            </div>
-                            {expandedSpells.has(spell.id) && (
-                              <div className="mt-4 pt-4 border-t border-slate-700">
-                                <div className="grid grid-cols-2 gap-4 text-sm mb-3">
-                                  <div>
-                                    <span className="text-slate-400">Duration:</span>
-                                    <span className="text-white ml-2">{spell.duration}</span>
-                                  </div>
-                                  <div className="flex gap-2">
-                                    {spell.concentration && (
-                                      <Badge variant="outline" className="bg-purple-900/50 border-purple-700 text-purple-300">
-                                        Concentration
-                                      </Badge>
-                                    )}
-                                    {spell.ritual && (
-                                      <Badge variant="outline" className="bg-blue-900/50 border-blue-700 text-blue-300">
-                                        Ritual
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                                <p className="text-slate-300 text-sm">{spell.description}</p>
-                                {getSpellUpcastText(spell) && (
-                                  <p className="text-slate-400 text-sm mt-2 italic">
-                                    {getSpellUpcastText(spell)}
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        </div>
+        {/* Natural page scroll — no nested scroll container to fight with. */}
+        {filteredSpells.length === 0 ? (
+          <div className="row-plate text-ink-muted p-8 text-center text-sm">
+            No spells match your filters
+          </div>
+        ) : (
+          <ul className="space-y-1.5">
+            {filteredSpells.map(spell => {
+              const isPrepared = character.prepared_spells.includes(spell.id);
+              const isExpanded = expandedSpells.has(spell.id);
+              const damage = getEffectiveSpellDamage(spell, character.level);
+              const upcast = getSpellUpcastText(spell);
+              return (
+                <li key={spell.id} className="row-plate">
+                  <div className="flex items-start gap-1">
+                    <button
+                      type="button"
+                      onClick={() => toggleSpellPrepared(spell.id)}
+                      aria-pressed={isPrepared}
+                      aria-label={`${isPrepared ? 'Unprepare' : 'Prepare'} ${spell.name}`}
+                      className="prep-toggle mt-1 ml-1"
+                    >
+                      <span className="prep-toggle__box">
+                        {isPrepared && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleSpellExpansion(spell.id)}
+                      aria-expanded={isExpanded}
+                      className="min-w-0 flex-1 py-2.5 pr-2 text-left"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-ink text-sm leading-snug font-medium break-words">
+                          {spell.name}
+                        </span>
+                        <span className="text-ink-faint mt-0.5 shrink-0 text-[11px] whitespace-nowrap">
+                          {spell.level === 0 ? 'Cantrip' : `Lv ${spell.level}`} · {spell.school}
+                        </span>
                       </div>
-                    );
-                  })}
-                </div>
-              </ScrollArea>
-            )}
-          </CardContent>
-        </Card>
+                      <div className="text-ink-muted mt-0.5 truncate text-xs">
+                        {spell.castingTime} · {spell.range} · {spell.components}
+                      </div>
+                      {(damage || spell.concentration || spell.ritual) && (
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                          {damage && (
+                            <Badge variant="outline" className={getDamageTypeBadgeClasses(spell.damageType)}>
+                              {damage} {spell.damageType}
+                            </Badge>
+                          )}
+                          {spell.concentration && (
+                            <Badge variant="outline" className="tag tag--concentration">
+                              Concentration
+                            </Badge>
+                          )}
+                          {spell.ritual && (
+                            <Badge variant="outline" className="tag tag--ritual">
+                              Ritual
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </button>
+                    <ChevronDown
+                      aria-hidden="true"
+                      className={`text-ink-faint mt-3 mr-2 h-4 w-4 shrink-0 transition-transform ${
+                        isExpanded ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </div>
+                  {isExpanded && (
+                    <div className="border-edge-soft mx-2.5 border-t py-3">
+                      <div className="text-ink-muted mb-2 text-xs">
+                        <span className="text-ink-faint">Duration:</span> {spell.duration}
+                      </div>
+                      <p className="text-ink-muted text-sm whitespace-pre-line">{spell.description}</p>
+                      {upcast && <p className="text-ink-faint mt-2 text-sm italic">{upcast}</p>}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
     </div>
   );

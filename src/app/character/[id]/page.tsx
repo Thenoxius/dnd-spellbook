@@ -8,29 +8,88 @@ import {
   deleteCharacter as dbDeleteCharacter,
 } from '@/lib/db';
 import { THEMES, applyTheme, loadTheme } from '@/lib/theme';
-import { Character, Spell, Feature, SpellSlot, CharacterWithRelations, CharacterFeat } from '@/types/database';
-import { formatAbilityScore, calculateModifier, calculateSpellSlots, calculateProficiencyBonus, getDamageTypeBadgeClasses, getEffectiveSpellDamage, getSpellUpcastText } from '@/lib/helpers';
+import { Character, SpellSlot, CharacterWithRelations, CharacterFeat } from '@/types/database';
+import { calculateModifier, calculateSpellSlots, getDamageTypeBadgeClasses, getEffectiveSpellDamage, getSpellUpcastText } from '@/lib/helpers';
 import { dndClasses, getClassProgression } from '@/data/classes';
-import { dndFeatures, getFeaturesByLevel } from '@/data/features';
-import { dndSpells, getSpellById } from '@/data/spells';
-import { dndSubclasses, getSubclassById } from '@/data/subclasses';
+import { dndFeatures } from '@/data/features';
+import { dndSpells } from '@/data/spells';
+import { dndSubclasses } from '@/data/subclasses';
 import { getClassAbilities } from '@/data/classAbilities';
 import { dndFeats, getFeatById, getInvocations, getInvocationById, isInvocationFeature } from '@/data/feats';
-import { dndRaces, getRaceById } from '@/data/races';
-import { dndSubraces, getSubraceById } from '@/data/subraces';
-import { dndBackgrounds, getBackgroundById } from '@/data/backgrounds';
+import { getRaceById } from '@/data/races';
+import { dndSubraces } from '@/data/subraces';
+import { dndBackgrounds } from '@/data/backgrounds';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ArrowLeft, Plus, Minus, BookOpen, Shield, Package, Book, Edit, Settings, Check, Trash2, ArrowRight, Sparkles, X, Moon, Hourglass } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, BookOpen, Shield, Package, Book, Settings, Check, Trash2, Sparkles, X, Moon, Hourglass, ChevronDown } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { useToast, Toast } from '@/components/ui/toast';
+
+/** The dashboard's chapters. Rendered once and shared by the docked mobile bar
+ *  and the desktop strip, so the two can never drift apart. */
+const NAV_ITEMS = [
+  { value: 'combat', label: 'Combat', Icon: Shield },
+  { value: 'spells', label: 'Spells', Icon: BookOpen },
+  { value: 'feats', label: 'Feats', Icon: Sparkles },
+  { value: 'inventory', label: 'Items', Icon: Package },
+  { value: 'settings', label: 'Settings', Icon: Settings },
+] as const;
+
+/** Spell slots, one row per level. Rendered on both the Combat and Spells
+ *  tabs, so it lives here rather than being written out twice. Each orb keeps a
+ *  44px tap target while the visible bead stays small. */
+function SpellSlotTracker({
+  slots,
+  togglingSlot,
+  onToggle,
+}: {
+  slots: Record<number, SpellSlot>;
+  togglingSlot: string | null;
+  onToggle: (level: number, index: number) => void;
+}) {
+  return (
+    <div className="space-y-1">
+      {Object.entries(slots).map(([level, slot]: [string, SpellSlot]) => (
+        <div key={level} className="flex items-center gap-2">
+          <span className="text-ink-muted w-6 shrink-0 text-xs font-semibold">L{level}</span>
+          <div className="flex flex-wrap items-center">
+            {Array.from({ length: slot.max }).map((_, i) => {
+              const spent = i < slot.used;
+              return (
+                <button
+                  key={i}
+                  onClick={() => onToggle(parseInt(level), i)}
+                  disabled={togglingSlot === `${level}-${i}`}
+                  aria-pressed={spent}
+                  aria-label={`Level ${level} slot ${i + 1} of ${slot.max}, ${spent ? 'spent' : 'available'}`}
+                  className="slot-hit"
+                >
+                  <span
+                    className={`spell-slot h-6 w-6 md:h-7 md:w-7 ${
+                      spent ? 'spell-slot-used' : 'spell-slot-available'
+                    }`}
+                    style={{ animationDelay: `${i * 200}ms` }}
+                  >
+                    {togglingSlot === `${level}-${i}` && <LoadingSpinner size="sm" />}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <span className="text-ink-faint ml-auto shrink-0 text-xs tabular-nums">
+            {slot.used}/{slot.max}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function CharacterPage() {
   const router = useRouter();
@@ -63,22 +122,6 @@ export default function CharacterPage() {
   const [togglingSlot, setTogglingSlot] = useState<string | null>(null);
   const { toast, showToast } = useToast();
 
-  useEffect(() => {
-    if (characterId) {
-      fetchCharacterData();
-    }
-    // Check URL for tab parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    const tabParam = urlParams.get('tab');
-    if (tabParam && ['combat', 'spells', 'feats', 'inventory', 'settings'].includes(tabParam)) {
-      setActiveTab(tabParam);
-    }
-    // Apply the device's stored theme
-    const stored = loadTheme();
-    setTheme(stored);
-    document.documentElement.setAttribute('data-theme', stored);
-  }, [characterId]);
-
   const fetchCharacterData = async () => {
     let charResult;
     try {
@@ -109,6 +152,22 @@ export default function CharacterPage() {
     
     setLoading(false);
   };
+
+  useEffect(() => {
+    if (characterId) {
+      fetchCharacterData();
+    }
+    // Check URL for tab parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam && ['combat', 'spells', 'feats', 'inventory', 'settings'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+    // Apply the device's stored theme
+    const stored = loadTheme();
+    setTheme(stored);
+    document.documentElement.setAttribute('data-theme', stored);
+  }, [characterId]);
 
   const updateCharacter = async (updates: Partial<Character>) => {
     try {
@@ -330,7 +389,7 @@ export default function CharacterPage() {
   if (loading) {
     return (
       <div style={{ background: 'var(--page-bg)' }} className="min-h-screen flex items-center justify-center">
-        <div className="text-white">Loading character...</div>
+        <div className="text-ink">Loading character...</div>
       </div>
     );
   }
@@ -338,7 +397,7 @@ export default function CharacterPage() {
   if (!character) {
     return (
       <div style={{ background: 'var(--page-bg)' }} className="min-h-screen flex items-center justify-center">
-        <div className="text-white">Character not found</div>
+        <div className="text-ink">Character not found</div>
       </div>
     );
   }
@@ -349,223 +408,191 @@ export default function CharacterPage() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--page-bg)' }}>
-      <div className="max-w-7xl mx-auto p-4 md:p-8">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="flex-1">
-            <h1 className="text-2xl md:text-3xl font-bold text-white">{character.name}</h1>
-            <p className="text-slate-400">
+      {/* pb-24 on mobile keeps the last card clear of the docked navigation. */}
+      <div className="mx-auto max-w-5xl px-4 pt-4 pb-24 md:px-8 md:pt-8 md:pb-10">
+        {/* Header: who you are, plus the one action that leaves this screen.
+            Back is a quiet header control so it never reads as a sixth chapter. */}
+        <header className="mb-5 flex items-start gap-2 md:mb-6">
+          <button
+            type="button"
+            onClick={() => router.push('/')}
+            className="header-action mt-0.5 shrink-0"
+            aria-label="Back to your shelf"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div className="min-w-0 flex-1">
+            <h1 className="foil-title text-xl leading-tight font-bold break-words md:text-3xl">
+              {character.name}
+            </h1>
+            <p className="text-ink-muted text-sm md:text-base">
               {secondaryClass
                 ? `${character.class?.name} ${character.level} / ${secondaryClass.name} ${character.secondary_level}`
                 : `Level ${character.level} ${character.class?.name}`}
               {character.subclass?.name && ` • ${character.subclass.name}`}
             </p>
           </div>
-        </div>
+        </header>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList
-            className="border rounded-lg p-1 w-full"
-            style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--card-bg)' }}
-          >
-            <div className="flex w-full gap-1">
-              <TabsTrigger
-                value="combat"
-                className="spellbook-tab flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md h-[38px] sm:h-[42px]"
-              >
-                <Shield className="h-4 w-4" />
-                <span className="hidden md:inline">Combat</span>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="gap-0">
+          {/* One list, two layouts: a docked bar below md, the chapter strip
+              above it. Labels always render, so every destination keeps an
+              accessible name at every width. */}
+          <TabsList className="app-nav app-nav--docked fixed inset-x-0 bottom-0 z-40 flex h-auto w-full gap-1 rounded-none border-x-0 border-b-0 p-1.5 md:static md:mb-6 md:rounded-xl md:border md:p-1.5">
+            {NAV_ITEMS.map(({ value, label, Icon }) => (
+              <TabsTrigger key={value} value={value} className="nav-item h-auto">
+                <Icon className="h-5 w-5 md:h-4 md:w-4" />
+                <span>{label}</span>
               </TabsTrigger>
-              <TabsTrigger
-                value="spells"
-                className="spellbook-tab flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md h-[38px] sm:h-[42px]"
-              >
-                <BookOpen className="h-4 w-4" />
-                <span className="hidden md:inline">Spells</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="feats"
-                className="spellbook-tab flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md h-[38px] sm:h-[42px]"
-              >
-                <Sparkles className="h-4 w-4" />
-                <span className="hidden md:inline">Feats</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="inventory"
-                className="spellbook-tab flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md h-[38px] sm:h-[42px]"
-              >
-                <Package className="h-4 w-4" />
-                <span className="hidden md:inline">Inventory</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="settings"
-                className="spellbook-tab flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md h-[38px] sm:h-[42px]"
-              >
-                <Settings className="h-4 w-4" />
-                <span className="hidden md:inline">Settings</span>
-              </TabsTrigger>
-              <Button
-                onClick={() => router.push('/')}
-                className="btn-accent flex-1 min-w-[70px] justify-center gap-1 sm:gap-2 px-2 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm rounded-md h-[38px] sm:h-[42px]"
-              >
-                <ArrowRight className="h-4 w-4" />
-                <span className="hidden md:inline">Back</span>
-              </Button>
-            </div>
+            ))}
           </TabsList>
 
           {/* Combat Tab */}
-          <TabsContent value="combat" className="space-y-6">
-            {/* HP Tracker */}
-            <Card className="bg-slate-800/50 border-slate-700" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)' }}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-white">Hit Points</CardTitle>
-                  <div className="flex gap-2">
+          <TabsContent value="combat" className="space-y-4 md:space-y-6">
+            {/* The command surface: the two things you reach for mid-fight sit
+                side by side on wide screens instead of stacking into two very
+                wide, half-empty cards. */}
+            <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
+              {/* HP carries the heaviest plate on the screen. */}
+              <Card className="tome-panel tome-panel--primary">
+                <CardHeader>
+                  <CardTitle className="text-ink">Hit Points</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-center gap-1 md:gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleHPChange(-10)}
+                      disabled={updatingHP}
+                      aria-label="Lose 10 hit points"
+                      className="btn-quiet h-11 min-w-11 text-xs md:text-sm"
+                    >
+                      {updatingHP ? <LoadingSpinner size="sm" /> : '-10'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => handleHPChange(-1)}
+                      disabled={updatingHP}
+                      aria-label="Lose 1 hit point"
+                      className="btn-quiet h-11 min-w-11"
+                    >
+                      {updatingHP ? <LoadingSpinner size="sm" /> : <Minus className="h-5 w-5" />}
+                    </Button>
+                    <div className="flex-1 px-2 text-center">
+                      <div
+                        className={`text-4xl leading-none font-bold md:text-5xl ${
+                          character.hp_current <= character.hp_max / 4 ? 'hp-low' : 'text-ink'
+                        }`}
+                      >
+                        {character.hp_current}
+                      </div>
+                      <div className="text-ink-muted mt-1 text-sm">of {character.hp_max}</div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      onClick={() => handleHPChange(1)}
+                      disabled={updatingHP}
+                      aria-label="Regain 1 hit point"
+                      className="btn-quiet h-11 min-w-11"
+                    >
+                      {updatingHP ? <LoadingSpinner size="sm" /> : <Plus className="h-5 w-5" />}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleHPChange(10)}
+                      disabled={updatingHP}
+                      aria-label="Regain 10 hit points"
+                      className="btn-quiet h-11 min-w-11 text-xs md:text-sm"
+                    >
+                      {updatingHP ? <LoadingSpinner size="sm" /> : '+10'}
+                    </Button>
+                  </div>
+
+                  {/* Temp HP: a secondary pool, so it reads quieter than the
+                      main number but keeps full-size controls. */}
+                  <div className="border-edge-soft flex items-center justify-between gap-3 border-t pt-3">
+                    <div>
+                      <div className="text-ink-muted text-sm">Temp HP</div>
+                      <div className="text-accent text-2xl leading-none font-bold">
+                        {character.temp_hp || 0}
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const newTempHP = Math.max(0, (character.temp_hp || 0) - 1);
+                          updateCharacter({ temp_hp: newTempHP });
+                        }}
+                        aria-label="Remove 1 temporary hit point"
+                        className="btn-quiet h-11 min-w-11"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const newTempHP = (character.temp_hp || 0) + 1;
+                          updateCharacter({ temp_hp: newTempHP });
+                        }}
+                        aria-label="Add 1 temporary hit point"
+                        className="btn-quiet h-11 min-w-11"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Rests get their own full-width row rather than crowding
+                      the card heading. */}
+                  <div className="border-edge-soft grid grid-cols-2 gap-2 border-t pt-3">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleRest('short')}
-                      className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 text-xs"
+                      className="btn-quiet h-11"
                     >
-                      <Hourglass className="mr-1 h-3.5 w-3.5" />
+                      <Hourglass className="mr-1.5 h-4 w-4" />
                       Short Rest
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRest('long')}
-                      className="btn-accent text-xs"
-                    >
-                      <Moon className="mr-1 h-3.5 w-3.5" />
+                    <Button size="sm" onClick={() => handleRest('long')} className="btn-accent h-11">
+                      <Moon className="mr-1.5 h-4 w-4" />
                       Long Rest
                     </Button>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-center gap-1 md:gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleHPChange(-10)}
-                    disabled={updatingHP}
-                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 text-xs md:text-sm"
-                  >
-                    {updatingHP ? <LoadingSpinner size="sm" /> : '-10'}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => handleHPChange(-1)}
-                    disabled={updatingHP}
-                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
-                  >
-                    {updatingHP ? <LoadingSpinner size="sm" /> : <Minus className="h-5 w-5 md:h-6 md:w-6" />}
-                  </Button>
-                  <div className="text-center px-4 md:px-8">
-                    <div className={`text-3xl md:text-5xl font-bold text-white ${character.hp_current <= character.hp_max / 4 ? 'hp-low' : ''}`}>
-                      {character.hp_current}
-                    </div>
-                    <div className="text-slate-400 text-sm md:text-base">/ {character.hp_max}</div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => handleHPChange(1)}
-                    disabled={updatingHP}
-                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
-                  >
-                    {updatingHP ? <LoadingSpinner size="sm" /> : <Plus className="h-5 w-5 md:h-6 md:w-6" />}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleHPChange(10)}
-                    disabled={updatingHP}
-                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 text-xs md:text-sm"
-                  >
-                    {updatingHP ? <LoadingSpinner size="sm" /> : '+10'}
-                  </Button>
-                </div>
-                {/* Temp HP */}
-                <div className="mt-4 pt-4 border-t border-slate-700">
-                  <div className="flex items-center justify-center gap-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const newTempHP = Math.max(0, (character.temp_hp || 0) - 1);
-                        updateCharacter({ temp_hp: newTempHP });
-                      }}
-                      className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </Button>
-                    <div className="text-center">
-                      <div className="text-sm text-slate-400">Temp HP</div>
-                      <div className="text-2xl font-bold text-cyan-400">
-                        {character.temp_hp || 0}
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const newTempHP = (character.temp_hp || 0) + 1;
-                        updateCharacter({ temp_hp: newTempHP });
-                      }}
-                      className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Spell Slots */}
-            {Object.keys(spellSlotsByLevel).length > 0 && (
-              <Card className="bg-slate-800/50 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white">Spell Slots</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 md:gap-4">
-                    {Object.entries(spellSlotsByLevel).map(([level, slot]: [string, SpellSlot]) => (
-                      <div key={level} className="text-center">
-                        <div className="text-slate-400 text-xs md:text-sm mb-1">L{level}</div>
-                        <div className="flex gap-1 md:gap-2 justify-center">
-                          {Array.from({ length: slot.max }).map((_, i) => (
-                            <button
-                              key={i}
-                              onClick={() => handleSpellSlotToggle(parseInt(level), i)}
-                              disabled={togglingSlot === `${level}-${i}`}
-                              className={`spell-slot w-6 h-6 md:w-8 md:h-8 relative ${i < slot.used ? 'spell-slot-used' : 'spell-slot-available'}`}
-                              style={{ animationDelay: `${i * 200}ms` }}
-                            >
-                              {togglingSlot === `${level}-${i}` && (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <LoadingSpinner size="sm" />
-                                </div>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="text-xs text-slate-400 mt-1">{slot.used}/{slot.max}</div>
-                      </div>
-                    ))}
-                  </div>
                 </CardContent>
               </Card>
-            )}
+
+              {/* Spell Slots — one row per level so narrow screens never have
+                  to scroll sideways, and every orb gets a 44px tap target. */}
+              {Object.keys(spellSlotsByLevel).length > 0 && (
+                <Card className="tome-panel">
+                  <CardHeader>
+                    <CardTitle className="text-ink">Spell Slots</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <SpellSlotTracker
+                      slots={spellSlotsByLevel}
+                      togglingSlot={togglingSlot}
+                      onToggle={handleSpellSlotToggle}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </div>
 
             {/* Class Abilities (limited-use) */}
             {classAbilities.length > 0 && (
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="tome-panel">
                 <CardHeader>
-                  <CardTitle className="text-white">Class Abilities</CardTitle>
-                  <CardDescription className="text-slate-400">
+                  <CardTitle className="text-ink">Class Abilities</CardTitle>
+                  <CardDescription className="text-ink-muted">
                     Limited-use abilities — tap to spend, rest to recharge
                   </CardDescription>
                 </CardHeader>
@@ -578,39 +605,46 @@ export default function CharacterPage() {
                       <div key={ability.id}>
                         <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
                           <div className="flex items-center gap-2">
-                            <span className="text-white font-medium">{ability.name}</span>
+                            <span className="text-ink font-medium">{ability.name}</span>
                             {ability.linkedStat && (
-                              <Badge variant="outline" className="bg-purple-900/50 border-purple-700 text-purple-300 text-xs">
+                              <Badge variant="outline" className="tag tag--concentration">
                                 {ability.linkedStat.toUpperCase()} linked
                               </Badge>
                             )}
                           </div>
-                          <Badge variant="outline" className="bg-slate-700 border-slate-600 text-slate-300 text-xs">
+                          <Badge variant="outline" className="bg-surface-raised border-edge text-ink-muted text-xs">
                             {ability.recharge === 'short' ? 'Short Rest' : 'Long Rest'}
                           </Badge>
                         </div>
                         {ability.storesRolls ? (
-                          <div className="flex gap-2 flex-wrap items-center">
+                          <div className="flex flex-wrap items-center gap-y-1">
                             {storedRolls.map((roll, i) => (
                               <button
                                 key={i}
                                 onClick={() =>
                                   handleStoredRollsChange(ability.id, storedRolls.filter((_, idx) => idx !== i))
                                 }
-                                title="Tap to spend this die"
-                                className="spell-slot spell-slot-available w-8 h-8 md:w-9 md:h-9 flex items-center justify-center"
-                                style={{ animationDelay: `${i * 200}ms` }}
+                                aria-label={`Spend the stored ${roll}`}
+                                className="slot-hit"
                               >
                                 <span
-                                  className="text-xs md:text-sm font-bold"
-                                  style={{ color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.7)' }}
+                                  className="spell-slot spell-slot-available h-8 w-8 md:h-9 md:w-9"
+                                  style={{ animationDelay: `${i * 200}ms` }}
                                 >
-                                  {roll}
+                                  {/* The orb is filled with the theme accent, so the
+                                      numeral takes the accent's own foreground —
+                                      white would vanish on the amber theme. */}
+                                  <span
+                                    className="text-xs font-bold md:text-sm"
+                                    style={{ color: 'var(--brand-ink)' }}
+                                  >
+                                    {roll}
+                                  </span>
                                 </span>
                               </button>
                             ))}
                             {storedRolls.length < ability.maxUses && (
-                              <div className="flex items-center gap-1.5">
+                              <div className="ml-1 flex items-center gap-1.5">
                                 <Input
                                   type="number"
                                   min={1}
@@ -620,7 +654,7 @@ export default function CharacterPage() {
                                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                     setRollInputs(prev => ({ ...prev, [ability.id]: e.target.value }))
                                   }
-                                  className="w-16 h-8 bg-slate-900/50 border-slate-700 text-white text-center"
+                                  className="field h-11 w-16 text-center"
                                   aria-label={`Store a ${ability.name} roll`}
                                 />
                                 <Button
@@ -636,29 +670,44 @@ export default function CharacterPage() {
                                     handleStoredRollsChange(ability.id, [...storedRolls, v]);
                                     setRollInputs(prev => ({ ...prev, [ability.id]: '' }));
                                   }}
-                                  className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 h-8"
+                                  className="btn-quiet h-11"
                                 >
                                   Store
                                 </Button>
                               </div>
                             )}
-                            <span className="text-xs text-slate-400 ml-1">
+                            <span className="text-ink-faint ml-2 text-xs">
                               {storedRolls.length}/{ability.maxUses} stored
                             </span>
                           </div>
                         ) : ability.maxUses <= 10 ? (
-                          <div className="flex gap-1.5 md:gap-2 flex-wrap items-center">
-                            {Array.from({ length: ability.maxUses }).map((_, i) => (
-                              <button
-                                key={i}
-                                onClick={() =>
-                                  handleAbilityUseChange(ability.id, i < used ? used - 1 : used + 1, ability.maxUses)
-                                }
-                                className={`spell-slot w-5 h-5 md:w-6 md:h-6 ${i < used ? 'spell-slot-used' : 'spell-slot-available'}`}
-                                style={{ animationDelay: `${i * 200}ms` }}
-                              />
-                            ))}
-                            <span className="text-xs text-slate-400 ml-2">{remaining}/{ability.maxUses}</span>
+                          <div className="flex flex-wrap items-center">
+                            {Array.from({ length: ability.maxUses }).map((_, i) => {
+                              const spent = i < used;
+                              return (
+                                <button
+                                  key={i}
+                                  onClick={() =>
+                                    handleAbilityUseChange(ability.id, spent ? used - 1 : used + 1, ability.maxUses)
+                                  }
+                                  aria-pressed={spent}
+                                  aria-label={`${ability.name} use ${i + 1} of ${ability.maxUses}, ${
+                                    spent ? 'spent' : 'available'
+                                  }`}
+                                  className="slot-hit"
+                                >
+                                  <span
+                                    className={`spell-slot h-5 w-5 md:h-6 md:w-6 ${
+                                      spent ? 'spell-slot-used' : 'spell-slot-available'
+                                    }`}
+                                    style={{ animationDelay: `${i * 200}ms` }}
+                                  />
+                                </button>
+                              );
+                            })}
+                            <span className="text-ink-faint ml-2 text-xs tabular-nums">
+                              {remaining}/{ability.maxUses}
+                            </span>
                           </div>
                         ) : (
                           <div className="flex items-center gap-3">
@@ -667,26 +716,28 @@ export default function CharacterPage() {
                               size="sm"
                               onClick={() => handleAbilityUseChange(ability.id, used + 1, ability.maxUses)}
                               disabled={remaining <= 0}
-                              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                              aria-label={`Spend one use of ${ability.name}`}
+                              className="btn-quiet h-11 min-w-11"
                             >
                               <Minus className="h-4 w-4" />
                             </Button>
-                            <div className="text-center min-w-[70px]">
-                              <span className="text-xl font-bold" style={{ color: 'var(--text-highlight)' }}>{remaining}</span>
-                              <span className="text-slate-400 text-sm"> / {ability.maxUses}</span>
+                            <div className="min-w-[70px] text-center">
+                              <span className="text-accent text-xl font-bold">{remaining}</span>
+                              <span className="text-ink-muted text-sm"> / {ability.maxUses}</span>
                             </div>
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleAbilityUseChange(ability.id, used - 1, ability.maxUses)}
                               disabled={used <= 0}
-                              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                              aria-label={`Restore one use of ${ability.name}`}
+                              className="btn-quiet h-11 min-w-11"
                             >
                               <Plus className="h-4 w-4" />
                             </Button>
                           </div>
                         )}
-                        <p className="text-slate-400 text-sm mt-2">{ability.description}</p>
+                        <p className="text-ink-muted mt-2 text-sm">{ability.description}</p>
                       </div>
                     );
                   })}
@@ -694,22 +745,24 @@ export default function CharacterPage() {
               </Card>
             )}
 
-            {/* Ability Scores */}
-            <Card className="bg-slate-800/50 border-slate-700">
+            {/* Ability Scores — reference material, so the plate is quiet and
+                the modifier (the number you actually roll with) leads. */}
+            <Card className="tome-panel tome-panel--quiet">
               <CardHeader>
-                <CardTitle className="text-white">Ability Scores</CardTitle>
+                <CardTitle className="text-ink">Ability Scores</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-6 md:gap-3">
                   {(['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as const).map((stat) => {
                     const statValue = character[stat.toLowerCase() as keyof Character] as number;
+                    const modifier = calculateModifier(statValue);
                     return (
                       <div key={stat} className="stat-medallion text-center">
-                        <div className="text-slate-400 text-sm mb-1">{stat}</div>
-                        <div className="text-xl font-bold text-white">{statValue}</div>
-                        <div className="text-accent text-sm">
-                          {formatAbilityScore(statValue)}
+                        <div className="text-ink-faint text-[11px] tracking-[0.08em]">{stat}</div>
+                        <div className="text-accent text-xl leading-tight font-bold">
+                          {modifier >= 0 ? '+' : ''}{modifier}
                         </div>
+                        <div className="text-ink-muted text-xs">{statValue}</div>
                       </div>
                     );
                   })}
@@ -722,23 +775,21 @@ export default function CharacterPage() {
               const progression = getClassProgressionData();
               if (!progression || !progression.customClassData) return null;
               return (
-                <Card className="bg-slate-800/50 border-slate-700">
+                <Card className="tome-panel tome-panel--quiet">
                   <CardHeader>
-                    <CardTitle className="text-white">Class Progressions</CardTitle>
-                    <CardDescription className="text-slate-400">
+                    <CardTitle className="text-ink">Class Progressions</CardTitle>
+                    <CardDescription className="text-ink-muted">
                       Abilities and resources gained at your current level
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
+                    <div className="grid gap-2 sm:grid-cols-2">
                       {Object.entries(progression.customClassData).map(([key, value]) => (
-                        <div key={key} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg">
-                          <div>
-                            <div className="text-white font-medium capitalize">
-                              {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                            </div>
+                        <div key={key} className="row-plate flex items-center justify-between gap-3 p-3">
+                          <div className="text-ink text-sm font-medium capitalize">
+                            {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
                           </div>
-                          <div className="text-accent font-bold">{String(value)}</div>
+                          <div className="text-accent font-bold tabular-nums">{String(value)}</div>
                         </div>
                       ))}
                     </div>
@@ -751,23 +802,23 @@ export default function CharacterPage() {
           {/* Spells Tab */}
           <TabsContent value="spells" className="space-y-6">
             {/* Spell Stats */}
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="tome-panel">
               <CardContent className="pt-6">
-                <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="grid grid-cols-3 gap-2 text-center">
                   <div>
-                    <div className="text-slate-400 text-sm">Spellcasting Ability</div>
-                    <div className="text-xl font-bold text-white">{spellcastingAbility}</div>
+                    <div className="text-ink-muted text-sm">Spellcasting Ability</div>
+                    <div className="text-xl font-bold text-ink">{spellcastingAbility}</div>
                     <div className="text-accent">{spellcastingModifier >= 0 ? '+' : ''}{spellcastingModifier}</div>
                   </div>
                   <div>
-                    <div className="text-slate-400 text-sm">Spell Save DC</div>
-                    <div className="text-xl font-bold text-white">{spellSaveDC}</div>
-                    <div className="text-slate-400 text-sm">8 + {proficiencyBonus} + {spellcastingModifier}</div>
+                    <div className="text-ink-muted text-sm">Spell Save DC</div>
+                    <div className="text-xl font-bold text-ink">{spellSaveDC}</div>
+                    <div className="text-ink-muted text-sm">8 + {proficiencyBonus} + {spellcastingModifier}</div>
                   </div>
                   <div>
-                    <div className="text-slate-400 text-sm">Proficiency Bonus</div>
-                    <div className="text-xl font-bold text-white">+{proficiencyBonus}</div>
-                    <div className="text-slate-400 text-sm">Level {character.level}</div>
+                    <div className="text-ink-muted text-sm">Proficiency Bonus</div>
+                    <div className="text-xl font-bold text-ink">+{proficiencyBonus}</div>
+                    <div className="text-ink-muted text-sm">Level {character.level}</div>
                   </div>
                 </div>
               </CardContent>
@@ -775,52 +826,32 @@ export default function CharacterPage() {
 
             {/* Spell Slots */}
             {Object.keys(spellSlotsByLevel).length > 0 && (
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="tome-panel">
                 <CardHeader>
-                  <CardTitle className="text-white">Spell Slots</CardTitle>
+                  <CardTitle className="text-ink">Spell Slots</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 md:gap-4">
-                    {Object.entries(spellSlotsByLevel).map(([level, slot]: [string, SpellSlot]) => (
-                      <div key={level} className="text-center">
-                        <div className="text-slate-400 text-xs md:text-sm mb-1">L{level}</div>
-                        <div className="flex gap-1 md:gap-2 justify-center">
-                          {Array.from({ length: slot.max }).map((_, i) => (
-                            <button
-                              key={i}
-                              onClick={() => handleSpellSlotToggle(parseInt(level), i)}
-                              disabled={togglingSlot === `${level}-${i}`}
-                              className={`spell-slot w-6 h-6 md:w-8 md:h-8 relative ${i < slot.used ? 'spell-slot-used' : 'spell-slot-available'}`}
-                              style={{ animationDelay: `${i * 200}ms` }}
-                            >
-                              {togglingSlot === `${level}-${i}` && (
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <LoadingSpinner size="sm" />
-                                </div>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="text-xs text-slate-400 mt-1">{slot.used}/{slot.max}</div>
-                      </div>
-                    ))}
-                  </div>
+                  <SpellSlotTracker
+                    slots={spellSlotsByLevel}
+                    togglingSlot={togglingSlot}
+                    onToggle={handleSpellSlotToggle}
+                  />
                 </CardContent>
               </Card>
             )}
 
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="tome-panel">
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-white">Prepared Spells</CardTitle>
-                    <CardDescription className="text-slate-400">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <CardTitle className="text-ink">Prepared Spells</CardTitle>
+                    <CardDescription className="text-ink-muted">
                       {preparedSpells.length} spells prepared
                     </CardDescription>
                   </div>
                   <Button
                     onClick={() => router.push(`/character/${characterId}/spells`)}
-                    className="btn-accent"
+                    className="btn-accent h-11 shrink-0"
                   >
                     <Book className="mr-2 h-4 w-4" />
                     Spell Library
@@ -829,81 +860,95 @@ export default function CharacterPage() {
               </CardHeader>
               <CardContent>
                 {preparedSpells.length === 0 ? (
-                  <div className="text-center text-slate-400 py-8">
+                  <div className="text-ink-muted py-8 text-center text-sm">
                     No spells prepared. Visit the Spell Library to prepare spells.
                   </div>
                 ) : (
-                  <ScrollArea className="h-[600px]">
-                    <div className="space-y-4">
-                      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => {
-                        const levelSpells = preparedSpells.filter(s => s.level === level);
-                        if (levelSpells.length === 0) return null;
-                        return (
-                          <div key={level}>
-                            <h3 className="text-white font-medium mb-3">
-                              {level === 0 ? 'Cantrips' : `Level ${level}`}
-                            </h3>
-                            <div className="space-y-2">
-                              {levelSpells.map(spell => (
-                                <div key={spell.id}>
-                                  <div
+                  /* Grouped by level and scrolled by the page itself — a fixed
+                     600px window inside a scrolling page is two scrollbars
+                     fighting over the same gesture. */
+                  <div className="space-y-4">
+                    {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => {
+                      const levelSpells = preparedSpells.filter(s => s.level === level);
+                      if (levelSpells.length === 0) return null;
+                      return (
+                        <section key={level}>
+                          <h3 className="text-ink-faint mb-2 text-xs tracking-[0.08em] uppercase">
+                            {level === 0 ? 'Cantrips' : `Level ${level}`}
+                          </h3>
+                          <ul className="space-y-1.5">
+                            {levelSpells.map(spell => {
+                              const isExpanded = expandedSpells.has(spell.id);
+                              const damage = getEffectiveSpellDamage(spell, character.level);
+                              const upcast = getSpellUpcastText(spell);
+                              return (
+                                <li key={spell.id} className="row-plate">
+                                  <button
+                                    type="button"
                                     onClick={() => toggleSpellExpansion(spell.id)}
-                                    className="p-4 bg-slate-900/50 rounded-lg cursor-pointer hover:bg-slate-900/70 transition-colors"
+                                    aria-expanded={isExpanded}
+                                    className="flex w-full items-start gap-2 p-2.5 text-left"
                                   >
-                                    <div className="flex items-start justify-between">
-                                      <div>
-                                        <h4 className="text-white font-medium">{spell.name}</h4>
-                                        <div className="text-slate-400 text-sm mt-1">
-                                          {spell.school} • {spell.castingTime} • {spell.range}
+                                    <span className="min-w-0 flex-1">
+                                      <span className="text-ink block text-sm leading-snug font-medium break-words">
+                                        {spell.name}
+                                      </span>
+                                      <span className="text-ink-muted mt-0.5 block truncate text-xs">
+                                        {spell.school} · {spell.castingTime} · {spell.range}
+                                      </span>
+                                      {(damage || spell.concentration || spell.ritual) && (
+                                        <span className="mt-1.5 flex flex-wrap items-center gap-1">
+                                          {damage && (
+                                            <Badge variant="outline" className={getDamageTypeBadgeClasses(spell.damageType)}>
+                                              {damage} {spell.damageType}
+                                            </Badge>
+                                          )}
+                                          {spell.concentration && (
+                                            <Badge variant="outline" className="tag tag--concentration">
+                                              Concentration
+                                            </Badge>
+                                          )}
+                                          {spell.ritual && (
+                                            <Badge variant="outline" className="tag tag--ritual">
+                                              Ritual
+                                            </Badge>
+                                          )}
+                                        </span>
+                                      )}
+                                    </span>
+                                    <ChevronDown
+                                      aria-hidden="true"
+                                      className={`text-ink-faint mt-1 h-4 w-4 shrink-0 transition-transform ${
+                                        isExpanded ? 'rotate-180' : ''
+                                      }`}
+                                    />
+                                  </button>
+                                  {isExpanded && (
+                                    <div className="border-edge-soft mx-2.5 border-t py-3">
+                                      <div className="text-ink-muted mb-2 grid gap-1 text-xs sm:grid-cols-2">
+                                        <div>
+                                          <span className="text-ink-faint">Components:</span> {spell.components}
+                                        </div>
+                                        <div>
+                                          <span className="text-ink-faint">Duration:</span> {spell.duration}
                                         </div>
                                       </div>
-                                      <div className="flex gap-2 flex-wrap">
-                                        {spell.damage && (
-                                          <Badge variant="outline" className={getDamageTypeBadgeClasses(spell.damageType)}>
-                                            {getEffectiveSpellDamage(spell, character.level)} {spell.damageType}
-                                          </Badge>
-                                        )}
-                                        {spell.concentration && (
-                                          <Badge variant="outline" className="bg-purple-900/50 border-purple-700 text-purple-300">
-                                            Concentration
-                                          </Badge>
-                                        )}
-                                        {spell.ritual && (
-                                          <Badge variant="outline" className="bg-blue-900/50 border-blue-700 text-blue-300">
-                                            Ritual
-                                          </Badge>
-                                        )}
-                                      </div>
+                                      <p className="text-ink-muted text-sm whitespace-pre-line">
+                                        {spell.description}
+                                      </p>
+                                      {upcast && (
+                                        <p className="text-ink-faint mt-2 text-sm italic">{upcast}</p>
+                                      )}
                                     </div>
-                                    {expandedSpells.has(spell.id) && (
-                                      <div className="mt-4 pt-4 border-t border-slate-700">
-                                        <div className="grid grid-cols-2 gap-4 text-sm mb-3">
-                                          <div>
-                                            <span className="text-slate-400">Components:</span>
-                                            <span className="text-white ml-2">{spell.components}</span>
-                                          </div>
-                                          <div>
-                                            <span className="text-slate-400">Duration:</span>
-                                            <span className="text-white ml-2">{spell.duration}</span>
-                                          </div>
-                                        </div>
-                                        <p className="text-slate-300 text-sm">{spell.description}</p>
-                                        {getSpellUpcastText(spell) && (
-                                          <p className="text-slate-400 text-sm mt-2 italic">
-                                            {getSpellUpcastText(spell)}
-                                          </p>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </ScrollArea>
+                                  )}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </section>
+                      );
+                    })}
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -912,12 +957,12 @@ export default function CharacterPage() {
           {/* Feats Tab */}
           <TabsContent value="feats" className="space-y-6">
             {/* Chosen feats & invocations */}
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="tome-panel">
               <CardHeader>
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div>
-                    <CardTitle className="text-white">Feats & Invocations</CardTitle>
-                    <CardDescription className="text-slate-400">
+                    <CardTitle className="text-ink">Feats & Invocations</CardTitle>
+                    <CardDescription className="text-ink-muted">
                       {isWarlock
                         ? `Options your character has chosen • ${invocationsTaken}/${invocationsKnownMax} invocations known`
                         : 'Options your character has chosen'}
@@ -931,7 +976,7 @@ export default function CharacterPage() {
                       setCustomFeatDescription('');
                       setFeatDialogOpen(true);
                     }}
-                    className="btn-accent"
+                    className="btn-accent h-11"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Feat
@@ -940,7 +985,7 @@ export default function CharacterPage() {
               </CardHeader>
               <CardContent>
                 {characterFeats.length === 0 ? (
-                  <div className="text-center text-slate-400 py-8">
+                  <div className="text-center text-ink-muted py-8">
                     No feats or invocations yet. Use the Add Feat button when your character gains one.
                   </div>
                 ) : (
@@ -948,18 +993,18 @@ export default function CharacterPage() {
                     {characterFeats.map((feat, index) => {
                       const resolved = resolveFeat(feat);
                       return (
-                        <div key={`${feat.id}-${index}`} className="p-4 bg-slate-900/50 rounded-lg">
+                        <div key={`${feat.id}-${index}`} className="row-plate p-4">
                           <div className="flex items-start justify-between mb-2 gap-2">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <h4 className="text-white font-medium">{resolved.name}</h4>
+                              <h4 className="text-ink font-medium">{resolved.name}</h4>
                               <Badge
                                 variant="outline"
                                 className={
                                   resolved.badge === 'Invocation'
-                                    ? 'bg-purple-900/50 border-purple-700 text-purple-300 text-xs'
+                                    ? 'tag tag--concentration'
                                     : resolved.badge === 'Custom'
-                                    ? 'bg-slate-700 border-slate-600 text-slate-300 text-xs'
-                                    : 'bg-amber-900/50 border-amber-700 text-amber-300 text-xs'
+                                    ? 'bg-surface-raised border-edge text-ink-muted text-xs'
+                                    : 'tag tag--feat'
                                 }
                               >
                                 {resolved.badge}
@@ -970,12 +1015,12 @@ export default function CharacterPage() {
                               size="icon"
                               onClick={() => handleRemoveFeat(index)}
                               aria-label={`Remove ${resolved.name}`}
-                              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 h-7 w-7 shrink-0"
+                              className="btn-quiet h-11 w-11 shrink-0"
                             >
                               <X className="h-3.5 w-3.5" />
                             </Button>
                           </div>
-                          <p className="text-slate-400 text-sm whitespace-pre-line">{resolved.description}</p>
+                          <p className="text-ink-muted text-sm whitespace-pre-line">{resolved.description}</p>
                         </div>
                       );
                     })}
@@ -986,29 +1031,27 @@ export default function CharacterPage() {
 
             {/* Class & subclass features */}
             {characterFeatures.length > 0 && (
-              <Card className="bg-slate-800/50 border-slate-700">
+              <Card className="tome-panel">
                 <CardHeader>
-                  <CardTitle className="text-white">Class Features</CardTitle>
-                  <CardDescription className="text-slate-400">
+                  <CardTitle className="text-ink">Class Features</CardTitle>
+                  <CardDescription className="text-ink-muted">
                     Features granted automatically by your class and subclass
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className="h-[400px]">
-                    <div className="space-y-4">
-                      {characterFeatures.map((feature) => (
-                        <div key={feature.id} className="p-4 bg-slate-900/50 rounded-lg">
-                          <div className="flex items-start justify-between mb-2">
-                            <h4 className="text-white font-medium">{feature.name}</h4>
-                            <Badge variant="outline" className="bg-slate-700 border-slate-600 text-white">
-                              Lv. {feature.levelRequired}
-                            </Badge>
-                          </div>
-                          <p className="text-slate-400 text-sm whitespace-pre-line">{feature.description}</p>
+                  <div className="space-y-2">
+                    {characterFeatures.map((feature) => (
+                      <div key={feature.id} className="row-plate p-3">
+                        <div className="mb-1.5 flex items-start justify-between gap-2">
+                          <h4 className="text-ink text-sm font-medium break-words">{feature.name}</h4>
+                          <Badge variant="outline" className="tag shrink-0">
+                            Lv. {feature.levelRequired}
+                          </Badge>
                         </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
+                        <p className="text-ink-muted text-sm whitespace-pre-line">{feature.description}</p>
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -1016,64 +1059,72 @@ export default function CharacterPage() {
 
           {/* Inventory Tab */}
           <TabsContent value="inventory" className="space-y-6">
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="tome-panel">
               <CardHeader>
-                <CardTitle className="text-white">Currency</CardTitle>
+                <CardTitle className="text-ink">Currency</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-5 gap-4">
+                {/* One coin per row on a phone: a stepper either side of an
+                    editable field needs ~150px, which five columns never give. */}
+                <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                   {(['cp', 'sp', 'ep', 'gp', 'pp'] as const).map(currency => (
-                    <div key={currency} className="text-center">
-                      <div className="text-slate-400 text-sm mb-1 uppercase">{currency}</div>
-                      <div className="flex items-center justify-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => {
-                            const newCurrency = { ...character.currency };
-                            newCurrency[currency] = Math.max(0, newCurrency[currency] - 1);
-                            updateCharacter({ currency: newCurrency });
-                          }}
-                          className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 h-8 w-8"
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <Input
-                          type="number"
-                          value={character.currency[currency]}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                            const value = parseInt(e.target.value) || 0;
-                            const newCurrency = { ...character.currency };
-                            newCurrency[currency] = Math.max(0, value);
-                            updateCharacter({ currency: newCurrency });
-                          }}
-                          className="bg-slate-900/50 border-slate-700 text-white w-20 text-center h-8"
-                        />
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => {
-                            const newCurrency = { ...character.currency };
-                            newCurrency[currency] = newCurrency[currency] + 1;
-                            updateCharacter({ currency: newCurrency });
-                          }}
-                          className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 h-8 w-8"
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
-                      </div>
+                    <div key={currency} className="flex items-center gap-2">
+                      <label
+                        htmlFor={`currency-${currency}`}
+                        className="text-ink-muted w-7 shrink-0 text-xs font-semibold uppercase"
+                      >
+                        {currency}
+                      </label>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        aria-label={`One fewer ${currency.toUpperCase()}`}
+                        onClick={() => {
+                          const newCurrency = { ...character.currency };
+                          newCurrency[currency] = Math.max(0, newCurrency[currency] - 1);
+                          updateCharacter({ currency: newCurrency });
+                        }}
+                        className="btn-quiet h-11 w-11 shrink-0"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <Input
+                        id={`currency-${currency}`}
+                        type="number"
+                        value={character.currency[currency]}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          const value = parseInt(e.target.value) || 0;
+                          const newCurrency = { ...character.currency };
+                          newCurrency[currency] = Math.max(0, value);
+                          updateCharacter({ currency: newCurrency });
+                        }}
+                        className="field h-11 min-w-0 flex-1 text-center"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        aria-label={`One more ${currency.toUpperCase()}`}
+                        onClick={() => {
+                          const newCurrency = { ...character.currency };
+                          newCurrency[currency] = newCurrency[currency] + 1;
+                          updateCharacter({ currency: newCurrency });
+                        }}
+                        className="btn-quiet h-11 w-11 shrink-0"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
                     </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-800/50 border-slate-700">
+            <Card className="tome-panel">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-white">Inventory</CardTitle>
-                    <CardDescription className="text-slate-400">
+                    <CardTitle className="text-ink">Inventory</CardTitle>
+                    <CardDescription className="text-ink-muted">
                       {character.inventory.length} items
                     </CardDescription>
                   </div>
@@ -1084,7 +1135,7 @@ export default function CharacterPage() {
                       setNewItemNotes('');
                       setItemDialogOpen(true);
                     }}
-                    className="btn-accent"
+                    className="btn-accent h-11"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Item
@@ -1093,53 +1144,55 @@ export default function CharacterPage() {
               </CardHeader>
               <CardContent>
                 {character.inventory.length === 0 ? (
-                  <div className="text-center text-slate-400 py-8">
+                  <div className="text-center text-ink-muted py-8">
                     No items in inventory
                   </div>
                 ) : (
                   <div className="space-y-2">
                     {character.inventory.map((item, index) => (
-                      <div key={index} className="p-4 bg-slate-900/50 rounded-lg">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="text-white font-medium">{item.name}</h4>
-                            {item.notes && (
-                              <p className="text-slate-400 text-sm mt-1">{item.notes}</p>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => {
-                                const newInventory = [...character.inventory];
-                                if (newInventory[index].quantity > 1) {
-                                  newInventory[index].quantity--;
-                                } else {
-                                  newInventory.splice(index, 1);
-                                }
-                                updateCharacter({ inventory: newInventory });
-                              }}
-                              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 h-8 w-8"
-                            >
-                              <Minus className="h-3 w-3" />
-                            </Button>
-                            <Badge variant="outline" className="bg-slate-700 border-slate-600 text-white min-w-[50px]">
-                              x{item.quantity}
-                            </Badge>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => {
-                                const newInventory = [...character.inventory];
-                                newInventory[index].quantity++;
-                                updateCharacter({ inventory: newInventory });
-                              }}
-                              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 h-8 w-8"
-                            >
-                              <Plus className="h-3 w-3" />
-                            </Button>
-                          </div>
+                      <div key={index} className="row-plate flex items-start justify-between gap-2 p-3">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-ink text-sm font-medium break-words">{item.name}</h4>
+                          {item.notes && (
+                            <p className="text-ink-muted mt-0.5 text-xs break-words">{item.notes}</p>
+                          )}
+                        </div>
+                        <div className="flex shrink-0 items-center gap-1">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            aria-label={
+                              item.quantity > 1 ? `One fewer ${item.name}` : `Remove ${item.name}`
+                            }
+                            onClick={() => {
+                              const newInventory = [...character.inventory];
+                              if (newInventory[index].quantity > 1) {
+                                newInventory[index].quantity--;
+                              } else {
+                                newInventory.splice(index, 1);
+                              }
+                              updateCharacter({ inventory: newInventory });
+                            }}
+                            className="btn-quiet h-11 w-11"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          <span className="text-ink min-w-[2.5rem] text-center text-sm tabular-nums">
+                            ×{item.quantity}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            aria-label={`One more ${item.name}`}
+                            onClick={() => {
+                              const newInventory = [...character.inventory];
+                              newInventory[index].quantity++;
+                              updateCharacter({ inventory: newInventory });
+                            }}
+                            className="btn-quiet h-11 w-11"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -1152,36 +1205,36 @@ export default function CharacterPage() {
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
             {/* Character Details Card */}
-            <Card className="bg-slate-800/50 border-slate-700" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)' }}>
+            <Card className="tome-panel">
               <CardHeader>
-                <CardTitle className="text-white">Character Details</CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardTitle className="text-ink">Character Details</CardTitle>
+                <CardDescription className="text-ink-muted">
                   Update your character's level and maximum HP
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="edit-level" className="text-white">Level</Label>
+                  <Label htmlFor="edit-level" className="text-ink">Level</Label>
                   <Input
                     id="edit-level"
                     type="number"
                     value={editLevel}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditLevel(parseInt(e.target.value) || 0)}
-                    className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                    className="field mt-2 h-11"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="edit-max-hp" className="text-white">Max HP</Label>
+                  <Label htmlFor="edit-max-hp" className="text-ink">Max HP</Label>
                   <Input
                     id="edit-max-hp"
                     type="number"
                     value={editMaxHP}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditMaxHP(parseInt(e.target.value) || 0)}
-                    className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                    className="field mt-2 h-11"
                   />
                 </div>
-                <div className="pt-2 border-t border-slate-700">
-                  <Label htmlFor="edit-secondary-class" className="text-white">Multiclass (optional)</Label>
+                <div className="pt-2 border-edge-soft border-t">
+                  <Label htmlFor="edit-secondary-class" className="text-ink">Multiclass (optional)</Label>
                   <div className="flex gap-3 mt-2">
                     <select
                       id="edit-secondary-class"
@@ -1191,7 +1244,7 @@ export default function CharacterPage() {
                         if (e.target.value && editSecondaryLevel === 0) setEditSecondaryLevel(1);
                         if (!e.target.value) setEditSecondaryLevel(0);
                       }}
-                      className="flex-1 h-9 rounded-md px-3 text-sm bg-slate-900/50 border border-slate-700 text-white"
+                      className="field h-11 flex-1 rounded-md border px-3 text-sm"
                     >
                       <option value="">None</option>
                       {dndClasses
@@ -1207,11 +1260,11 @@ export default function CharacterPage() {
                       value={editSecondaryLevel}
                       disabled={!editSecondaryClass}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditSecondaryLevel(parseInt(e.target.value) || 0)}
-                      className="w-24 bg-slate-900/50 border-slate-700 text-white"
+                      className="field h-11 w-24"
                       aria-label="Secondary class level"
                     />
                   </div>
-                  <p className="text-slate-400 text-xs mt-2">
+                  <p className="text-ink-muted text-xs mt-2">
                     Adds the class's features and abilities. The Level field above is your {character.class?.name} level; spell slots stay based on it.
                   </p>
                 </div>
@@ -1226,7 +1279,7 @@ export default function CharacterPage() {
                         setEditSecondaryLevel(character.secondary_level || 0);
                       }
                     }}
-                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 flex-1"
+                    className="btn-quiet h-11 flex-1"
                   >
                     Cancel
                   </Button>
@@ -1250,7 +1303,7 @@ export default function CharacterPage() {
                       setSavingDetails(false);
                     }}
                     disabled={savingDetails}
-                    className="btn-accent flex-1"
+                    className="btn-accent h-11 flex-1"
                   >
                     {savingDetails ? <LoadingSpinner size="sm" /> : 'Save Changes'}
                   </Button>
@@ -1259,59 +1312,53 @@ export default function CharacterPage() {
             </Card>
 
             {/* Theme Customization Card */}
-            <Card className="bg-slate-800/50 border-slate-700" style={{ backgroundColor: 'var(--card-bg)', borderColor: 'var(--border-color)' }}>
+            <Card className="tome-panel">
               <CardHeader>
-                <CardTitle className="text-white">Theme Customization</CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardTitle className="text-ink">Theme Customization</CardTitle>
+                <CardDescription className="text-ink-muted">
                   Choose your preferred visual theme
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-                  {THEMES.map((themeOption) => (
-                    <div
-                      key={themeOption.id}
-                      onClick={() => {
-                        setTheme(themeOption.id);
-                        applyTheme(themeOption.id);
-                      }}
-                      className={`relative cursor-pointer rounded-lg overflow-hidden transition-all ${
-                        theme === themeOption.id
-                          ? 'ring-4 ring-offset-2 ring-offset-slate-900'
-                          : 'hover:scale-105'
-                      }`}
-                      style={{
-                        boxShadow: theme === themeOption.id ? `0 0 20px ${themeOption.accent}40` : 'none',
-                      }}
-                    >
-                      <div
-                        className="h-24 w-full"
-                        style={{
-                          background: `linear-gradient(to bottom right, ${themeOption.from}, ${themeOption.to})`,
+                {/* Named swatches: the theme's name is readable text rather than
+                    a tooltip, and the selected one is marked with a check as
+                    well as a border. */}
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {THEMES.map((themeOption) => {
+                    const selected = theme === themeOption.id;
+                    return (
+                      <button
+                        key={themeOption.id}
+                        type="button"
+                        onClick={() => {
+                          setTheme(themeOption.id);
+                          applyTheme(themeOption.id);
                         }}
+                        aria-pressed={selected}
+                        data-selected={selected}
+                        className="theme-swatch"
                       >
-                        <div className="absolute inset-0 border-2 border-white/20 rounded-lg" />
-                        <div className="absolute left-0 top-0 bottom-0 w-1" style={{ backgroundColor: themeOption.accent }} />
-                        <div className="absolute bottom-2 left-2 right-2">
-                          <div className="text-xs font-serif" style={{ color: themeOption.ink }}>{themeOption.name}</div>
-                        </div>
-                        {theme === themeOption.id && (
-                          <div className="absolute top-2 right-2">
-                            <Check className="h-4 w-4" style={{ color: themeOption.ink }} />
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                        <span
+                          className="theme-swatch__chip"
+                          style={{
+                            background: `linear-gradient(135deg, ${themeOption.from}, ${themeOption.to})`,
+                            borderLeft: `3px solid ${themeOption.accent}`,
+                          }}
+                        />
+                        <span className="min-w-0 flex-1 truncate text-sm">{themeOption.name}</span>
+                        {selected && <Check className="text-accent h-4 w-4 shrink-0" />}
+                      </button>
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
 
             {/* Danger Zone Card */}
-            <Card className="bg-red-950/30 border-red-900" style={{ backgroundColor: 'rgba(69, 10, 10, 0.3)', borderColor: '#991b1b' }}>
+            <Card className="tome-panel tome-panel--danger">
               <CardHeader>
-                <CardTitle className="text-red-400">Danger Zone</CardTitle>
-                <CardDescription className="text-red-300">
+                <CardTitle className="text-danger">Danger Zone</CardTitle>
+                <CardDescription className="text-ink-muted">
                   Irreversible actions
                 </CardDescription>
               </CardHeader>
@@ -1319,7 +1366,7 @@ export default function CharacterPage() {
                 <Button
                   variant="destructive"
                   onClick={() => setDeleteDialogOpen(true)}
-                  className="bg-red-600 hover:bg-red-700 text-white"
+                  className="btn-danger h-11"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete Character
@@ -1331,17 +1378,17 @@ export default function CharacterPage() {
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent className="bg-slate-800 border-slate-700 text-white">
+          <DialogContent className="dialog-panel">
             <DialogHeader>
-              <DialogTitle className="text-red-400">Delete Character</DialogTitle>
-              <DialogDescription className="text-slate-400">
+              <DialogTitle className="text-danger">Delete Character</DialogTitle>
+              <DialogDescription className="text-ink-muted">
                 Are you sure you want to delete {character?.name}? This action cannot be undone.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div>
-                <Label htmlFor="delete-confirm" className="text-white">
-                  Type <span className="text-red-400 font-bold">{character?.name}</span> to confirm
+                <Label htmlFor="delete-confirm" className="text-ink">
+                  Type <span className="text-danger font-bold">{character?.name}</span> to confirm
                 </Label>
                 <Input
                   id="delete-confirm"
@@ -1349,7 +1396,7 @@ export default function CharacterPage() {
                   value={deleteConfirmName}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeleteConfirmName(e.target.value)}
                   placeholder="Character name"
-                  className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                  className="field mt-2 h-11"
                 />
               </div>
             </div>
@@ -1360,7 +1407,7 @@ export default function CharacterPage() {
                   setDeleteDialogOpen(false);
                   setDeleteConfirmName('');
                 }}
-                className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                className="btn-quiet h-11"
               >
                 Cancel
               </Button>
@@ -1389,43 +1436,43 @@ export default function CharacterPage() {
 
         {/* Add Item Dialog */}
         <Dialog open={itemDialogOpen} onOpenChange={setItemDialogOpen}>
-          <DialogContent className="bg-slate-800 border-slate-700 text-white">
+          <DialogContent className="dialog-panel">
             <DialogHeader>
-              <DialogTitle className="text-white">Add Item</DialogTitle>
-              <DialogDescription className="text-slate-400">
+              <DialogTitle className="text-ink">Add Item</DialogTitle>
+              <DialogDescription className="text-ink-muted">
                 Add an item to your inventory.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3">
               <div>
-                <Label htmlFor="item-name" className="text-white">Name</Label>
+                <Label htmlFor="item-name" className="text-ink">Name</Label>
                 <Input
                   id="item-name"
                   value={newItemName}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewItemName(e.target.value)}
                   placeholder="e.g. Rope (50 ft)"
-                  className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                  className="field mt-2 h-11"
                 />
               </div>
               <div>
-                <Label htmlFor="item-quantity" className="text-white">Quantity</Label>
+                <Label htmlFor="item-quantity" className="text-ink">Quantity</Label>
                 <Input
                   id="item-quantity"
                   type="number"
                   min={1}
                   value={newItemQuantity}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewItemQuantity(e.target.value)}
-                  className="bg-slate-900/50 border-slate-700 text-white mt-2 w-24"
+                  className="field mt-2 h-11 w-24"
                 />
               </div>
               <div>
-                <Label htmlFor="item-notes" className="text-white">Notes (optional)</Label>
+                <Label htmlFor="item-notes" className="text-ink">Notes (optional)</Label>
                 <Input
                   id="item-notes"
                   value={newItemNotes}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewItemNotes(e.target.value)}
                   placeholder="e.g. Hempen, slightly frayed"
-                  className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                  className="field mt-2 h-11"
                 />
               </div>
             </div>
@@ -1433,7 +1480,7 @@ export default function CharacterPage() {
               <Button
                 variant="outline"
                 onClick={() => setItemDialogOpen(false)}
-                className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                className="btn-quiet h-11"
               >
                 Cancel
               </Button>
@@ -1445,7 +1492,7 @@ export default function CharacterPage() {
                   updateCharacter({ inventory: [...character.inventory, newItem] });
                   setItemDialogOpen(false);
                 }}
-                className="btn-accent"
+                className="btn-accent h-11"
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Add Item
@@ -1456,10 +1503,10 @@ export default function CharacterPage() {
 
         {/* Add Feat Dialog */}
         <Dialog open={featDialogOpen} onOpenChange={setFeatDialogOpen}>
-          <DialogContent className="bg-slate-800 border-slate-700 text-white max-w-lg">
+          <DialogContent className="dialog-panel max-w-lg">
             <DialogHeader>
-              <DialogTitle className="text-white">Add Feat</DialogTitle>
-              <DialogDescription className="text-slate-400">
+              <DialogTitle className="text-ink">Add Feat</DialogTitle>
+              <DialogDescription className="text-ink-muted">
                 Pick an option your character has gained, or write your own.
               </DialogDescription>
             </DialogHeader>
@@ -1476,7 +1523,7 @@ export default function CharacterPage() {
                     size="sm"
                     onClick={() => setFeatDialogType(type)}
                     className={`flex-1 ${
-                      featDialogType === type ? 'btn-accent' : 'bg-slate-700 border-slate-600 text-white hover:bg-slate-600'
+                      featDialogType === type ? 'btn-accent' : 'btn-quiet'
                     }`}
                   >
                     {label}
@@ -1487,24 +1534,24 @@ export default function CharacterPage() {
               {featDialogType === 'custom' ? (
                 <div className="space-y-3">
                   <div>
-                    <Label htmlFor="custom-feat-name" className="text-white">Name</Label>
+                    <Label htmlFor="custom-feat-name" className="text-ink">Name</Label>
                     <Input
                       id="custom-feat-name"
                       value={customFeatName}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCustomFeatName(e.target.value)}
                       placeholder="e.g. Boon of the Night Mother"
-                      className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                      className="field mt-2 h-11"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="custom-feat-description" className="text-white">Description</Label>
+                    <Label htmlFor="custom-feat-description" className="text-ink">Description</Label>
                     <textarea
                       id="custom-feat-description"
                       value={customFeatDescription}
                       onChange={(e) => setCustomFeatDescription(e.target.value)}
                       placeholder="What does it do?"
                       rows={4}
-                      className="w-full rounded-md px-3 py-2 text-sm bg-slate-900/50 border border-slate-700 text-white mt-2"
+                      className="w-full rounded-md px-3 py-2 text-sm field border mt-2"
                     />
                   </div>
                   <Button
@@ -1518,7 +1565,7 @@ export default function CharacterPage() {
                       });
                       setFeatDialogOpen(false);
                     }}
-                    className="btn-accent w-full"
+                    className="btn-accent h-11 w-full"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Add Custom Feat
@@ -1530,7 +1577,7 @@ export default function CharacterPage() {
                     value={featSearch}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFeatSearch(e.target.value)}
                     placeholder={featDialogType === 'invocation' ? 'Search invocations...' : 'Search feats...'}
-                    className="bg-slate-900/50 border-slate-700 text-white"
+                    className="field h-11"
                   />
                   <ScrollArea className="h-[320px]">
                     <div className="space-y-2 pr-2">
@@ -1539,14 +1586,14 @@ export default function CharacterPage() {
                             .filter(inv => !characterFeats.some(f => f.id === inv.id))
                             .filter(inv => inv.name.toLowerCase().includes(featSearch.toLowerCase()))
                             .map(inv => (
-                              <div key={inv.id} className="p-3 bg-slate-900/50 rounded-lg">
+                              <div key={inv.id} className="row-plate p-3">
                                 <div className="flex items-start justify-between gap-2 mb-1">
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-white font-medium text-sm">
+                                    <span className="text-ink font-medium text-sm">
                                       {inv.name.replace('Eldritch Invocation: ', '')}
                                     </span>
                                     {inv.levelRequired > 1 && (
-                                      <Badge variant="outline" className="bg-slate-700 border-slate-600 text-slate-300 text-xs">
+                                      <Badge variant="outline" className="bg-surface-raised border-edge text-ink-muted text-xs">
                                         Lv. {inv.levelRequired}+
                                       </Badge>
                                     )}
@@ -1558,24 +1605,24 @@ export default function CharacterPage() {
                                       handleAddFeat({ id: inv.id, type: 'invocation' });
                                       setFeatDialogOpen(false);
                                     }}
-                                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 h-7 shrink-0"
+                                    className="btn-quiet h-7 shrink-0"
                                   >
                                     <Plus className="h-3.5 w-3.5" />
                                   </Button>
                                 </div>
-                                <p className="text-slate-400 text-xs line-clamp-3">{inv.description}</p>
+                                <p className="text-ink-muted text-xs line-clamp-3">{inv.description}</p>
                               </div>
                             ))
                         : dndFeats
                             .filter(feat => !characterFeats.some(f => f.id === feat.id))
                             .filter(feat => feat.name.toLowerCase().includes(featSearch.toLowerCase()))
                             .map(feat => (
-                              <div key={feat.id} className="p-3 bg-slate-900/50 rounded-lg">
+                              <div key={feat.id} className="row-plate p-3">
                                 <div className="flex items-start justify-between gap-2 mb-1">
                                   <div>
-                                    <span className="text-white font-medium text-sm">{feat.name}</span>
+                                    <span className="text-ink font-medium text-sm">{feat.name}</span>
                                     {feat.prerequisite && (
-                                      <div className="text-slate-500 text-xs italic">Prerequisite: {feat.prerequisite}</div>
+                                      <div className="text-ink-faint text-xs italic">Prerequisite: {feat.prerequisite}</div>
                                     )}
                                   </div>
                                   <Button
@@ -1585,12 +1632,12 @@ export default function CharacterPage() {
                                       handleAddFeat({ id: feat.id, type: 'feat' });
                                       setFeatDialogOpen(false);
                                     }}
-                                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 h-7 shrink-0"
+                                    className="btn-quiet h-7 shrink-0"
                                   >
                                     <Plus className="h-3.5 w-3.5" />
                                   </Button>
                                 </div>
-                                <p className="text-slate-400 text-xs line-clamp-3">{feat.description}</p>
+                                <p className="text-ink-muted text-xs line-clamp-3">{feat.description}</p>
                               </div>
                             ))}
                     </div>

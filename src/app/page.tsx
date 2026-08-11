@@ -4,12 +4,13 @@ import { useState, useEffect, useRef } from 'react';
 import { listCharacters, deleteCharacter, exportBackup, importBackup, type BackupData } from '@/lib/db';
 import { THEMES, applyTheme, loadTheme } from '@/lib/theme';
 import { Character } from '@/types/database';
+import { getClassById } from '@/data/classes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Trash2, Download, Upload } from 'lucide-react';
+import { Plus, Trash2, Download, Upload, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function Home() {
@@ -22,13 +23,6 @@ export default function Home() {
   const [theme, setTheme] = useState('arcane-tome');
   const importInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    const stored = loadTheme();
-    setTheme(stored);
-    document.documentElement.setAttribute('data-theme', stored);
-    fetchCharacters();
-  }, []);
-
   const fetchCharacters = async () => {
     try {
       setCharacters(await listCharacters());
@@ -37,6 +31,13 @@ export default function Home() {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    const stored = loadTheme();
+    setTheme(stored);
+    document.documentElement.setAttribute('data-theme', stored);
+    fetchCharacters();
+  }, []);
 
   const handleCreateCharacter = () => {
     router.push('/create');
@@ -96,107 +97,127 @@ export default function Home() {
 
   return (
     <div className="min-h-screen p-4 md:p-8" style={{ background: 'var(--page-bg)' }}>
-      <div className="max-w-4xl mx-auto">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4">
-          <div>
-            <h1 className="text-2xl md:text-4xl font-bold text-white">D&D Spellbook</h1>
-            <div className="theme-dots mt-2">
-              {THEMES.map((t) => (
-                <button
-                  key={t.id}
-                  title={t.name}
-                  aria-label={`Switch to the ${t.name} theme`}
-                  className={`theme-dot ${theme === t.id ? 'theme-dot-active' : ''}`}
-                  style={{ background: `linear-gradient(135deg, ${t.from}, ${t.accent})` }}
-                  onClick={() => {
-                    setTheme(t.id);
-                    applyTheme(t.id);
-                  }}
-                />
-              ))}
+      <div className="mx-auto max-w-5xl">
+        <header className="mb-6 md:mb-8">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h1 className="foil-title text-2xl font-bold md:text-4xl">D&amp;D Spellbook</h1>
+              <p className="text-ink-muted mt-1 text-sm">
+                {characters.length === 0
+                  ? 'Your shelf is waiting'
+                  : `${characters.length} ${characters.length === 1 ? 'tome' : 'tomes'} on the shelf`}
+              </p>
             </div>
-          </div>
-          <div className="flex gap-2 sm:gap-4 w-full sm:w-auto">
-            <Button
-              onClick={handleCreateCharacter}
-              size="lg"
-              className="btn-accent flex-1 sm:flex-none text-sm md:text-base"
-            >
-              <Plus className="mr-1 h-4 w-4 md:mr-2 md:h-5 md:w-5" />
-              <span className="hidden sm:inline">New Character</span>
+            {/* The label stays visible at every width — a bare plus tells a
+                first-time reader nothing. */}
+            <Button onClick={handleCreateCharacter} className="btn-accent h-11 px-4">
+              <Plus className="mr-2 h-5 w-5" />
+              New Character
             </Button>
           </div>
-        </div>
+
+          {/* Theme picker: full-size tap targets, the theme name as the
+              accessible name, and a check mark so the selection never rests on
+              colour alone. The named list lives in a character's Settings. */}
+          <div className="mt-4 flex flex-wrap items-center gap-0.5">
+            <span className="text-ink-faint mr-1 text-xs">Theme</span>
+            {THEMES.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                aria-label={t.name}
+                aria-pressed={theme === t.id}
+                title={t.name}
+                onClick={() => {
+                  setTheme(t.id);
+                  applyTheme(t.id);
+                }}
+                className="flex h-11 w-11 items-center justify-center rounded-lg"
+              >
+                <span
+                  className="flex h-7 w-7 items-center justify-center rounded-full border-2"
+                  style={{
+                    background: `linear-gradient(135deg, ${t.from}, ${t.accent})`,
+                    borderColor: theme === t.id ? 'var(--text-highlight)' : 'rgba(255,255,255,0.25)',
+                  }}
+                >
+                  {theme === t.id && <Check className="h-3.5 w-3.5" style={{ color: t.ink }} />}
+                </span>
+              </button>
+            ))}
+          </div>
+        </header>
 
         {loading ? (
-          <div className="text-center text-white py-12">Loading characters...</div>
+          <div className="text-ink-muted py-12 text-center">Loading characters...</div>
         ) : characters.length === 0 ? (
-          <Card className="tome-card">
+          <Card className="shelf-empty mx-auto max-w-md text-center">
             <CardHeader>
-              <CardTitle className="text-white">Your Shelf Is Empty</CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardTitle className="text-ink">Your Shelf Is Empty</CardTitle>
+              <CardDescription className="text-ink-muted">
                 Bind your first character into the book — everything stays on this device.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button
-                onClick={handleCreateCharacter}
-                className="btn-accent w-full"
-              >
+              <Button onClick={handleCreateCharacter} className="btn-accent h-11 w-full">
                 <Plus className="mr-2 h-5 w-5" />
                 Create Character
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-3 md:gap-4 sm:grid-cols-2">
-            {characters.map((character) => (
-              <Card
-                key={character.id}
-                className="tome-card clickable-card cursor-pointer relative"
-                onClick={() => handleSelectCharacter(character.id)}
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={(e) => handleDeleteClick(character, e)}
-                  className="absolute top-2 right-2 text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-                <CardHeader>
-                  <CardTitle className="text-white text-base md:text-lg">{character.name}</CardTitle>
-                  <CardDescription className="text-slate-400 text-sm md:text-base">
-                    Level {character.level} • {character.class_id}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between text-xs md:text-sm">
-                    <div className="text-slate-300">
-                      HP: {character.hp_current}/{character.hp_max}
+          /* auto-fill with a capped column width: one character reads as a
+             single book on a shelf rather than a stretched banner, and the
+             shelf fills naturally as more are bound in. */
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,17rem),1fr))] gap-4">
+            {characters.map((character) => {
+              const cls = getClassById(character.class_id);
+              return (
+                <article key={character.id} className="tome" data-class={character.class_id}>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectCharacter(character.id)}
+                    className="tome__link tome__title block w-full pr-10 text-base font-semibold break-words"
+                  >
+                    {character.name}
+                  </button>
+                  <p className="tome__meta mt-1 text-sm">
+                    Level {character.level} {cls?.name ?? character.class_id}
+                  </p>
+                  <dl className="tome__meta mt-4 flex items-end justify-between gap-2 text-xs">
+                    <div>
+                      <dt className="opacity-75">Hit points</dt>
+                      <dd className="tome__stat text-base font-semibold tabular-nums">
+                        {character.hp_current}
+                        <span className="opacity-70">/{character.hp_max}</span>
+                      </dd>
                     </div>
-                    <div className="text-accent">
-                      {character.prepared_spells.length} spells
+                    <div className="text-right">
+                      <dt className="opacity-75">Prepared</dt>
+                      <dd className="tome__stat text-base font-semibold tabular-nums">
+                        {character.prepared_spells.length}
+                      </dd>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </dl>
+                  <button
+                    type="button"
+                    onClick={(e) => handleDeleteClick(character, e)}
+                    aria-label={`Delete ${character.name}`}
+                    className="tome__delete"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </article>
+              );
+            })}
           </div>
         )}
 
         {/* Local-first: everything stays in this browser. Backup / restore. */}
-        <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-slate-400 text-xs md:text-sm">
-          <p>
-            Your characters are stored on this device only — nothing leaves your browser.
-          </p>
+        <div className="text-ink-muted mt-8 flex flex-col items-start justify-between gap-3 text-xs sm:flex-row sm:items-center md:text-sm">
+          <p>Your characters are stored on this device only — nothing leaves your browser.</p>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExport}
-              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
-            >
+            <Button variant="outline" size="sm" onClick={handleExport} className="btn-quiet h-11">
               <Download className="mr-1 h-4 w-4" />
               Backup
             </Button>
@@ -204,7 +225,7 @@ export default function Home() {
               variant="outline"
               size="sm"
               onClick={() => importInputRef.current?.click()}
-              className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+              className="btn-quiet h-11"
             >
               <Upload className="mr-1 h-4 w-4" />
               Restore
@@ -225,17 +246,17 @@ export default function Home() {
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent className="bg-slate-800 border-slate-700 text-white">
+          <DialogContent className="dialog-panel">
             <DialogHeader>
-              <DialogTitle className="text-red-400">Delete Character</DialogTitle>
-              <DialogDescription className="text-slate-400">
+              <DialogTitle className="text-danger">Delete Character</DialogTitle>
+              <DialogDescription className="text-ink-muted">
                 Are you sure you want to delete {characterToDelete?.name}? This action cannot be undone.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div>
-                <Label htmlFor="delete-confirm" className="text-white">
-                  Type <span className="text-red-400 font-bold">{characterToDelete?.name}</span> to confirm
+                <Label htmlFor="delete-confirm" className="text-ink">
+                  Type <span className="text-danger font-bold">{characterToDelete?.name}</span> to confirm
                 </Label>
                 <Input
                   id="delete-confirm"
@@ -243,7 +264,7 @@ export default function Home() {
                   value={deleteConfirmName}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeleteConfirmName(e.target.value)}
                   placeholder="Character name"
-                  className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                  className="field mt-2 h-11"
                 />
               </div>
             </div>
@@ -255,14 +276,14 @@ export default function Home() {
                   setCharacterToDelete(null);
                   setDeleteConfirmName('');
                 }}
-                className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                className="btn-quiet h-11"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleDeleteConfirm}
                 disabled={deleteConfirmName !== characterToDelete?.name}
-                variant="destructive"
+                className="btn-danger h-11"
               >
                 Delete Character
               </Button>

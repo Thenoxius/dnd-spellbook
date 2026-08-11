@@ -51,6 +51,33 @@ async function withStore<T>(
   return requestToPromise(fn(tx.objectStore(storeName)));
 }
 
+/** Spell ids retired when the bundled data carried the same spell twice under
+ * two ids. Characters store prepared spells by id, so a stored id is remapped
+ * on read — otherwise the spell would silently vanish from the spellbook. */
+const RETIRED_SPELL_IDS: Record<string, string> = {
+  firebolt: 'fire-bolt',
+  mage_hand: 'mage-hand',
+  sacred_flame: 'sacred-flame',
+  cure_wounds: 'cure-wounds',
+  healing_word: 'healing-word',
+  magic_missile: 'magic-missile',
+  hold_person: 'hold-person',
+  // A homebrew Fireball that had leaked into the bundled data at level 2.
+  fireball_1781857245675: 'fireball',
+};
+
+/** Map retired ids onto their surviving record, dropping any duplicate the
+ * remap produces (a character could have had both ids prepared). */
+function migrateSpellIds(ids: unknown): string[] {
+  if (!Array.isArray(ids)) return [];
+  const seen = new Set<string>();
+  for (const id of ids) {
+    if (typeof id !== 'string') continue;
+    seen.add(RETIRED_SPELL_IDS[id] ?? id);
+  }
+  return [...seen];
+}
+
 /** Fill in every optional/JSONB-ish field so characters created by older
  * versions (or imported from the Supabase export) never surface undefined
  * where the UI expects an object or array. */
@@ -63,12 +90,12 @@ function normalizeCharacter(raw: any): Character {
     secondary_level: 0,
     subrace_id: null,
     spell_slots: {},
-    prepared_spells: [],
     currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
     inventory: [],
     ability_uses: {},
     feats: [],
     ...raw,
+    prepared_spells: migrateSpellIds(raw?.prepared_spells),
   } as Character;
 }
 

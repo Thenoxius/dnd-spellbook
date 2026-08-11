@@ -88,44 +88,49 @@ export default function CreateSpellPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white hover:text-white">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            aria-label="Go back"
+            className="header-action shrink-0"
+          >
             <ArrowLeft className="h-5 w-5" />
-          </Button>
+          </button>
           <div className="flex-1">
-            <h1 className="text-2xl md:text-3xl font-bold text-white">Create Custom Spell</h1>
-            <p className="text-slate-400">Add a new spell to your spellbook</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-ink">Create Custom Spell</h1>
+            <p className="text-ink-muted">Add a new spell to your spellbook</p>
           </div>
         </div>
 
-        <Card className="bg-slate-800/50 border-slate-700">
+        <Card className="tome-panel">
           <CardHeader>
-            <CardTitle className="text-white">Spell Details</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardTitle className="text-ink">Spell Details</CardTitle>
+            <CardDescription className="text-ink-muted">
               Fill in the spell information. All fields are optional except name and school.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <Label htmlFor="name" className="text-white">Spell Name *</Label>
+              <Label htmlFor="name" className="text-ink">Spell Name *</Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                 placeholder="Fireball"
-                className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                className="field mt-2 h-11"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="level" className="text-white">Spell Level</Label>
+                <Label htmlFor="level" className="text-ink">Spell Level</Label>
                 <Select value={level.toString()} onValueChange={(v) => setLevel(parseInt(v || '0'))}>
-                  <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white mt-2">
+                  <SelectTrigger size="lg" className="field mt-2 w-full">
                     <SelectValue placeholder="Select level" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectContent className="bg-surface border-edge">
                     {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((lvl) => (
-                      <SelectItem key={lvl} value={lvl.toString()} className="text-white">
+                      <SelectItem key={lvl} value={lvl.toString()} className="text-ink">
                         {lvl === 0 ? 'Cantrip' : `Level ${lvl}`}
                       </SelectItem>
                     ))}
@@ -133,14 +138,14 @@ export default function CreateSpellPage() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="school" className="text-white">School *</Label>
+                <Label htmlFor="school" className="text-ink">School *</Label>
                 <Select value={school} onValueChange={(v) => setSchool(v || '')}>
-                  <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white mt-2">
+                  <SelectTrigger size="lg" className="field mt-2 w-full">
                     <SelectValue placeholder="Select school" />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
+                  <SelectContent className="bg-surface border-edge">
                     {SPELL_SCHOOLS.map((s) => (
-                      <SelectItem key={s} value={s} className="text-white">
+                      <SelectItem key={s} value={s} className="text-ink">
                         {s}
                       </SelectItem>
                     ))}
@@ -151,94 +156,94 @@ export default function CreateSpellPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="castingTime" className="text-white">Casting Time</Label>
+                <Label htmlFor="castingTime" className="text-ink">Casting Time</Label>
                 <Input
                   id="castingTime"
                   value={castingTime}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCastingTime(e.target.value)}
                   placeholder="1 action"
-                  className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                  className="field mt-2 h-11"
                 />
               </div>
               <div>
-                <Label htmlFor="range" className="text-white">Range</Label>
+                <Label htmlFor="range" className="text-ink">Range</Label>
                 <Input
                   id="range"
                   value={range}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRange(e.target.value)}
                   placeholder="60 ft"
-                  className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                  className="field mt-2 h-11"
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="components" className="text-white">Components</Label>
+              <Label htmlFor="components" className="text-ink">Components</Label>
               <Input
                 id="components"
                 value={components}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setComponents(e.target.value)}
                 placeholder="V, S, M"
-                className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                className="field mt-2 h-11"
               />
             </div>
 
             <div>
-              <Label htmlFor="duration" className="text-white">Duration</Label>
+              <Label htmlFor="duration" className="text-ink">Duration</Label>
               <Input
                 id="duration"
                 value={duration}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDuration(e.target.value)}
                 placeholder="1 minute"
-                className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                className="field mt-2 h-11"
               />
             </div>
 
             <div className="flex gap-4">
-              <div className="flex items-center space-x-2">
+              <div className="flex min-h-11 items-center space-x-2">
                 <Checkbox
                   id="concentration"
                   checked={concentration}
                   onCheckedChange={(checked: boolean) => setConcentration(checked)}
-                  className="border-slate-600"
+                  className="border-edge"
                 />
-                <Label htmlFor="concentration" className="text-white">Concentration</Label>
+                <Label htmlFor="concentration" className="text-ink flex min-h-11 flex-1 cursor-pointer items-center">Concentration</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex min-h-11 items-center space-x-2">
                 <Checkbox
                   id="ritual"
                   checked={ritual}
                   onCheckedChange={(checked: boolean) => setRitual(checked)}
-                  className="border-slate-600"
+                  className="border-edge"
                 />
-                <Label htmlFor="ritual" className="text-white">Ritual</Label>
+                <Label htmlFor="ritual" className="text-ink flex min-h-11 flex-1 cursor-pointer items-center">Ritual</Label>
               </div>
             </div>
 
             <div>
-              <Label htmlFor="description" className="text-white">Description</Label>
+              <Label htmlFor="description" className="text-ink">Description</Label>
               <textarea
                 id="description"
                 value={description}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
                 placeholder="Spell description..."
                 rows={4}
-                className="w-full bg-slate-900/50 border-slate-700 text-white mt-2 p-3 rounded-md"
+                className="w-full field mt-2 p-3 rounded-md"
               />
             </div>
 
             <div>
-              <Label className="text-white">Available Classes</Label>
+              <Label className="text-ink">Available Classes</Label>
               <div className="mt-2 grid grid-cols-2 gap-2">
                 {classes.map((cls) => (
-                  <div key={cls.id} className="flex items-center space-x-2">
+                  <div key={cls.id} className="flex min-h-11 items-center space-x-2">
                     <Checkbox
                       id={`class-${cls.id}`}
                       checked={selectedClasses.has(cls.id)}
                       onCheckedChange={() => handleClassToggle(cls.id)}
-                      className="border-slate-600"
+                      className="border-edge"
                     />
-                    <Label htmlFor={`class-${cls.id}`} className="text-white cursor-pointer">
+                    <Label htmlFor={`class-${cls.id}`} className="text-ink flex min-h-11 flex-1 cursor-pointer items-center">
                       {cls.name}
                     </Label>
                   </div>
@@ -250,14 +255,14 @@ export default function CreateSpellPage() {
               <Button
                 variant="outline"
                 onClick={() => router.back()}
-                className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 flex-1"
+                className="btn-quiet h-11 flex-1"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={saving}
-                className="btn-accent flex-1"
+                className="btn-accent h-11 flex-1"
               >
                 {saving ? 'Saving...' : 'Create Spell'}
               </Button>

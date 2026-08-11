@@ -130,10 +130,15 @@ export default function CreateCharacterPage() {
     <div style={{ background: 'var(--page-bg)' }} className="min-h-screen p-4 md:p-8">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white hover:text-white">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            aria-label="Go back"
+            className="header-action shrink-0"
+          >
             <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-2xl md:text-3xl font-bold text-white">Create Character</h1>
+          </button>
+          <h1 className="text-2xl md:text-3xl font-bold text-ink">Create Character</h1>
         </div>
 
         {/* Progress indicator */}
@@ -141,7 +146,7 @@ export default function CreateCharacterPage() {
           {[1, 2, 3].map((s) => (
             <div
               key={s}
-              className={`flex-1 h-2 rounded-full transition-all ${s <= step ? '' : 'bg-slate-700'}`}
+              className={`flex-1 h-2 rounded-full transition-all ${s <= step ? '' : 'bg-surface-raised'}`}
               style={
                 s <= step
                   ? {
@@ -154,14 +159,14 @@ export default function CreateCharacterPage() {
           ))}
         </div>
 
-        <Card className="bg-slate-800/50 border-slate-700">
+        <Card className="tome-panel">
           <CardHeader>
-            <CardTitle className="text-white">
+            <CardTitle className="text-ink">
               {step === 1 && 'Step 1: Basic Info & Stats'}
               {step === 2 && 'Step 2: Race & Background'}
               {step === 3 && 'Step 3: Class & Level'}
             </CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-ink-muted">
               {step === 1 && 'Enter your character name and ability scores'}
               {step === 2 && 'Choose your race and background'}
               {step === 3 && 'Select your class and level'}
@@ -171,37 +176,39 @@ export default function CreateCharacterPage() {
             {step === 1 && (
               <>
                 <div>
-                  <Label htmlFor="name" className="text-white">Character Name</Label>
+                  <Label htmlFor="name" className="text-ink">Character Name</Label>
                   <Input
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Enter character name"
-                    className="bg-slate-900/50 border-slate-700 text-white"
+                    className="field h-11"
                   />
                 </div>
                 <div className="space-y-3">
-                  <Label className="text-white">Ability Scores</Label>
+                  <Label className="text-ink">Ability Scores</Label>
                   {(['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as AbilityScoreName[]).map((stat) => (
-                    <div key={stat} className="flex items-center gap-4">
-                      <Label className="w-12 text-white">{stat}</Label>
+                    <div key={stat} className="flex items-center gap-2">
+                      <Label className="text-ink w-10 shrink-0">{stat}</Label>
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={() => handleStatChange(stat, -1)}
-                        className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                        aria-label={`Lower ${stat}`}
+                        className="btn-quiet h-11 w-11 shrink-0"
                       >
                         <Minus className="h-4 w-4" />
                       </Button>
                       <div className="flex-1 text-center">
-                        <div className="text-2xl font-bold text-white">{stats[stat]}</div>
-                        <div className="text-sm text-slate-400">{formatAbilityScore(stats[stat])}</div>
+                        <div className="text-2xl font-bold text-ink">{stats[stat]}</div>
+                        <div className="text-sm text-ink-muted">{formatAbilityScore(stats[stat])}</div>
                       </div>
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={() => handleStatChange(stat, 1)}
-                        className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                        aria-label={`Raise ${stat}`}
+                        className="btn-quiet h-11 w-11 shrink-0"
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
@@ -214,24 +221,24 @@ export default function CreateCharacterPage() {
             {step === 2 && (
               <>
                 <div>
-                  <Label htmlFor="race" className="text-white">Race</Label>
+                  <Label htmlFor="race" className="text-ink">Race</Label>
                   <Select items={Object.fromEntries(dndRaces.map(r => [r.id, r.name]))} value={raceId} onValueChange={(value) => {
                     setRaceId(value || '');
                     setSubraceId(''); // Reset subrace when race changes
                   }}>
-                    <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white">
+                    <SelectTrigger size="lg" className="field w-full">
                       <SelectValue placeholder="Select a race" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectContent className="bg-surface border-edge">
                       {dndRaces.map((race) => (
-                        <SelectItem key={race.id} value={race.id} className="text-white">
+                        <SelectItem key={race.id} value={race.id} className="text-ink">
                           {race.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {selectedRace && (
-                    <div className="mt-2 text-sm text-slate-400">
+                    <div className="mt-2 text-sm text-ink-muted">
                       <div>Stat Bonuses: {Object.entries(selectedRace.statBonuses).map(([k, v]) => `${k} +${v}`).join(', ')}</div>
                       {selectedRace.grantedSpells.length > 0 && (
                         <div>Racial Traits: {selectedRace.grantedSpells.join(', ')}</div>
@@ -241,22 +248,22 @@ export default function CreateCharacterPage() {
                 </div>
                 {selectedRace && getSubracesByRace(raceId).length > 0 && (
                   <div>
-                    <Label htmlFor="subrace" className="text-white">Subrace (Optional)</Label>
+                    <Label htmlFor="subrace" className="text-ink">Subrace (Optional)</Label>
                     <Select items={{ '': 'None', ...Object.fromEntries(getSubracesByRace(raceId).map(s => [s.id, s.name])) }} value={subraceId} onValueChange={(value) => setSubraceId(value || '')}>
-                      <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white">
+                      <SelectTrigger size="lg" className="field w-full">
                         <SelectValue placeholder="Select a subrace" />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-700">
-                        <SelectItem value="" className="text-white">None</SelectItem>
+                      <SelectContent className="bg-surface border-edge">
+                        <SelectItem value="" className="text-ink">None</SelectItem>
                         {getSubracesByRace(raceId).map((subrace) => (
-                          <SelectItem key={subrace.id} value={subrace.id} className="text-white">
+                          <SelectItem key={subrace.id} value={subrace.id} className="text-ink">
                             {subrace.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                     {selectedSubrace && (
-                      <div className="mt-2 text-sm text-slate-400">
+                      <div className="mt-2 text-sm text-ink-muted">
                         <div>Stat Bonuses: {Object.entries(selectedSubrace.statBonuses).map(([k, v]) => `${k} +${v}`).join(', ')}</div>
                         {selectedSubrace.grantedSpells.length > 0 && (
                           <div>Granted Spells: {selectedSubrace.grantedSpells.join(', ')}</div>
@@ -266,33 +273,33 @@ export default function CreateCharacterPage() {
                   </div>
                 )}
                 <div>
-                  <Label htmlFor="background" className="text-white">Background</Label>
+                  <Label htmlFor="background" className="text-ink">Background</Label>
                   <Select items={Object.fromEntries(dndBackgrounds.map(b => [b.id, b.name]))} value={backgroundId} onValueChange={(value) => setBackgroundId(value || '')}>
-                    <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white">
+                    <SelectTrigger size="lg" className="field w-full">
                       <SelectValue placeholder="Select a background" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectContent className="bg-surface border-edge">
                       {dndBackgrounds.map((bg) => (
-                        <SelectItem key={bg.id} value={bg.id} className="text-white">
+                        <SelectItem key={bg.id} value={bg.id} className="text-ink">
                           {bg.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {selectedBackground && (
-                    <div className="mt-2 text-sm text-slate-400">
+                    <div className="mt-2 text-sm text-ink-muted">
                       <div>Skills: {selectedBackground.skills.join(', ')}</div>
                       <div>Feature: {selectedBackground.featureName}</div>
                     </div>
                   )}
                 </div>
                 {selectedRace && (
-                  <div className="p-4 bg-slate-900/50 rounded-lg">
-                    <Label className="text-white mb-2 block">Stats Preview (with racial bonuses)</Label>
+                  <div className="row-plate p-4">
+                    <Label className="text-ink mb-2 block">Stats Preview (with racial bonuses)</Label>
                     <div className="grid grid-cols-3 gap-2 text-sm">
                       {(['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'] as AbilityScoreName[]).map((stat) => (
                         <div key={stat} className="text-center">
-                          <div className="text-white font-medium">{stat}</div>
+                          <div className="text-ink font-medium">{stat}</div>
                           <div className="text-accent">{formatAbilityScore(adjustedStats[stat])}</div>
                         </div>
                       ))}
@@ -305,14 +312,14 @@ export default function CreateCharacterPage() {
             {step === 3 && (
               <>
                 <div>
-                  <Label htmlFor="class" className="text-white">Class</Label>
+                  <Label htmlFor="class" className="text-ink">Class</Label>
                   <Select items={Object.fromEntries(dndClasses.map(c => [c.id, c.name]))} value={classId} onValueChange={(value) => setClassId(value || '')}>
-                    <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white">
+                    <SelectTrigger size="lg" className="field w-full">
                       <SelectValue placeholder="Select a class" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectContent className="bg-surface border-edge">
                       {dndClasses.map((cls) => (
-                        <SelectItem key={cls.id} value={cls.id} className="text-white">
+                        <SelectItem key={cls.id} value={cls.id} className="text-ink">
                           {cls.name}
                         </SelectItem>
                       ))}
@@ -320,14 +327,14 @@ export default function CreateCharacterPage() {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="level" className="text-white">Level</Label>
+                  <Label htmlFor="level" className="text-ink">Level</Label>
                   <Select value={level.toString()} onValueChange={(v) => setLevel(v ? parseInt(v) : 1)}>
-                    <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white">
+                    <SelectTrigger size="lg" className="field w-full">
                       <SelectValue placeholder="Select level" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectContent className="bg-surface border-edge">
                       {Array.from({ length: 20 }, (_, i) => i + 1).map((lvl) => (
-                        <SelectItem key={lvl} value={lvl.toString()} className="text-white">
+                        <SelectItem key={lvl} value={lvl.toString()} className="text-ink">
                           Level {lvl}
                         </SelectItem>
                       ))}
@@ -336,15 +343,15 @@ export default function CreateCharacterPage() {
                 </div>
                 {showSubclassSelection && availableSubclasses.length > 0 && (
                   <div>
-                    <Label htmlFor="subclass" className="text-white">Subclass (Optional)</Label>
+                    <Label htmlFor="subclass" className="text-ink">Subclass (Optional)</Label>
                     <Select items={{ '': 'None', ...Object.fromEntries(availableSubclasses.map(s => [s.id, s.name])) }} value={subclassId} onValueChange={(value) => setSubclassId(value || '')}>
-                      <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white">
+                      <SelectTrigger size="lg" className="field w-full">
                         <SelectValue placeholder="Select a subclass" />
                       </SelectTrigger>
-                      <SelectContent className="bg-slate-800 border-slate-700">
-                        <SelectItem value="" className="text-white">None</SelectItem>
+                      <SelectContent className="bg-surface border-edge">
+                        <SelectItem value="" className="text-ink">None</SelectItem>
                         {availableSubclasses.map((sub) => (
-                          <SelectItem key={sub.id} value={sub.id} className="text-white">
+                          <SelectItem key={sub.id} value={sub.id} className="text-ink">
                             {sub.name}
                           </SelectItem>
                         ))}
@@ -353,9 +360,9 @@ export default function CreateCharacterPage() {
                   </div>
                 )}
                 {selectedClass && (
-                  <div className="p-4 bg-slate-900/50 rounded-lg">
-                    <div className="text-white font-medium mb-2">Summary</div>
-                    <div className="text-sm text-slate-400 space-y-1">
+                  <div className="row-plate p-4">
+                    <div className="text-ink font-medium mb-2">Summary</div>
+                    <div className="text-sm text-ink-muted space-y-1">
                       <div>Class: {selectedClass.name}</div>
                       <div>Level: {level}</div>
                       <div>Max HP: {classId ? calculateMaxHP(classId, level, adjustedStats.CON) : '-'}</div>
@@ -371,7 +378,7 @@ export default function CreateCharacterPage() {
                 variant="outline"
                 onClick={handleBack}
                 disabled={step === 1}
-                className="flex-1 bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                className="btn-quiet h-11 flex-1"
               >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
@@ -383,7 +390,7 @@ export default function CreateCharacterPage() {
                     (step === 1 && !name) ||
                     (step === 2 && (!raceId || !backgroundId))
                   }
-                  className="btn-accent flex-1"
+                  className="btn-accent h-11 flex-1"
                 >
                   Next
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -392,7 +399,7 @@ export default function CreateCharacterPage() {
                 <Button
                   onClick={handleSubmit}
                   disabled={!classId || loading}
-                  className="btn-accent flex-1"
+                  className="btn-accent h-11 flex-1"
                 >
                   {loading ? 'Creating...' : 'Create Character'}
                 </Button>

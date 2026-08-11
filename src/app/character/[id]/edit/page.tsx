@@ -93,7 +93,7 @@ export default function EditCharacterPage() {
   if (loading) {
     return (
       <div style={{ background: 'var(--page-bg)' }} className="min-h-screen flex items-center justify-center">
-        <div className="text-white">Loading character...</div>
+        <div className="text-ink">Loading character...</div>
       </div>
     );
   }
@@ -101,7 +101,7 @@ export default function EditCharacterPage() {
   if (!character) {
     return (
       <div style={{ background: 'var(--page-bg)' }} className="min-h-screen flex items-center justify-center">
-        <div className="text-white">Character not found</div>
+        <div className="text-ink">Character not found</div>
       </div>
     );
   }
@@ -111,27 +111,27 @@ export default function EditCharacterPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white hover:text-white">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-ink hover:text-ink">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-2xl md:text-3xl font-bold text-white">Edit {character.name}</h1>
-            <p className="text-slate-400">
+            <h1 className="text-2xl md:text-3xl font-bold text-ink">Edit {character.name}</h1>
+            <p className="text-ink-muted">
               Level {character.level} {character.class?.name}
             </p>
           </div>
         </div>
 
-        <Card className="bg-slate-800/50 border-slate-700">
+        <Card className="tome-panel">
           <CardHeader>
-            <CardTitle className="text-white">Character Details</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardTitle className="text-ink">Character Details</CardTitle>
+            <CardDescription className="text-ink-muted">
               Update your character's level and maximum HP. Spell slots will be recalculated when level changes.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <Label htmlFor="edit-level" className="text-white">Level</Label>
+              <Label htmlFor="edit-level" className="text-ink">Level</Label>
               <Input
                 id="edit-level"
                 type="number"
@@ -139,18 +139,18 @@ export default function EditCharacterPage() {
                 max="20"
                 value={editLevel}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditLevel(parseInt(e.target.value) || 1)}
-                className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                className="field mt-2 h-11"
               />
             </div>
             <div>
-              <Label htmlFor="edit-max-hp" className="text-white">Max HP</Label>
+              <Label htmlFor="edit-max-hp" className="text-ink">Max HP</Label>
               <Input
                 id="edit-max-hp"
                 type="number"
                 min="1"
                 value={editMaxHP}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditMaxHP(parseInt(e.target.value) || 1)}
-                className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                className="field mt-2 h-11"
               />
             </div>
 
@@ -158,14 +158,14 @@ export default function EditCharacterPage() {
               <Button
                 variant="outline"
                 onClick={() => router.back()}
-                className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600 flex-1"
+                className="btn-quiet h-11 flex-1"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
                 disabled={saving}
-                className="btn-accent flex-1"
+                className="btn-accent h-11 flex-1"
               >
                 {saving ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -174,10 +174,10 @@ export default function EditCharacterPage() {
         </Card>
 
         {/* Delete Character Section */}
-        <Card className="bg-red-900/20 border-red-700 mt-6">
+        <Card className="bg-danger-surface border-red-700 mt-6">
           <CardHeader>
-            <CardTitle className="text-red-400">Danger Zone</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardTitle className="text-danger">Danger Zone</CardTitle>
+            <CardDescription className="text-ink-muted">
               Once you delete a character, there is no going back. Please be certain.
             </CardDescription>
           </CardHeader>
@@ -191,17 +191,17 @@ export default function EditCharacterPage() {
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete Character
               </Button>
-              <DialogContent className="bg-slate-800 border-slate-700 text-white">
+              <DialogContent className="dialog-panel">
                 <DialogHeader>
-                  <DialogTitle className="text-red-400">Delete Character</DialogTitle>
-                  <DialogDescription className="text-slate-400">
+                  <DialogTitle className="text-danger">Delete Character</DialogTitle>
+                  <DialogDescription className="text-ink-muted">
                     Are you sure you want to delete {character.name}? This action cannot be undone.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div>
-                    <Label htmlFor="delete-confirm" className="text-white">
-                      Type <span className="text-red-400 font-bold">{character.name}</span> to confirm
+                    <Label htmlFor="delete-confirm" className="text-ink">
+                      Type <span className="text-danger font-bold">{character.name}</span> to confirm
                     </Label>
                     <Input
                       id="delete-confirm"
@@ -209,7 +209,7 @@ export default function EditCharacterPage() {
                       value={deleteConfirmName}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDeleteConfirmName(e.target.value)}
                       placeholder="Character name"
-                      className="bg-slate-900/50 border-slate-700 text-white mt-2"
+                      className="field mt-2 h-11"
                     />
                   </div>
                 </div>
@@ -220,7 +220,7 @@ export default function EditCharacterPage() {
                       setDeleteDialogOpen(false);
                       setDeleteConfirmName('');
                     }}
-                    className="bg-slate-700 border-slate-600 text-white hover:bg-slate-600"
+                    className="btn-quiet h-11"
                   >
                     Cancel
                   </Button>

@@ -6,181 +6,754 @@
 
 /* ==========================================================================
    Spellbook theme system
-   Each theme sets the palette vars; --page-bg layers a parchment/leather
-   noise texture and vignette over the base gradient so every page feels
-   like the cover or pages of a tome. --slot-glow drives the magical pulse
-   on unused spell slots.
+
+   Every theme sets the same semantic token set, so components never need to
+   know which theme is active — they ask for "ink" or "raised surface" and the
+   theme answers. The tokens are exposed to Tailwind through @theme inline
+   further down, which is what makes `text-ink` / `bg-surface-raised` work.
+
+   Token vocabulary:
+     --ink / --ink-muted / --ink-faint    text, in three levels of emphasis
+     --page-bg                            the page itself (texture + vignette)
+     --surface                            base card surface
+     --surface-raised                     rows and controls sitting on a card
+     --surface-hover / --surface-selected interaction states
+     --edge / --edge-soft                 borders
+     --field                              input backgrounds
+     --brand / --brand-ink                primary accent and text on it
+     --danger / --danger-ink / --danger-surface
+     --focus                              focus ring
+     --slot-glow / --slot-used-bg         spell-slot magic
+     --text-highlight                     accent text readable on the page bg
    ========================================================================== */
 
 :root {
   /* Shared texture: SVG fractal noise, tiled. Reads as paper fibers on light
      themes and worn leather grain on dark ones. */
   --paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-
-  /* Default theme: Arcane Tome (aged parchment) */
-  --bg-from: #ead9b5;
-  --bg-to: #d3bc8d;
-  --card-bg: rgba(250, 241, 218, 0.65);
-  --accent-primary: #7c3aed;
-  --accent-contrast: #ffffff;
-  --border-color: #b59e73;
-  --text-highlight: #6d28d9;
-  --slot-glow: #8b5cf6;
-  --slot-used-bg: #c9b58f;
-  --tab-ink: #3b2a17;
-  --sparkle-color: rgba(180, 140, 60, 0.55);
-  --heading-glow: 0 1px 0 rgba(255, 252, 240, 0.5);
-  --page-bg: radial-gradient(ellipse at 50% 0%, rgba(255, 250, 235, 0.55), transparent 60%),
-    var(--paper-noise),
-    radial-gradient(ellipse at 50% 120%, rgba(90, 62, 20, 0.35), transparent 65%),
-    linear-gradient(to bottom right, var(--bg-from), var(--bg-to));
 }
 
+/* Legacy aliases. Older markup and a few inline styles still reference these
+   names; they resolve through the semantic tokens so there is one source of
+   truth per theme. */
+:root,
+[data-theme] {
+  --accent-primary: var(--brand);
+  --accent-contrast: var(--brand-ink);
+  --border-color: var(--edge);
+  --card-bg: var(--surface);
+  --tab-ink: var(--ink);
+}
+
+/* --- Arcane Tome — aged parchment, the default ---------------------------- */
+:root,
 [data-theme="arcane-tome"] {
   --bg-from: #ead9b5;
   --bg-to: #d3bc8d;
-  --card-bg: rgba(250, 241, 218, 0.65);
-  --accent-primary: #7c3aed;
-  --accent-contrast: #ffffff;
-  --border-color: #b59e73;
+
+  --ink: #33240f;
+  --ink-muted: #4d3c20;
+  --ink-faint: #5c4a2c;
+
+  --surface: rgba(250, 241, 218, 0.72);
+  --surface-solid: #f3e8cb;
+  --surface-raised: rgba(231, 216, 179, 0.85);
+  --surface-hover: rgba(222, 204, 160, 0.95);
+  --surface-selected: rgba(124, 58, 237, 0.16);
+
+  --edge: #b59e73;
+  --edge-soft: rgba(181, 158, 115, 0.45);
+  --field: rgba(255, 251, 238, 0.9);
+
+  --brand: #6d28d9;
+  --brand-ink: #ffffff;
+
+  /* Dark enough to clear 4.5:1 as heading text on its own tinted plate over
+     parchment, and still carry white as a button fill. */
+  --danger: #7f0c2b;
+  --danger-ink: #ffffff;
+  --danger-surface: rgba(159, 18, 57, 0.12);
+
+  --focus: #6d28d9;
+
   --text-highlight: #6d28d9;
+  --foil-sheen: #2a1a4d;
   --slot-glow: #8b5cf6;
-  --slot-used-bg: #c9b58f;
-  --tab-ink: #3b2a17;
-  --sparkle-color: rgba(180, 140, 60, 0.55);
-  --heading-glow: 0 1px 0 rgba(255, 252, 240, 0.5);
+  --slot-used-bg: #c4b089;
+  --sparkle-color: rgba(150, 115, 45, 0.4);
+  --tome-ink: #f0dfb4;
+
   --page-bg: radial-gradient(ellipse at 50% 0%, rgba(255, 250, 235, 0.55), transparent 60%),
     var(--paper-noise),
     radial-gradient(ellipse at 50% 120%, rgba(90, 62, 20, 0.35), transparent 65%),
     linear-gradient(to bottom right, var(--bg-from), var(--bg-to));
 }
 
+/* --- Shadow Codex --------------------------------------------------------- */
 [data-theme="shadow-fiend"] {
   --bg-from: #1e1b4b;
   --bg-to: #581c87;
-  --card-bg: rgba(30, 27, 75, 0.55);
-  --accent-primary: #9333ea;
-  --accent-contrast: #ffffff;
-  --border-color: #4c1d95;
-  --text-highlight: #a855f7;
+
+  --ink: #f5f3ff;
+  --ink-muted: #cfc6ee;
+  --ink-faint: #b3a7dc;
+
+  --surface: rgba(30, 27, 75, 0.62);
+  --surface-solid: #241f52;
+  --surface-raised: rgba(48, 40, 100, 0.72);
+  --surface-hover: rgba(62, 52, 120, 0.85);
+  --surface-selected: rgba(147, 51, 234, 0.3);
+
+  --edge: #543aa5;
+  --edge-soft: rgba(84, 58, 165, 0.5);
+  --field: rgba(19, 16, 48, 0.72);
+
+  --brand: #9333ea;
+  --brand-ink: #ffffff;
+
+  --danger: #fca5a5;
+  --danger-ink: #ffffff;
+  --danger-surface: rgba(153, 27, 27, 0.28);
+
+  --focus: #c084fc;
+
+  --text-highlight: #c4a5fb;
+  --foil-sheen: #ffffff;
   --slot-glow: #c084fc;
-  --slot-used-bg: #3f3358;
-  --tab-ink: #e2e8f0;
-  --sparkle-color: rgba(216, 180, 254, 0.7);
-  --heading-glow: 0 0 18px rgba(192, 132, 252, 0.35);
+  --slot-used-bg: #3a2f56;
+  --sparkle-color: rgba(216, 180, 254, 0.55);
+  --tome-ink: #f0dfb4;
+
   --page-bg: var(--paper-noise),
     radial-gradient(ellipse at 50% -20%, rgba(147, 51, 234, 0.25), transparent 55%),
     radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, 0.5), transparent 65%),
     linear-gradient(to bottom right, var(--bg-from), var(--bg-to));
 }
 
+/* --- Celestial Oath ------------------------------------------------------- */
 [data-theme="royal-oath"] {
   --bg-from: #0f172a;
   --bg-to: #1e3a5f;
-  --card-bg: rgba(15, 23, 42, 0.55);
-  --accent-primary: #fbbf24;
-  --accent-contrast: #2a1c02;
-  --border-color: #1e40af;
+
+  --ink: #f1f5f9;
+  --ink-muted: #c9d6e6;
+  --ink-faint: #a6b8cf;
+
+  --surface: rgba(15, 23, 42, 0.62);
+  --surface-solid: #16233c;
+  --surface-raised: rgba(27, 44, 74, 0.75);
+  --surface-hover: rgba(37, 58, 95, 0.88);
+  --surface-selected: rgba(251, 191, 36, 0.22);
+
+  --edge: #2c4b80;
+  --edge-soft: rgba(44, 75, 128, 0.5);
+  --field: rgba(9, 15, 30, 0.72);
+
+  --brand: #fbbf24;
+  --brand-ink: #2a1c02;
+
+  --danger: #fca5a5;
+  --danger-ink: #2a0606;
+  --danger-surface: rgba(153, 27, 27, 0.3);
+
+  --focus: #fcd34d;
+
   --text-highlight: #fcd34d;
+  --foil-sheen: #ffffff;
   --slot-glow: #fcd34d;
-  --slot-used-bg: #2c3a52;
-  --tab-ink: #e2e8f0;
-  --sparkle-color: rgba(252, 211, 77, 0.7);
-  --heading-glow: 0 0 18px rgba(252, 211, 77, 0.3);
+  --slot-used-bg: #2b3a52;
+  --sparkle-color: rgba(252, 211, 77, 0.5);
+  --tome-ink: #f5e6bd;
+
   --page-bg: var(--paper-noise),
     radial-gradient(ellipse at 50% -20%, rgba(251, 191, 36, 0.14), transparent 55%),
     radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, 0.5), transparent 65%),
     linear-gradient(to bottom right, var(--bg-from), var(--bg-to));
 }
 
+/* --- Wildwood Grimoire ---------------------------------------------------- */
 [data-theme="wildwood-sentry"] {
   --bg-from: #14532d;
   --bg-to: #166534;
-  --card-bg: rgba(20, 83, 45, 0.55);
-  --accent-primary: #22c55e;
-  --accent-contrast: #04220f;
-  --border-color: #15803d;
-  --text-highlight: #4ade80;
+
+  --ink: #f0fdf4;
+  --ink-muted: #c3e5cf;
+  --ink-faint: #b4dcc2;
+
+  --surface: rgba(16, 66, 36, 0.62);
+  --surface-solid: #123f22;
+  --surface-raised: rgba(26, 92, 51, 0.75);
+  --surface-hover: rgba(34, 112, 64, 0.88);
+  --surface-selected: rgba(34, 197, 94, 0.26);
+
+  --edge: #1f7a43;
+  --edge-soft: rgba(31, 122, 67, 0.5);
+  --field: rgba(7, 40, 21, 0.72);
+
+  --brand: #22c55e;
+  --brand-ink: #04220f;
+
+  --danger: #fca5a5;
+  --danger-ink: #2a0606;
+  --danger-surface: rgba(153, 27, 27, 0.3);
+
+  --focus: #4ade80;
+
+  --text-highlight: #6ee7a0;
+  --foil-sheen: #ffffff;
   --slot-glow: #4ade80;
-  --slot-used-bg: #2a4a35;
-  --tab-ink: #e2e8f0;
-  --sparkle-color: rgba(134, 239, 172, 0.7);
-  --heading-glow: 0 0 18px rgba(74, 222, 128, 0.3);
+  --slot-used-bg: #27452f;
+  --sparkle-color: rgba(134, 239, 172, 0.5);
+  --tome-ink: #eee0b6;
+
   --page-bg: var(--paper-noise),
     radial-gradient(ellipse at 50% -20%, rgba(74, 222, 128, 0.16), transparent 55%),
     radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, 0.5), transparent 65%),
     linear-gradient(to bottom right, var(--bg-from), var(--bg-to));
 }
 
+/* --- Infernal Pact -------------------------------------------------------- */
 [data-theme="crimson-pact"] {
   --bg-from: #450a0a;
   --bg-to: #7f1d1d;
-  --card-bg: rgba(69, 10, 10, 0.55);
-  --accent-primary: #dc2626;
-  --accent-contrast: #ffffff;
-  --border-color: #991b1b;
-  --text-highlight: #f87171;
+
+  --ink: #fef2f2;
+  --ink-muted: #f0cbcb;
+  --ink-faint: #d9a8a8;
+
+  --surface: rgba(69, 10, 10, 0.64);
+  --surface-solid: #3d0f0f;
+  --surface-raised: rgba(101, 22, 22, 0.78);
+  --surface-hover: rgba(126, 33, 33, 0.88);
+  --surface-selected: rgba(220, 38, 38, 0.3);
+
+  --edge: #a33232;
+  --edge-soft: rgba(163, 50, 50, 0.5);
+  --field: rgba(44, 6, 6, 0.74);
+
+  --brand: #dc2626;
+  --brand-ink: #ffffff;
+
+  --danger: #fda4af;
+  --danger-ink: #2a0606;
+  --danger-surface: rgba(190, 30, 30, 0.32);
+
+  --focus: #fb923c;
+
+  --text-highlight: #fca5a5;
+  --foil-sheen: #ffffff;
   --slot-glow: #fb923c;
-  --slot-used-bg: #4a2828;
-  --tab-ink: #fecaca;
-  --sparkle-color: rgba(253, 186, 116, 0.7);
-  --heading-glow: 0 0 18px rgba(251, 146, 60, 0.3);
+  --slot-used-bg: #48292a;
+  --sparkle-color: rgba(253, 186, 116, 0.5);
+  --tome-ink: #f3dcb4;
+
   --page-bg: var(--paper-noise),
     radial-gradient(ellipse at 50% -20%, rgba(251, 146, 60, 0.16), transparent 55%),
     radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, 0.6), transparent 65%),
     linear-gradient(to bottom right, var(--bg-from), var(--bg-to));
 }
 
+/* --- Arcane Sanctum ------------------------------------------------------- */
 [data-theme="arcane-sanctum"] {
   --bg-from: #0f172a;
-  --bg-to: #0e7490;
-  --card-bg: rgba(15, 23, 42, 0.55);
-  --accent-primary: #06b6d4;
-  --accent-contrast: #04222b;
-  --border-color: #0891b2;
-  --text-highlight: #22d3ee;
+  --bg-to: #0b5a6e;
+
+  --ink: #ecfeff;
+  --ink-muted: #bcdfe9;
+  --ink-faint: #a8d2de;
+
+  --surface: rgba(13, 30, 46, 0.64);
+  --surface-solid: #102434;
+  --surface-raised: rgba(20, 55, 74, 0.76);
+  --surface-hover: rgba(27, 73, 96, 0.88);
+  --surface-selected: rgba(6, 182, 212, 0.26);
+
+  --edge: #10748f;
+  --edge-soft: rgba(16, 116, 143, 0.5);
+  --field: rgba(7, 20, 32, 0.74);
+
+  --brand: #06b6d4;
+  --brand-ink: #04222b;
+
+  --danger: #fca5a5;
+  --danger-ink: #2a0606;
+  --danger-surface: rgba(153, 27, 27, 0.3);
+
+  --focus: #22d3ee;
+
+  --text-highlight: #67e8f9;
+  --foil-sheen: #ffffff;
   --slot-glow: #22d3ee;
-  --slot-used-bg: #23404d;
-  --tab-ink: #e2e8f0;
-  --sparkle-color: rgba(103, 232, 249, 0.7);
-  --heading-glow: 0 0 18px rgba(34, 211, 238, 0.3);
+  --slot-used-bg: #22404d;
+  --sparkle-color: rgba(103, 232, 249, 0.5);
+  --tome-ink: #e9e0bd;
+
   --page-bg: var(--paper-noise),
     radial-gradient(ellipse at 50% -20%, rgba(34, 211, 238, 0.16), transparent 55%),
     radial-gradient(ellipse at 50% 120%, rgba(0, 0, 0, 0.5), transparent 65%),
     linear-gradient(to bottom right, var(--bg-from), var(--bg-to));
 }
 
-/* --------------------------------------------------------------------------
-   Parchment (light theme) readability overrides.
-   The app's markup hardcodes dark-mode utility classes (text-white,
-   bg-slate-*); rather than rewrite every component, remap them to ink
-   tones when the light parchment theme is active. These rules are
-   unlayered so they win over Tailwind's layered utilities.
-   -------------------------------------------------------------------------- */
+/* ==========================================================================
+   Focus: one visible ring everywhere, drawn from the theme.
+   ========================================================================== */
 
-[data-theme="arcane-tome"] .text-white { color: #3b2a17; }
-[data-theme="arcane-tome"] .text-slate-300 { color: #52402a; }
-[data-theme="arcane-tome"] .text-slate-400 { color: #6d5a3e; }
-[data-theme="arcane-tome"] .text-slate-500 { color: #7d6a4c; }
-[data-theme="arcane-tome"] .bg-slate-900\/50 { background-color: rgba(214, 195, 156, 0.5); }
-[data-theme="arcane-tome"] .hover\:bg-slate-900\/70:hover { background-color: rgba(205, 184, 141, 0.7); }
-[data-theme="arcane-tome"] .bg-slate-800\/50 { background-color: rgba(236, 222, 190, 0.6); }
-[data-theme="arcane-tome"] .bg-slate-800\/30 { background-color: rgba(236, 222, 190, 0.4); }
-[data-theme="arcane-tome"] .hover\:bg-slate-800\/70:hover { background-color: rgba(226, 209, 172, 0.7); }
-[data-theme="arcane-tome"] .bg-slate-700 { background-color: #d9c8a4; }
-[data-theme="arcane-tome"] .bg-slate-700\/50 { background-color: rgba(217, 200, 164, 0.5); }
-[data-theme="arcane-tome"] .hover\:bg-slate-700\/50:hover { background-color: rgba(210, 191, 151, 0.6); }
-[data-theme="arcane-tome"] .border-slate-700 { border-color: #b59e73; }
-[data-theme="arcane-tome"] .border-slate-600 { border-color: #a8905f; }
-[data-theme="arcane-tome"] .bg-slate-800 { background-color: #e6d7b4; }
-[data-theme="arcane-tome"] .bg-slate-900 { background-color: #dccaa2; }
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
 
-/* --------------------------------------------------------------------------
-   Spell slots: unused slots radiate magic; used slots are spent ink.
-   -------------------------------------------------------------------------- */
+/* ==========================================================================
+   Surfaces
+
+   .tome-panel is the standard card plate. Two modifiers vary its weight so a
+   screen does not read as a stack of identical boxes: --primary for the thing
+   you came to the screen for, --quiet for reference material.
+   ========================================================================== */
+
+.tome-panel {
+  background-color: var(--surface);
+  border: 1px solid var(--edge);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 10%, transparent),
+    0 10px 28px -16px rgba(0, 0, 0, 0.45);
+}
+
+.tome-panel--primary {
+  background-color: color-mix(in srgb, var(--surface) 80%, var(--brand) 8%);
+  border-color: color-mix(in srgb, var(--edge) 60%, var(--brand));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 14%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--brand) 18%, transparent),
+    0 16px 34px -18px rgba(0, 0, 0, 0.55);
+}
+
+.tome-panel--quiet {
+  background-color: color-mix(in srgb, var(--surface) 62%, transparent);
+  border-color: var(--edge-soft);
+  box-shadow: none;
+}
+
+/* Irreversible-action plate. Needs its own modifier because .tome-panel is
+   unlayered and would otherwise win over a bg-* utility. */
+.tome-panel--danger {
+  background-color: var(--danger-surface);
+  border-color: color-mix(in srgb, var(--danger) 55%, var(--edge));
+}
+
+/* Engraved hairline frame — the tooled line around a plate in a bound tome.
+   Deliberately scoped to .tome-panel so dialogs and utility cards stay plain. */
+.tome-panel {
+  position: relative;
+}
+
+.tome-panel::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid color-mix(in srgb, var(--edge) 45%, transparent);
+  border-radius: calc(var(--radius) - 4px);
+  pointer-events: none;
+}
+
+.tome-panel--quiet::before {
+  border-color: color-mix(in srgb, var(--edge) 22%, transparent);
+}
+
+/* Chapter-heading flourish, likewise scoped to real content panels. */
+.tome-panel [data-slot="card-title"] {
+  position: relative;
+  padding-bottom: 7px;
+}
+
+.tome-panel [data-slot="card-title"]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--brand) 55%, transparent),
+    transparent 70%
+  );
+}
+
+/* A row sitting on a panel: spell entries, inventory lines, feature blocks. */
+/* Dialogs need an opaque plate — a translucent surface over a textured page
+   turns modal text into soup. Deliberately plain: no engraved frame, no foil. */
+.dialog-panel {
+  background-color: var(--surface-solid);
+  border: 1px solid var(--edge);
+  color: var(--ink);
+}
+
+.row-plate {
+  background-color: var(--surface-raised);
+  border: 1px solid var(--edge-soft);
+  border-radius: calc(var(--radius) - 2px);
+}
+
+.row-plate--interactive {
+  cursor: pointer;
+  transition: background-color 0.18s, border-color 0.18s;
+}
+
+.row-plate--interactive:hover {
+  background-color: var(--surface-hover);
+  border-color: var(--edge);
+}
+
+/* ==========================================================================
+   Controls
+   ========================================================================== */
+
+/* Secondary/outline button: the workhorse next to .btn-accent. */
+.btn-quiet {
+  background-color: var(--surface-raised);
+  border: 1px solid var(--edge);
+  color: var(--ink);
+  transition: background-color 0.18s, border-color 0.18s, color 0.18s;
+}
+
+.btn-quiet:hover:not(:disabled) {
+  background-color: var(--surface-hover);
+  border-color: color-mix(in srgb, var(--edge) 60%, var(--brand));
+}
+
+.btn-quiet:disabled {
+  opacity: 0.45;
+}
+
+.btn-quiet svg {
+  color: inherit;
+}
+
+/* Primary actions carry the theme's magic. Text color comes from
+   --brand-ink so amber and cyan themes stay readable. */
+.btn-accent {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--brand) 88%, white),
+    var(--brand)
+  );
+  color: var(--brand-ink);
+  border: 1px solid color-mix(in srgb, var(--brand) 70%, black);
+  transition: filter 0.18s, box-shadow 0.25s;
+}
+
+.btn-accent:hover:not(:disabled) {
+  filter: brightness(1.07);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--slot-glow) 45%, transparent);
+}
+
+.btn-accent:disabled {
+  opacity: 0.5;
+}
+
+.btn-accent svg {
+  color: inherit;
+}
+
+/* Destructive actions. */
+.btn-danger {
+  background-color: var(--danger);
+  color: var(--danger-ink);
+  border: 1px solid color-mix(in srgb, var(--danger) 70%, black);
+  transition: filter 0.18s;
+}
+
+.btn-danger:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.btn-danger:disabled {
+  opacity: 0.5;
+}
+
+/* Text inputs, number steppers, selects and textareas — surface only. Sizing
+   stays with the component: `h-11` on inputs, `size="lg"` on select triggers. */
+.field {
+  background-color: var(--field);
+  border: 1px solid var(--edge);
+  color: var(--ink);
+}
+
+.field::placeholder {
+  color: var(--ink-faint);
+}
+
+/* A toolbar that stays with you down a long list. Needs its own opaque-ish
+   backing or the page texture shows through the text scrolling underneath. */
+.toolbar-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: color-mix(in srgb, var(--surface-solid) 88%, transparent);
+  border-bottom: 1px solid var(--edge-soft);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+/* Prepare/unprepare: a checkbox, not a delete button. Empty box means "not
+   prepared", filled box with a check means "prepared" — no X anywhere. */
+.prep-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  color: var(--ink-faint);
+  transition: color 0.18s, background-color 0.18s;
+}
+
+.prep-toggle:hover {
+  background-color: color-mix(in srgb, var(--ink) 8%, transparent);
+  color: var(--ink);
+}
+
+.prep-toggle__box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid currentColor;
+  transition: background-color 0.18s, border-color 0.18s, color 0.18s;
+}
+
+.prep-toggle[aria-pressed="true"] {
+  color: var(--brand);
+}
+
+.prep-toggle[aria-pressed="true"] .prep-toggle__box {
+  background-color: var(--brand);
+  border-color: var(--brand);
+  color: var(--brand-ink);
+}
+
+/* Compact filter chips (spell levels). */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 9999px;
+  font-size: 13px;
+  white-space: nowrap;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--edge-soft);
+  color: var(--ink-muted);
+  transition: background-color 0.18s, color 0.18s, border-color 0.18s;
+}
+
+.chip:hover {
+  background-color: var(--surface-hover);
+  color: var(--ink);
+}
+
+.chip[data-active="true"] {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--brand) 88%, white),
+    var(--brand)
+  );
+  border-color: color-mix(in srgb, var(--brand) 70%, black);
+  color: var(--brand-ink);
+}
+
+/* Category tags (concentration, ritual, feat type).
+
+   The label always uses the theme's own muted ink on the theme's own raised
+   surface, so it is legible by construction in all six themes. The category's
+   hue lives in the border and a leading dot — a marker beside the text rather
+   than the text colour itself, which also means the category is never
+   signalled by colour alone. */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 9999px;
+  border: 1px solid var(--edge-soft);
+  background-color: var(--surface-raised);
+  padding: 2px 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.tag--concentration,
+.tag--ritual,
+.tag--feat {
+  border-color: color-mix(in srgb, var(--tag-hue) 55%, var(--edge-soft));
+}
+
+.tag--concentration::before,
+.tag--ritual::before,
+.tag--feat::before {
+  content: "";
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background-color: var(--tag-hue);
+}
+
+.tag--concentration { --tag-hue: #a855f7; }
+.tag--ritual { --tag-hue: #38bdf8; }
+.tag--feat { --tag-hue: #f59e0b; }
+
+.text-accent {
+  color: var(--text-highlight);
+}
+
+/* ==========================================================================
+   Navigation
+
+   One list, two layouts. Below md it is a fixed bottom bar; from md up it is
+   the horizontal chapter strip. Labels are always rendered, so every
+   destination carries its own accessible name at every width.
+   ========================================================================== */
+
+.app-nav {
+  background-color: color-mix(in srgb, var(--surface) 88%, black 12%);
+  border: 1px solid var(--edge);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+@supports (padding: max(0px)) {
+  .app-nav--docked {
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+  }
+}
+
+.nav-item {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 48px;
+  padding: 4px 2px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  /* Sans at 10px stays legible where Cinzel would not; the engraved serif
+     returns at desktop size where it has room to read as a chapter marker. */
+  font-size: 10px;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  color: var(--ink-muted);
+  transition: color 0.18s, background-color 0.18s;
+}
+
+.nav-item > span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-item:hover {
+  color: var(--ink);
+  background-color: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.nav-item[data-active] {
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--brand) 88%, white),
+    var(--brand)
+  );
+  color: var(--brand-ink);
+  border-color: color-mix(in srgb, var(--brand) 70%, black);
+}
+
+@media (min-width: 768px) {
+  .nav-item {
+    flex-direction: row;
+    gap: 8px;
+    /* 768px is still a touch target on a tablet, so the strip keeps 44px. */
+    min-height: 44px;
+    padding: 0 14px;
+    font-family: var(--font-cinzel), Georgia, serif;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+  }
+}
+
+/* Quiet header actions (back, settings) — present but not competing with the
+   primary destinations. */
+.header-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  color: var(--ink-muted);
+  transition: color 0.18s, background-color 0.18s, border-color 0.18s;
+}
+
+.header-action:hover {
+  color: var(--ink);
+  background-color: color-mix(in srgb, var(--ink) 8%, transparent);
+  border-color: var(--edge-soft);
+}
+
+.header-action[data-active] {
+  color: var(--text-highlight);
+  border-color: var(--edge);
+  background-color: var(--surface-selected);
+}
+
+/* ==========================================================================
+   Spell slots and ability pips
+
+   The visible orb stays small, but every slot sits inside a 44px tap target.
+   Available and spent differ in fill, border and an inner mark — the pulse is
+   a bonus, never the only signal.
+   ========================================================================== */
+
+.slot-hit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  transition: background-color 0.18s;
+}
+
+.slot-hit:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.slot-hit--tight {
+  min-width: 36px;
+  min-height: 36px;
+}
 
 .spell-slot {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-width: 2px;
+  border-style: solid;
   border-radius: 9999px;
   transition: background-color 0.3s, border-color 0.3s, opacity 0.3s;
 }
@@ -189,138 +762,92 @@
   background: radial-gradient(
     circle at 35% 30%,
     color-mix(in srgb, var(--slot-glow) 35%, white),
-    var(--accent-primary) 70%
+    var(--brand) 70%
   );
   border-color: color-mix(in srgb, var(--slot-glow) 70%, white);
   animation: slot-pulse 2.4s ease-in-out infinite;
 }
 
+/* Spent slots read as an empty ring with a struck-through centre, so the
+   state survives without color or motion. */
 .spell-slot-used {
   background-color: var(--slot-used-bg);
-  border-color: color-mix(in srgb, var(--slot-used-bg) 60%, var(--border-color));
-  opacity: 0.65;
+  border-color: color-mix(in srgb, var(--slot-used-bg) 45%, var(--edge));
+  opacity: 0.7;
+}
+
+.spell-slot-used::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 52%;
+  height: 2px;
+  border-radius: 2px;
+  transform: translate(-50%, -50%);
+  background-color: color-mix(in srgb, var(--ink) 45%, transparent);
+}
+
+/* The rune ring: a summoning circle holding the stored magic in place.
+   Static — the pulse alone carries the motion budget here. */
+.spell-slot-available::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  border: 1px dashed color-mix(in srgb, var(--slot-glow) 50%, transparent);
+  pointer-events: none;
 }
 
 @keyframes slot-pulse {
   0%, 100% {
     box-shadow:
-      0 0 3px color-mix(in srgb, var(--slot-glow) 80%, transparent),
-      0 0 10px color-mix(in srgb, var(--slot-glow) 40%, transparent);
+      0 0 3px color-mix(in srgb, var(--slot-glow) 75%, transparent),
+      0 0 10px color-mix(in srgb, var(--slot-glow) 35%, transparent);
   }
   50% {
     box-shadow:
       0 0 6px var(--slot-glow),
-      0 0 22px color-mix(in srgb, var(--slot-glow) 60%, transparent);
+      0 0 20px color-mix(in srgb, var(--slot-glow) 55%, transparent);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .spell-slot-available {
     animation: none;
-    box-shadow: 0 0 8px color-mix(in srgb, var(--slot-glow) 50%, transparent);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--slot-glow) 45%, transparent);
   }
 }
 
-/* --------------------------------------------------------------------------
-   Spellbook typography: engraved serif for headings and card titles.
-   Headings glow softly on dark themes and sit embossed on parchment.
-   -------------------------------------------------------------------------- */
+/* ==========================================================================
+   Typography: engraved serif for headings and card titles.
+   The gold-foil treatment is opt-in via .foil-title, so utility pages and
+   dialogs do not get theatrical lettering just for containing an h1.
+   ========================================================================== */
 
 h1, h2, h3, h4,
 [data-slot="card-title"] {
   font-family: var(--font-cinzel), Georgia, serif;
   letter-spacing: 0.02em;
-  text-shadow: var(--heading-glow);
 }
 
-/* --------------------------------------------------------------------------
-   Spellbook tabs: inked chapter markers; the active tab is lit by the
-   theme's accent. Unlayered so it wins over Tailwind utility remaps in
-   every theme (the old data-active utilities lost to the parchment
-   ink remap, leaving dark text on a dark background).
-   -------------------------------------------------------------------------- */
-
-.spellbook-tab {
-  color: color-mix(in srgb, var(--tab-ink) 72%, transparent);
-  border: 1px solid transparent;
-  transition: color 0.2s, background-color 0.2s, box-shadow 0.3s;
-}
-
-.spellbook-tab:hover {
-  color: var(--tab-ink);
-  background-color: color-mix(in srgb, var(--tab-ink) 10%, transparent);
-}
-
-.spellbook-tab[data-active] {
+.foil-title {
   background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--accent-primary) 88%, white),
-    var(--accent-primary)
+    100deg,
+    var(--text-highlight) 0%,
+    color-mix(in srgb, var(--text-highlight) 55%, var(--foil-sheen)) 48%,
+    var(--text-highlight) 72%
   );
-  color: var(--accent-contrast);
-  border-color: color-mix(in srgb, var(--slot-glow) 55%, transparent);
-  box-shadow:
-    0 0 10px color-mix(in srgb, var(--slot-glow) 45%, transparent),
-    inset 0 1px 0 color-mix(in srgb, white 25%, transparent);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
-/* --------------------------------------------------------------------------
-   Accent buttons: primary actions carry the theme's magic. Text color
-   comes from --accent-contrast so amber/cyan themes stay readable.
-   -------------------------------------------------------------------------- */
-
-.btn-accent {
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--accent-primary) 90%, white),
-    var(--accent-primary)
-  );
-  color: var(--accent-contrast);
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 70%, black);
-  transition: box-shadow 0.25s, filter 0.2s;
-}
-
-.btn-accent:hover {
-  filter: brightness(1.08);
-  box-shadow: 0 0 14px color-mix(in srgb, var(--slot-glow) 55%, transparent);
-}
-
-.btn-accent svg {
-  color: inherit;
-}
-
-.text-accent {
-  color: var(--text-highlight);
-}
-
-/* --------------------------------------------------------------------------
-   Cards read as plates in a tome: hairline highlight on top, soft depth
-   below. Clickable cards (character roster) lift and glow on hover.
-   -------------------------------------------------------------------------- */
-
-[data-slot="card"] {
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, white 10%, transparent),
-    0 10px 28px -14px rgba(0, 0, 0, 0.45);
-}
-
-.clickable-card {
-  transition: transform 0.2s, box-shadow 0.3s;
-}
-
-.clickable-card:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, white 10%, transparent),
-    0 0 18px color-mix(in srgb, var(--slot-glow) 35%, transparent),
-    0 14px 30px -14px rgba(0, 0, 0, 0.5);
-}
-
-/* --------------------------------------------------------------------------
-   Ambient magic: faint motes of light drifting over every page.
-   Two staggered layers twinkle out of phase. Disabled for
-   prefers-reduced-motion.
-   -------------------------------------------------------------------------- */
+/* ==========================================================================
+   Ambient magic: faint motes of light over the page. Static by design — the
+   spell slots own the motion budget, this layer only adds depth.
+   ========================================================================== */
 
 body::after {
   content: "";
@@ -328,6 +855,7 @@ body::after {
   inset: 0;
   z-index: 5;
   pointer-events: none;
+  opacity: 0.5;
   background-image:
     radial-gradient(1.5px 1.5px at 12% 22%, var(--sparkle-color), transparent 100%),
     radial-gradient(1px 1px at 34% 64%, var(--sparkle-color), transparent 100%),
@@ -338,37 +866,25 @@ body::after {
     radial-gradient(1.5px 1.5px at 45% 38%, var(--sparkle-color), transparent 100%),
     radial-gradient(1px 1px at 93% 12%, var(--sparkle-color), transparent 100%),
     radial-gradient(1.5px 1.5px at 64% 91%, var(--sparkle-color), transparent 100%);
-  animation: sparkle-twinkle 6s ease-in-out infinite;
 }
 
-@keyframes sparkle-twinkle {
-  0%, 100% { opacity: 0.15; }
-  50% { opacity: 0.6; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  body::after {
-    animation: none;
-    opacity: 0.2;
-  }
-}
-
-/* --------------------------------------------------------------------------
-   Hit points: the number beats like a heart when the character is
-   below a quarter of their maximum.
-   -------------------------------------------------------------------------- */
+/* ==========================================================================
+   Hit points: the number beats when the character is badly hurt. This is the
+   one status animation outside the spell slots, and it only ever appears
+   below a quarter of maximum HP.
+   ========================================================================== */
 
 .hp-low {
-  color: #ef4444 !important;
-  text-shadow: 0 0 14px rgba(239, 68, 68, 0.55);
-  animation: hp-heartbeat 1.6s ease-in-out infinite;
+  color: #ef4444;
+  text-shadow: 0 0 14px rgba(239, 68, 68, 0.5);
+  animation: hp-heartbeat 1.8s ease-in-out infinite;
 }
 
 @keyframes hp-heartbeat {
   0%, 100% { transform: scale(1); }
-  12% { transform: scale(1.06); }
+  12% { transform: scale(1.05); }
   24% { transform: scale(1); }
-  36% { transform: scale(1.04); }
+  36% { transform: scale(1.03); }
   48% { transform: scale(1); }
 }
 
@@ -378,249 +894,254 @@ body::after {
   }
 }
 
-/* --------------------------------------------------------------------------
-   Illuminated page titles: gold-foil gradient ink with a slow shimmer
-   sweeping across, like light catching embossed lettering.
-   -------------------------------------------------------------------------- */
+/* ==========================================================================
+   The shelf: every character is a bound tome. Dark leather whatever the page
+   theme, a spine you can read, gold-embossed lettering. The cover hue shifts
+   with the class and the spine picks up the active theme's accent, so the
+   shelf changes character with both.
+   ========================================================================== */
 
-h1 {
-  background: linear-gradient(
-    100deg,
-    var(--text-highlight) 0%,
-    color-mix(in srgb, var(--text-highlight) 25%, white) 45%,
-    var(--text-highlight) 65%
-  );
-  background-size: 250% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
-  animation: foil-shimmer 7s ease-in-out infinite;
-}
-
-@keyframes foil-shimmer {
-  0%, 100% { background-position: 100% 0; }
-  50% { background-position: 0 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  h1 {
-    animation: none;
-  }
-}
-
-/* --------------------------------------------------------------------------
-   Engraved plate frame: a hairline inner border set just inside each card,
-   like the tooled line around a plate in a bound tome.
-   -------------------------------------------------------------------------- */
-
-[data-slot="card"] {
+.tome {
+  --tome-leather-a: #3a2a1c;
+  --tome-leather-b: #1a1109;
   position: relative;
-}
-
-[data-slot="card"]::before {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  border: 1px solid color-mix(in srgb, var(--border-color) 55%, transparent);
-  border-radius: calc(var(--radius) - 4px);
-  pointer-events: none;
-}
-
-/* --------------------------------------------------------------------------
-   Rune ring: available slots carry a slowly turning dashed circle, like a
-   summoning ring holding the stored magic in place.
-   -------------------------------------------------------------------------- */
-
-.spell-slot {
-  position: relative;
-}
-
-.spell-slot-available::after {
-  content: "";
-  position: absolute;
-  inset: -4px;
-  border-radius: 9999px;
-  border: 1px dashed color-mix(in srgb, var(--slot-glow) 55%, transparent);
-  animation: rune-spin 9s linear infinite;
-  pointer-events: none;
-}
-
-@keyframes rune-spin {
-  to { transform: rotate(360deg); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .spell-slot-available::after {
-    animation: none;
-  }
-}
-
-/* --------------------------------------------------------------------------
-   Character roster: every character is a tome on the shelf — dark leather
-   whatever the page theme, gold-embossed lettering, the theme's accent as
-   the spine and a ribbon bookmark. Doubled selectors so these outrank the
-   parchment theme's ink remaps and Tailwind utilities.
-   -------------------------------------------------------------------------- */
-
-.tome-card.tome-card {
-  position: relative;
-  overflow: hidden;
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 16px 16px 16px 48px;
+  min-height: 132px;
+  border-radius: 4px 12px 12px 4px;
+  color: var(--tome-ink);
   background:
     var(--paper-noise),
-    radial-gradient(ellipse at 30% 0%, color-mix(in srgb, var(--accent-primary) 18%, transparent), transparent 60%),
-    linear-gradient(150deg, #33241a, #191009 70%);
-  border: 1px solid color-mix(in srgb, var(--accent-primary) 35%, #6b543a);
+    radial-gradient(ellipse at 22% 0%, color-mix(in srgb, var(--brand) 22%, transparent), transparent 62%),
+    linear-gradient(150deg, var(--tome-leather-a), var(--tome-leather-b) 72%);
+  border: 1px solid color-mix(in srgb, var(--brand) 30%, #6b543a);
   box-shadow:
-    inset 0 1px 0 rgba(255, 235, 190, 0.12),
-    0 12px 26px -14px rgba(0, 0, 0, 0.65);
+    inset 0 1px 0 rgba(255, 235, 190, 0.14),
+    inset -8px 0 18px -14px rgba(0, 0, 0, 0.9),
+    0 12px 26px -16px rgba(0, 0, 0, 0.65);
+  transition: transform 0.2s, box-shadow 0.3s;
 }
 
-/* Spine — inset/border reset first so the engraved-frame rule above (same
-   pseudo-element) doesn't bleed through. */
-.tome-card::before {
-  content: "";
-  position: absolute;
-  inset: auto;
-  border: 0;
-  left: 10px;
-  top: 8px;
-  bottom: 8px;
-  width: 3px;
-  border-radius: 2px;
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--accent-primary) 80%, white),
-    var(--accent-primary)
-  );
-  box-shadow: 0 0 8px color-mix(in srgb, var(--slot-glow) 45%, transparent);
-}
+/* Class colours the leather. */
+.tome[data-class="wizard"]      { --tome-leather-a: #2b2550; --tome-leather-b: #12102a; }
+.tome[data-class="sorcerer"]    { --tome-leather-a: #4a2136; --tome-leather-b: #220f19; }
+.tome[data-class="warlock"]     { --tome-leather-a: #38224a; --tome-leather-b: #180f22; }
+.tome[data-class="cleric"]      { --tome-leather-a: #45391d; --tome-leather-b: #1f1a0b; }
+.tome[data-class="paladin"]     { --tome-leather-a: #3c3520; --tome-leather-b: #1b180d; }
+.tome[data-class="druid"]       { --tome-leather-a: #24401f; --tome-leather-b: #0f1c0d; }
+.tome[data-class="ranger"]      { --tome-leather-a: #22412f; --tome-leather-b: #0e1c14; }
+.tome[data-class="barbarian"]   { --tome-leather-a: #4a2a1c; --tome-leather-b: #21120b; }
+.tome[data-class="fighter"]     { --tome-leather-a: #33302c; --tome-leather-b: #151312; }
+.tome[data-class="monk"]        { --tome-leather-a: #3d3327; --tome-leather-b: #1a1610; }
+.tome[data-class="rogue"]       { --tome-leather-a: #26282c; --tome-leather-b: #101113; }
+.tome[data-class="bard"]        { --tome-leather-a: #43273c; --tome-leather-b: #1e101b; }
+.tome[data-class="artificer"]   { --tome-leather-a: #3a3324; --tome-leather-b: #17140d; }
 
-/* Ribbon bookmark */
-.tome-card::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 44px;
-  width: 14px;
-  height: 42px;
-  background: linear-gradient(
-    to bottom,
-    color-mix(in srgb, var(--accent-primary) 85%, white),
-    var(--accent-primary)
-  );
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
-  opacity: 0.9;
-}
-
-.tome-card.tome-card .text-white,
-.tome-card.tome-card [data-slot="card-title"] {
-  color: #ecd9a8;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
-}
-
-.tome-card.tome-card .text-slate-400 { color: #b7a17c; }
-.tome-card.tome-card .text-slate-300 { color: #cdbb93; }
-
-/* Accent text (spell count) needs to stay bright on the dark leather even
-   in light themes whose highlight color is dark. */
-.tome-card.tome-card .text-accent {
-  color: color-mix(in srgb, var(--slot-glow) 70%, white);
-}
-
-.tome-card.clickable-card:hover {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 235, 190, 0.16),
-    0 0 20px color-mix(in srgb, var(--slot-glow) 40%, transparent),
-    0 16px 32px -14px rgba(0, 0, 0, 0.7);
-}
-
-/* --------------------------------------------------------------------------
-   Illuminated section headers: every card title carries a thin gold rule
-   fading out to the right, like a chapter heading's flourish line.
-   -------------------------------------------------------------------------- */
-
-[data-slot="card-title"] {
-  position: relative;
-  padding-bottom: 7px;
-}
-
-[data-slot="card-title"]::after {
+/* The spine: raised bands and the theme's accent, like a book turned to face
+   you at a slight angle. */
+.tome::before {
   content: "";
   position: absolute;
   left: 0;
+  top: 0;
   bottom: 0;
-  height: 1px;
-  width: 100%;
+  width: 32px;
+  border-radius: 4px 0 0 4px;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 26px,
+      rgba(0, 0, 0, 0.35) 26px 30px,
+      rgba(255, 235, 190, 0.1) 30px 31px,
+      transparent 31px 57px
+    ),
+    linear-gradient(
+      to right,
+      color-mix(in srgb, var(--brand) 55%, black),
+      color-mix(in srgb, var(--brand) 88%, white) 45%,
+      color-mix(in srgb, var(--brand) 40%, black)
+    );
+  box-shadow: inset -2px 0 6px -2px rgba(0, 0, 0, 0.7);
+}
+
+/* Ribbon bookmark, kept clear of the delete control in the opposite corner. */
+.tome::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 52px;
+  width: 12px;
+  height: 34px;
   background: linear-gradient(
-    to right,
-    color-mix(in srgb, var(--accent-primary) 60%, transparent),
-    transparent 70%
+    to bottom,
+    color-mix(in srgb, var(--brand) 85%, white),
+    var(--brand)
   );
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+  opacity: 0.85;
 }
 
-/* --------------------------------------------------------------------------
-   Chapter tabs: the dashboard's tab bar reads as engraved chapter markers.
-   -------------------------------------------------------------------------- */
-
-.spellbook-tab {
-  font-family: var(--font-cinzel), Georgia, serif;
-  letter-spacing: 0.04em;
+.tome:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 235, 190, 0.18),
+    inset -8px 0 18px -14px rgba(0, 0, 0, 0.9),
+    0 0 20px color-mix(in srgb, var(--slot-glow) 32%, transparent),
+    0 16px 32px -16px rgba(0, 0, 0, 0.7);
 }
 
-/* --------------------------------------------------------------------------
-   Stat medallions: ability scores sit on engraved coins — a soft-lit disc
-   with a tooled rim, the score embossed in the middle.
-   -------------------------------------------------------------------------- */
+/* The title is the real control: its ::after stretches over the whole tome so
+   the card is clickable, while the delete button stays above it. One tab stop
+   to open, one to delete — no nested interactive elements. */
+.tome__link {
+  text-align: left;
+}
+
+.tome__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.tome__link:focus-visible {
+  outline: none;
+}
+
+.tome__link:focus-visible::after {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.tome__delete {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  color: color-mix(in srgb, var(--tome-ink) 62%, transparent);
+  transition: background-color 0.18s, color 0.18s;
+}
+
+.tome__delete:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+  color: #fca5a5;
+}
+
+.tome__title {
+  color: var(--tome-ink);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.tome__meta {
+  color: color-mix(in srgb, var(--tome-ink) 72%, transparent);
+}
+
+.tome__stat {
+  color: color-mix(in srgb, var(--slot-glow) 68%, white);
+}
+
+/* The empty shelf keeps the same material, without pretending to be a book. */
+.shelf-empty {
+  border: 1px dashed color-mix(in srgb, var(--edge) 75%, transparent);
+  background-color: color-mix(in srgb, var(--surface) 60%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tome,
+  .row-plate--interactive {
+    transition: none;
+  }
+  .tome:hover {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   Stat medallions: ability scores on engraved coins.
+   ========================================================================== */
 
 .stat-medallion {
-  padding: 10px 4px;
-  border-radius: 14px;
+  padding: 8px 4px;
+  border-radius: 12px;
   background:
-    radial-gradient(circle at 50% 28%, color-mix(in srgb, var(--accent-primary) 10%, transparent), transparent 70%),
-    color-mix(in srgb, var(--card-bg) 55%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, white 12%, transparent),
-    inset 0 -6px 12px -8px rgba(0, 0, 0, 0.35);
+    radial-gradient(circle at 50% 28%, color-mix(in srgb, var(--brand) 10%, transparent), transparent 70%),
+    color-mix(in srgb, var(--surface-raised) 70%, transparent);
+  border: 1px solid var(--edge-soft);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 10%, transparent);
 }
 
-.stat-medallion > div:first-child {
-  font-family: var(--font-cinzel), Georgia, serif;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-}
+/* ==========================================================================
+   Theme picker: labelled swatches with a real tap target and a selected
+   state that does not depend on colour alone.
+   ========================================================================== */
 
-/* --------------------------------------------------------------------------
-   Theme dots: a compact palette switcher for the home page. Each dot wears
-   its theme's gradient; the active one glows.
-   -------------------------------------------------------------------------- */
-
-.theme-dots {
+.theme-swatch {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 12px 8px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--edge-soft);
+  background-color: color-mix(in srgb, var(--surface-raised) 70%, transparent);
+  color: var(--ink-muted);
+  text-align: left;
+  transition: border-color 0.18s, background-color 0.18s, color 0.18s;
 }
 
-.theme-dot {
-  width: 22px;
-  height: 22px;
-  border-radius: 9999px;
-  border: 2px solid rgba(255, 255, 255, 0.25);
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.2s, border-color 0.2s;
+.theme-swatch:hover {
+  background-color: var(--surface-hover);
+  color: var(--ink);
 }
 
-.theme-dot:hover {
-  transform: scale(1.15);
+.theme-swatch[data-selected="true"] {
+  border-color: var(--brand);
+  background-color: var(--surface-selected);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 45%, transparent);
 }
 
-.theme-dot-active {
-  border-color: var(--text-highlight);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--slot-glow) 70%, transparent);
+.theme-swatch__chip {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
+
+/* ==========================================================================
+   Tailwind token bridge. `inline` keeps the var() reference at the use site,
+   which is what lets a data-theme swap restyle the whole app at runtime.
+   ========================================================================== */
 
 @theme inline {
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-selected: var(--surface-selected);
+  --color-edge: var(--edge);
+  --color-edge-soft: var(--edge-soft);
+  --color-field: var(--field);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-danger: var(--danger);
+  --color-danger-ink: var(--danger-ink);
+  --color-danger-surface: var(--danger-surface);
+  --color-focus: var(--focus);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
