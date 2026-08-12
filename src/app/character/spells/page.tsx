@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getCharacter as dbGetCharacter, updateCharacter as dbUpdateCharacter, listCustomSpells } from '@/lib/db';
+import { getCharacter as dbGetCharacter, updateCharacter as dbUpdateCharacter } from '@/lib/db';
+import { loadSpellCatalog } from '@/lib/spellCatalog';
 import { Character, SpellSlot } from '@/types/database';
-import { dndSpells, type DndSpell } from '@/data/spells';
+import { type DndSpell } from '@/data/spells';
 import { dndSubclasses } from '@/data/subclasses';
 import { getDamageTypeBadgeClasses, getEffectiveSpellDamage, getSpellUpcastText } from '@/lib/helpers';
 import { Button } from '@/components/ui/button';
@@ -95,9 +96,8 @@ function SpellLibraryPageContent() {
       setCharacter(charResult);
     }
 
-    // Bundled spell data plus any homebrew spells stored on this device
-    const customSpells = await listCustomSpells().catch(() => []);
-    setSpells([...dndSpells, ...customSpells]);
+    // Same catalog the dashboard resolves against, so the two agree.
+    setSpells((await loadSpellCatalog()).all);
     setLoading(false);
   };
 

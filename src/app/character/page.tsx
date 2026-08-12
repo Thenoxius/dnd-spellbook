@@ -9,10 +9,11 @@ import {
 } from '@/lib/db';
 import { THEMES, applyTheme, loadTheme } from '@/lib/theme';
 import { Character, SpellSlot, CharacterWithRelations, CharacterFeat } from '@/types/database';
-import { calculateModifier, calculateSpellSlots, getDamageTypeBadgeClasses, getEffectiveSpellDamage, getSpellUpcastText } from '@/lib/helpers';
+import { calculateModifier, calculateSpellSlots, formatModifier, getDamageTypeBadgeClasses, getEffectiveSpellDamage, getSpellUpcastText } from '@/lib/helpers';
+import { getAllSpellcastingStats } from '@/lib/spellcasting';
 import { dndClasses, getClassProgression } from '@/data/classes';
 import { dndFeatures } from '@/data/features';
-import { dndSpells } from '@/data/spells';
+import { EMPTY_CATALOG, loadSpellCatalog, resolveSpells, type SpellCatalog } from '@/lib/spellCatalog';
 import { dndSubclasses } from '@/data/subclasses';
 import { getClassAbilities } from '@/data/classAbilities';
 import { dndFeats, getFeatById, getInvocations, getInvocationById, isInvocationFeature } from '@/data/feats';
@@ -130,6 +131,7 @@ function CharacterPageContent() {
   const [savingDetails, setSavingDetails] = useState(false);
   const [updatingHP, setUpdatingHP] = useState(false);
   const [togglingSlot, setTogglingSlot] = useState<string | null>(null);
+  const [spellCatalog, setSpellCatalog] = useState<SpellCatalog>(EMPTY_CATALOG);
   const { toast, showToast } = useToast();
 
   const fetchCharacterData = async () => {
@@ -159,7 +161,8 @@ function CharacterPageContent() {
       setEditSecondaryClass(charResult.secondary_class_id || '');
       setEditSecondaryLevel(charResult.secondary_level || 0);
     }
-    
+
+    setSpellCatalog(await loadSpellCatalog());
     setLoading(false);
   };
 
@@ -289,22 +292,19 @@ function CharacterPageContent() {
     );
   };
 
-  // Calculate spellcasting ability modifier and save DC
-  const getSpellcastingAbility = () => {
-    if (!character) return 'CHA';
-    const classId = character.class_id;
-    if (classId === 'wizard') return 'INT';
-    if (['cleric', 'druid', 'ranger'].includes(classId)) return 'WIS';
-    return 'CHA'; // bard, sorcerer, warlock, paladin
-  };
-
-  const spellcastingAbility = getSpellcastingAbility();
-  const abilityScore = character ? character[spellcastingAbility.toLowerCase() as keyof typeof character] as number : 10;
-  const spellcastingModifier = calculateModifier(abilityScore);
-  // Proficiency bonus derives from total character level across all classes
+  // Spellcasting statistics come from each class's own configured ability, so
+  // the Artificer casts off Intelligence and a non-caster gets nothing at all.
   const totalLevel = character ? character.level + (character.secondary_level || 0) : 1;
-  const proficiencyBonus = Math.ceil(totalLevel / 4) + 1;
-  const spellSaveDC = 8 + proficiencyBonus + spellcastingModifier;
+  const spellcastingStats = character
+    ? getAllSpellcastingStats(character, {
+        str: character.str,
+        dex: character.dex,
+        con: character.con,
+        int: character.int,
+        wis: character.wis,
+        cha: character.cha,
+      })
+    : [];
   const secondaryClass = character?.secondary_class_id
     ? dndClasses.find(c => c.id === character.secondary_class_id)
     : null;
@@ -321,10 +321,10 @@ function CharacterPageContent() {
     });
   };
 
-  const getPreparedSpells = () => {
-    if (!character) return [];
-    return dndSpells.filter(spell => character.prepared_spells.includes(spell.id));
-  };
+  // Resolved through the shared catalog so a prepared homebrew spell shows up
+  // here too, not just in the library and the shelf count.
+  const getPreparedSpells = () =>
+    character ? resolveSpells(spellCatalog, character.prepared_spells) : [];
 
   const getCharacterFeatures = () => {
     if (!character) return [];
@@ -812,28 +812,52 @@ function CharacterPageContent() {
 
           {/* Spells Tab */}
           <TabsContent value="spells" className="space-y-6">
-            {/* Spell Stats */}
-            <Card className="tome-panel">
-              <CardContent className="pt-6">
-                <div className="grid grid-cols-3 gap-2 text-center">
-                  <div>
-                    <div className="text-ink-muted text-sm">Spellcasting Ability</div>
-                    <div className="text-xl font-bold text-ink">{spellcastingAbility}</div>
-                    <div className="text-accent">{spellcastingModifier >= 0 ? '+' : ''}{spellcastingModifier}</div>
-                  </div>
-                  <div>
-                    <div className="text-ink-muted text-sm">Spell Save DC</div>
-                    <div className="text-xl font-bold text-ink">{spellSaveDC}</div>
-                    <div className="text-ink-muted text-sm">8 + {proficiencyBonus} + {spellcastingModifier}</div>
-                  </div>
-                  <div>
-                    <div className="text-ink-muted text-sm">Proficiency Bonus</div>
-                    <div className="text-xl font-bold text-ink">+{proficiencyBonus}</div>
-                    <div className="text-ink-muted text-sm">Level {character.level}</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Spellcasting statistics, one block per casting class. A
+                character who casts nothing gets no block at all rather than a
+                misleading save DC. */}
+            {spellcastingStats.length > 0 && (
+              <Card className="tome-panel">
+                <CardContent className="space-y-4 pt-6">
+                  {spellcastingStats.map((stats) => (
+                    <div key={stats.classId}>
+                      {spellcastingStats.length > 1 && (
+                        <h3 className="text-ink-faint mb-2 text-xs tracking-[0.08em] uppercase">
+                          {stats.className}
+                        </h3>
+                      )}
+                      <div className="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
+                        <div>
+                          <div className="text-ink-muted text-xs">Ability</div>
+                          <div className="text-ink text-xl font-bold">{stats.ability}</div>
+                          <div className="text-accent text-sm">{formatModifier(stats.abilityModifier)}</div>
+                        </div>
+                        <div>
+                          <div className="text-ink-muted text-xs">Spell Save DC</div>
+                          <div className="text-ink text-xl font-bold">{stats.spellSaveDC}</div>
+                          <div className="text-ink-faint text-xs">
+                            8 + {stats.proficiencyBonus} {formatModifier(stats.abilityModifier)}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-ink-muted text-xs">Spell Attack</div>
+                          <div className="text-ink text-xl font-bold">
+                            {formatModifier(stats.spellAttackModifier)}
+                          </div>
+                          <div className="text-ink-faint text-xs">
+                            {stats.proficiencyBonus} {formatModifier(stats.abilityModifier)}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-ink-muted text-xs">Proficiency</div>
+                          <div className="text-ink text-xl font-bold">+{stats.proficiencyBonus}</div>
+                          <div className="text-ink-faint text-xs">Level {totalLevel}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Spell Slots */}
             {Object.keys(spellSlotsByLevel).length > 0 && (
