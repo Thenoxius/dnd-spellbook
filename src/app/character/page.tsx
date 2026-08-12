@@ -12,6 +12,7 @@ import { Character, SpellSlot, CharacterWithRelations, CharacterFeat } from '@/t
 import { calculateModifier, formatModifier, getDamageTypeBadgeClasses, getEffectiveSpellDamage, getSpellUpcastText } from '@/lib/helpers';
 import { calculateMulticlassSlots, toStoredSlots } from '@/lib/multiclass';
 import { getAllSpellcastingStats } from '@/lib/spellcasting';
+import { summarizeSelection } from '@/lib/spellSelection';
 import { dndClasses, getClassProgression } from '@/data/classes';
 import { dndFeatures } from '@/data/features';
 import { EMPTY_CATALOG, loadSpellCatalog, resolveSpells, type SpellCatalog } from '@/lib/spellCatalog';
@@ -414,6 +415,11 @@ function CharacterPageContent() {
   }
 
   const preparedSpells = getPreparedSpells();
+  const selection = summarizeSelection(
+    character,
+    { str: character.str, dex: character.dex, con: character.con, int: character.int, wis: character.wis, cha: character.cha },
+    spellCatalog
+  );
   const characterFeatures = getCharacterFeatures();
   const spellSlotsByLevel = getSpellSlotsByLevel();
 
@@ -880,9 +886,30 @@ function CharacterPageContent() {
               <CardHeader>
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <CardTitle className="text-ink">Prepared Spells</CardTitle>
+                    <CardTitle className="text-ink">
+                      {selection.limits[0]?.casterKind === 'known' ? 'Spells Known' : 'Prepared Spells'}
+                    </CardTitle>
                     <CardDescription className="text-ink-muted">
-                      {preparedSpells.length} spells prepared
+                      {/* x/y per budget, using the wording the class actually
+                          uses. Cantrips are known, never prepared. */}
+                      {selection.limits.length === 0 ? (
+                        `${preparedSpells.length} selected`
+                      ) : (
+                        <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                          {selection.cantripLimit > 0 && (
+                            <span className={selection.overCantripLimit ? 'text-danger' : undefined}>
+                              Cantrips {selection.cantrips.length}/{selection.cantripLimit}
+                            </span>
+                          )}
+                          <span className={selection.overSpellLimit ? 'text-danger' : undefined}>
+                            {selection.limits[0].spellLimitLabel} {selection.spells.length}/
+                            {selection.spellLimit}
+                          </span>
+                          {selection.granted.length > 0 && (
+                            <span>+{selection.granted.length} always prepared</span>
+                          )}
+                        </span>
+                      )}
                     </CardDescription>
                   </div>
                   <Button
@@ -895,6 +922,33 @@ function CharacterPageContent() {
                 </div>
               </CardHeader>
               <CardContent>
+                {/* Over-limit and unresolved selections are reported, never
+                    deleted — a rule added later must not discard someone's
+                    choices. */}
+                {(selection.overSpellLimit || selection.overCantripLimit || selection.unresolvedIds.length > 0) && (
+                  <div className="row-plate border-danger text-ink-muted mb-3 p-3 text-xs">
+                    {(selection.overSpellLimit || selection.overCantripLimit) && (
+                      <p>
+                        This character holds more spells than {selection.limits[0]?.className ?? 'their class'} allows
+                        {selection.limits[0]?.spellLimitFormula
+                          ? ` (${selection.limits[0].spellLimitFormula})`
+                          : ''}
+                        . Nothing was removed — drop a few in the Spell Library when you are ready.
+                      </p>
+                    )}
+                    {selection.unresolvedIds.length > 0 && (
+                      <p className="mt-1">
+                        {selection.unresolvedIds.length} selected {selection.unresolvedIds.length === 1 ? 'spell is' : 'spells are'}{' '}
+                        not in this device&rsquo;s library, so {selection.unresolvedIds.length === 1 ? 'it is' : 'they are'} not shown.
+                      </p>
+                    )}
+                  </div>
+                )}
+                {selection.multiclassApproximation && (
+                  <p className="text-ink-faint mb-3 text-xs">
+                    Multiclass budgets are shown combined; the app does not track which class a spell was taken from.
+                  </p>
+                )}
                 {preparedSpells.length === 0 ? (
                   <div className="text-ink-muted py-8 text-center text-sm">
                     No spells prepared. Visit the Spell Library to prepare spells.
