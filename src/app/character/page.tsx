@@ -9,7 +9,8 @@ import {
 } from '@/lib/db';
 import { THEMES, applyTheme, loadTheme } from '@/lib/theme';
 import { Character, SpellSlot, CharacterWithRelations, CharacterFeat } from '@/types/database';
-import { calculateModifier, calculateSpellSlots, formatModifier, getDamageTypeBadgeClasses, getEffectiveSpellDamage, getSpellUpcastText } from '@/lib/helpers';
+import { calculateModifier, formatModifier, getDamageTypeBadgeClasses, getEffectiveSpellDamage, getSpellUpcastText } from '@/lib/helpers';
+import { calculateMulticlassSlots, toStoredSlots } from '@/lib/multiclass';
 import { getAllSpellcastingStats } from '@/lib/spellcasting';
 import { dndClasses, getClassProgression } from '@/data/classes';
 import { dndFeatures } from '@/data/features';
@@ -1328,7 +1329,15 @@ function CharacterPageContent() {
                           hp_max: editMaxHP,
                           secondary_class_id: editSecondaryClass || null,
                           secondary_level: editSecondaryClass ? editSecondaryLevel : 0,
-                          spell_slots: calculateSpellSlots(character.class_id, editLevel),
+                          // Both classes, PHB multiclass rules, and slots
+                          // already spent are carried over rather than reset.
+                          spell_slots: toStoredSlots(
+                            calculateMulticlassSlots([
+                              { classId: character.class_id, level: editLevel },
+                              { classId: editSecondaryClass, level: editSecondaryClass ? editSecondaryLevel : 0 },
+                            ]).spellSlots,
+                            character.spell_slots
+                          ),
                         });
                         fetchCharacterData();
                         showToast('Character details updated successfully', 'success');

@@ -8,7 +8,7 @@ import {
   deleteCharacter as dbDeleteCharacter,
 } from '@/lib/db';
 import { CharacterWithRelations } from '@/types/database';
-import { calculateSpellSlots } from '@/lib/helpers';
+import { calculateMulticlassSlots, toStoredSlots } from '@/lib/multiclass';
 import { getClassById } from '@/data/classes';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -72,7 +72,13 @@ function EditCharacterPageContent() {
 
     // Recalculate spell slots if level changed
     if (editLevel !== character.level) {
-      updates.spell_slots = calculateSpellSlots(character.class_id, editLevel);
+      updates.spell_slots = toStoredSlots(
+        calculateMulticlassSlots([
+          { classId: character.class_id, level: editLevel },
+          { classId: character.secondary_class_id ?? '', level: character.secondary_level ?? 0 },
+        ]).spellSlots,
+        character.spell_slots
+      );
     }
 
     try {

@@ -4,7 +4,8 @@ import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getCharacter as dbGetCharacter, updateCharacter as dbUpdateCharacter } from '@/lib/db';
 import { loadSpellCatalog } from '@/lib/spellCatalog';
-import { Character, SpellSlot } from '@/types/database';
+import { Character } from '@/types/database';
+import { maxKnowableSpellLevel } from '@/lib/multiclass';
 import { type DndSpell } from '@/data/spells';
 import { dndSubclasses } from '@/data/subclasses';
 import { getDamageTypeBadgeClasses, getEffectiveSpellDamage, getSpellUpcastText } from '@/lib/helpers';
@@ -17,15 +18,16 @@ const LEVEL_FILTERS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
 type LevelFilter = number | 'all' | 'castable';
 
-/** Highest spell level the character has slots for, read straight from their
- *  own slot table. Doing it this way rather than from class progression means
- *  warlock pact magic, half-casters and any future table all work for free. */
-function highestSlotLevel(slots: Record<number, SpellSlot> | undefined): number {
-  if (!slots) return 0;
-  return Object.entries(slots).reduce(
-    (max, [level, slot]) => (slot && slot.max > 0 ? Math.max(max, Number(level)) : max),
-    0
-  );
+/** Highest spell level this character may actually learn or prepare.
+ *
+ *  Deliberately the per-class ceiling rather than the highest slot they own: a
+ *  cleric 9 / wizard 1 has fifth-level slots, but those only let them upcast a
+ *  wizard spell they already know — never learn a higher one (PHB p. 164). */
+function castableCeiling(character: Character): number {
+  return maxKnowableSpellLevel([
+    { classId: character.class_id, level: character.level },
+    { classId: character.secondary_class_id ?? '', level: character.secondary_level ?? 0 },
+  ]);
 }
 
 /** Static export renders this page at build time, so the id in the query string
@@ -162,7 +164,7 @@ function SpellLibraryPageContent() {
 
   const getFilteredSpells = () => {
     const availableSpells = getAvailableSpells();
-    const castableUpTo = highestSlotLevel(character?.spell_slots);
+    const castableUpTo = character ? castableCeiling(character) : 0;
 
     return availableSpells.filter(spell => {
       const matchesSearch = spell.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -196,7 +198,7 @@ function SpellLibraryPageContent() {
 
   const filteredSpells = getFilteredSpells();
   const preparedCount = character.prepared_spells.length;
-  const castableUpTo = highestSlotLevel(character.spell_slots);
+  const castableUpTo = castableCeiling(character);
 
   // One short line under the filters, so the count always says what it counted.
   const filterSummary =
