@@ -123,7 +123,7 @@ export default function CreateCharacterPage() {
     }
 
     setLoading(false);
-    router.push(`/character/${created.id}`);
+    router.push(`/character?id=${created.id}`);
   };
 
   return (

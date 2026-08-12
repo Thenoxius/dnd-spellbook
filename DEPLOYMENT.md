@@ -1,75 +1,65 @@
-# Deployment Guide
+# Deployment
 
-The app deploys to Vercel from GitHub Actions. There is no backend and no
-database: everything a character owns lives in the browser's IndexedDB, so a
-deployment is just static assets plus Next.js rendering. No environment
-variables are needed to build it.
+The app is a static site hosted on GitHub Pages. There is no server, no
+database and no build-time configuration: every character, spell and setting
+lives in the visitor's own browser (IndexedDB and localStorage), so a
+deployment is nothing but HTML, CSS and JS.
+
+Live at **https://thenoxius.github.io/dnd-spellbook/**
 
 ## One-time setup
 
-You need three repository secrets. Until they exist the workflow stops on its
-first step and tells you which ones are missing.
+Repository → **Settings → Pages → Build and deployment → Source: GitHub
+Actions**. That is the whole setup. No secrets, no external accounts.
 
-### 1. Create the Vercel project
+## How it works
 
-1. Sign in at [vercel.com](https://vercel.com).
-2. **Add New → Project** and import `Thenoxius/dnd-spellbook`.
-3. Framework preset **Next.js**; leave the build and output settings alone.
-4. Deploy once so the project exists.
+`.github/workflows/deploy.yml` runs on every push to `main` and on demand via
+**Actions → Deploy to GitHub Pages → Run workflow**:
 
-If you would rather not click through the dashboard, run `npx vercel link` in
-the repo instead — it creates the project and writes `.vercel/project.json`
-with the two ids you need below. That file is gitignored.
+1. `npm ci`, then `npx tsc --noEmit` as a gate so a type error stops the run.
+2. `npm run build` with `NEXT_PUBLIC_BASE_PATH=/dnd-spellbook`, producing a
+   static export in `out/`.
+3. `actions/deploy-pages` publishes it and registers the deployment, so the
+   live URL appears on the repository's Environments panel and beside each
+   commit.
 
-### 2. Collect the three values
+### Why the base path is set at build time
 
-| Secret | Where to find it |
-|---|---|
-| `VERCEL_TOKEN` | vercel.com → Account Settings → Tokens → Create |
-| `VERCEL_ORG_ID` | Vercel → Account Settings → General (or `.vercel/project.json` → `orgId`) |
-| `VERCEL_PROJECT_ID` | The project → Settings → General (or `.vercel/project.json` → `projectId`) |
+A project site is served from `https://<user>.github.io/<repo>/`, so every
+asset URL needs that prefix baked in. `basePath` is inlined into the client
+bundle and cannot be changed afterwards, which is why the workflow passes it as
+an environment variable rather than the config hardcoding it. Locally the
+variable is unset, so `next dev` keeps serving from `/`.
 
-### 3. Add them to GitHub
+### Why character pages use a query string
 
-Repository → **Settings → Secrets and variables → Actions → New repository
-secret**, once for each of the three.
-
-## What the workflow does
-
-`.github/workflows/deploy.yml` runs on every push to `main`, on pull requests
-targeting `main`, and on demand via **Actions → Deploy → Run workflow**.
-
-- Pull requests get a **preview** deployment with its own URL.
-- Pushes to `main` get the **production** deployment.
-- The job declares a GitHub `environment`, so the deployment and its URL appear
-  on the repository's Environments panel and next to each commit — that is what
-  makes a "live environment" visible in GitHub at all.
-- The deployed URL is also printed in the run's summary.
+Static export cannot emit a page for `/character/<id>` because the ids are
+random UUIDs created in the browser, and Next.js requires every dynamic route
+to be enumerable at build time. The character screens therefore read their id
+from the query string — `/character/?id=…`, `/character/spells/?id=…` — which
+exports as three ordinary pages and resolves entirely on the client.
 
 ## Testing on a phone
 
-Open the production URL on the device. Because storage is per-browser, a phone
-starts with an empty shelf — it does not see the characters on your laptop.
-Two options:
+Open the URL above. Because storage is per-browser, a phone starts with an
+empty shelf; it does not see the characters on your laptop. Either create one
+there, or use **Backup** on the laptop to download the JSON and **Restore** on
+the phone.
 
-- Create a throwaway character on the phone, or
-- Use **Backup** on the laptop to download the JSON, move it to the phone
-  (AirDrop, mail, cloud drive), and use **Restore** there.
+To test before pushing, `npm run dev` also listens on your local network — the
+terminal prints a `Network:` address you can open on a phone on the same Wi-Fi.
 
 ## Troubleshooting
 
-**The workflow fails on "Check the Vercel credentials are present"**
-One or more of the three secrets is missing or empty. The error names them.
+**The workflow succeeds but the site 404s**
+Pages is probably still set to "Deploy from a branch". Switch the source to
+GitHub Actions.
 
-**"Project not found" during `vercel pull`**
-`VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` belong to different accounts or
-projects, or the token was issued for a different scope. Re-copy both ids from
-the same project.
+**The page loads but has no styling, or assets 404**
+The base path and the repository name have diverged. The workflow derives it
+from `github.event.repository.name`, so renaming the repo fixes itself on the
+next run; a custom domain means dropping the base path entirely.
 
-**The build fails**
-Reproduce locally with `npm run build`. The workflow also runs `npx tsc
---noEmit` first, so a type error stops the run before Vercel is involved.
-
-**No environment shows up in GitHub even though the deploy succeeded**
-Check that the job still has its `environment:` block — that, not the
-deployment itself, is what registers the environment with GitHub.
+**A character page opens empty on a hard refresh**
+Check the URL kept its `?id=…`. Without it the page has nothing to look up.

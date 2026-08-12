@@ -46,7 +46,7 @@ export default function Home() {
   };
 
   const handleSelectCharacter = (characterId: string) => {
-    router.push(`/character/${characterId}`);
+    router.push(`/character?id=${characterId}`);
   };
 
   const handleDeleteClick = (character: Character, e: React.MouseEvent) => {

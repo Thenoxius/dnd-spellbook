@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   getCharacter as dbGetCharacter,
   updateCharacter as dbUpdateCharacter,
@@ -91,10 +91,20 @@ function SpellSlotTracker({
   );
 }
 
-export default function CharacterPage() {
+/** Static export renders this page at build time, so the id in the query string
+ *  is only known on the client. useSearchParams needs a Suspense boundary for
+ *  that hand-off; without one a production build refuses to compile. */
+function PageFallback({ label }: { label: string }) {
+  return (
+    <div style={{ background: 'var(--page-bg)' }} className="flex min-h-screen items-center justify-center">
+      <div className="text-ink">{label}</div>
+    </div>
+  );
+}
+
+function CharacterPageContent() {
   const router = useRouter();
-  const params = useParams();
-  const characterId = params.id as string;
+  const characterId = useSearchParams().get('id') ?? '';
 
   const [character, setCharacter] = useState<CharacterWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
@@ -851,7 +861,7 @@ export default function CharacterPage() {
                     </CardDescription>
                   </div>
                   <Button
-                    onClick={() => router.push(`/character/${characterId}/spells`)}
+                    onClick={() => router.push(`/character/spells?id=${characterId}`)}
                     className="btn-accent h-11 shrink-0"
                   >
                     <Book className="mr-2 h-4 w-4" />
@@ -1653,5 +1663,13 @@ export default function CharacterPage() {
         {toast && <Toast message={toast.message} type={toast.type} />}
       </div>
     </div>
+  );
+}
+
+export default function CharacterPage() {
+  return (
+    <Suspense fallback={<PageFallback label="Loading character..." />}>
+      <CharacterPageContent />
+    </Suspense>
   );
 }

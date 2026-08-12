@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getCharacter as dbGetCharacter, updateCharacter as dbUpdateCharacter, listCustomSpells } from '@/lib/db';
 import { Character, SpellSlot } from '@/types/database';
 import { dndSpells, type DndSpell } from '@/data/spells';
@@ -27,10 +27,20 @@ function highestSlotLevel(slots: Record<number, SpellSlot> | undefined): number 
   );
 }
 
-export default function SpellLibraryPage() {
+/** Static export renders this page at build time, so the id in the query string
+ *  is only known on the client. useSearchParams needs a Suspense boundary for
+ *  that hand-off; without one a production build refuses to compile. */
+function PageFallback({ label }: { label: string }) {
+  return (
+    <div style={{ background: 'var(--page-bg)' }} className="flex min-h-screen items-center justify-center">
+      <div className="text-ink">{label}</div>
+    </div>
+  );
+}
+
+function SpellLibraryPageContent() {
   const router = useRouter();
-  const params = useParams();
-  const characterId = params.id as string;
+  const characterId = useSearchParams().get('id') ?? '';
 
   const [character, setCharacter] = useState<Character | null>(null);
   const [spells, setSpells] = useState<DndSpell[]>([]);
@@ -214,7 +224,7 @@ export default function SpellLibraryPage() {
         <header className="flex items-start gap-2 pt-4 pb-3 md:pt-8">
           <button
             type="button"
-            onClick={() => router.push(`/character/${characterId}?tab=spells`)}
+            onClick={() => router.push(`/character?id=${characterId}&tab=spells`)}
             className="header-action mt-0.5 shrink-0"
             aria-label="Back to character"
           >
@@ -381,5 +391,13 @@ export default function SpellLibraryPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SpellLibraryPage() {
+  return (
+    <Suspense fallback={<PageFallback label="Loading spell library..." />}>
+      <SpellLibraryPageContent />
+    </Suspense>
   );
 }

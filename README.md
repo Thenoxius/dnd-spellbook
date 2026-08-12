@@ -27,6 +27,7 @@ A mobile-first, **fully local** web application for tracking D&D 5e (2014 rules)
 - **UI Components**: shadcn/ui on Base UI primitives
 - **Storage**: Browser IndexedDB (hand-rolled layer in `src/lib/db.ts`) — no backend
 - **Icons**: Lucide React
+- **Hosting**: static export on GitHub Pages — see [DEPLOYMENT.md](DEPLOYMENT.md)
 
 ## Architecture: everything local
 
@@ -44,6 +45,8 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser. That's the whole setup — no accounts, no API keys, no database to configure.
+
+The app is also live at **https://thenoxius.github.io/dnd-spellbook/**, deployed from `main` by GitHub Actions.
 
 ## Usage
 
@@ -69,8 +72,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser. That's the 
 ```
 src/
 ├── app/
-│   ├── character/[id]/
-│   │   ├── page.tsx          # Character dashboard (Combat/Spells/Feats/Inventory/Settings)
+│   ├── character/            # id comes from the query string (?id=…) so the
+│   │   ├── page.tsx          #   app stays statically exportable
 │   │   ├── edit/page.tsx     # Level & HP editing
 │   │   └── spells/page.tsx   # Spell library
 │   ├── create/page.tsx       # Character creator wizard

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   getCharacter as dbGetCharacter,
   updateCharacter as dbUpdateCharacter,
@@ -17,10 +17,20 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 
-export default function EditCharacterPage() {
+/** Static export renders this page at build time, so the id in the query string
+ *  is only known on the client. useSearchParams needs a Suspense boundary for
+ *  that hand-off; without one a production build refuses to compile. */
+function PageFallback({ label }: { label: string }) {
+  return (
+    <div style={{ background: 'var(--page-bg)' }} className="flex min-h-screen items-center justify-center">
+      <div className="text-ink">{label}</div>
+    </div>
+  );
+}
+
+function EditCharacterPageContent() {
   const router = useRouter();
-  const params = useParams();
-  const characterId = params.id as string;
+  const characterId = useSearchParams().get('id') ?? '';
 
   const [character, setCharacter] = useState<CharacterWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
@@ -68,7 +78,7 @@ export default function EditCharacterPage() {
     try {
       await dbUpdateCharacter(characterId, updates);
       setSaving(false);
-      router.push(`/character/${characterId}`);
+      router.push(`/character?id=${characterId}`);
     } catch (error) {
       setSaving(false);
       alert(`Error updating character: ${error instanceof Error ? error.message : error}`);
@@ -238,5 +248,13 @@ export default function EditCharacterPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function EditCharacterPage() {
+  return (
+    <Suspense fallback={<PageFallback label="Loading character..." />}>
+      <EditCharacterPageContent />
+    </Suspense>
   );
 }

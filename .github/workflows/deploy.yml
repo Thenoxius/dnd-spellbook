@@ -1,53 +1,25 @@
-name: Deploy
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
-# One deployment at a time per branch; a newer push supersedes an older run.
+# Pages needs these; nothing else in the repo does.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a running deploy finish rather than cancelling it half-published.
 concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: true
+  group: pages
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-
-    # Declaring an environment is what puts the deployment and its URL on the
-    # repository's Environments panel and beside each commit. Without this the
-    # workflow can deploy successfully and still show no live environment.
-    environment:
-      name: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
-      url: ${{ steps.deploy.outputs.url }}
-
-    env:
-      # The Vercel CLI picks all three up from the environment, so no secret is
-      # ever interpolated into a command line.
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      # Production on main, a preview URL for pull requests.
-      TARGET: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
-
     steps:
-      - name: Check the Vercel credentials are present
-        run: |
-          missing=""
-          [ -z "$VERCEL_TOKEN" ] && missing="$missing VERCEL_TOKEN"
-          [ -z "$VERCEL_ORG_ID" ] && missing="$missing VERCEL_ORG_ID"
-          [ -z "$VERCEL_PROJECT_ID" ] && missing="$missing VERCEL_PROJECT_ID"
-          if [ -n "$missing" ]; then
-            echo "::error::Missing repository secret(s):$missing"
-            echo "Add them under Settings -> Secrets and variables -> Actions."
-            echo "VERCEL_TOKEN comes from vercel.com -> Account Settings -> Tokens."
-            echo "VERCEL_ORG_ID and VERCEL_PROJECT_ID are in the Vercel project's"
-            echo "Settings -> General, or in .vercel/project.json after 'vercel link'."
-            exit 1
-          fi
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -63,31 +35,27 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+      - name: Build static export
+        # A project site is served from /<repo>/, so the bundle has to be built
+        # with that prefix baked in — basePath cannot be changed after the fact.
+        env:
+          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+        run: npm run build
 
-      - name: Pull Vercel project settings
-        run: vercel pull --yes --environment="$TARGET"
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: out
 
-      - name: Build
-        run: |
-          if [ "$TARGET" = "production" ]; then
-            vercel build --prod
-          else
-            vercel build
-          fi
-
-      - name: Deploy
-        id: deploy
-        run: |
-          if [ "$TARGET" = "production" ]; then
-            url=$(vercel deploy --prebuilt --prod)
-          else
-            url=$(vercel deploy --prebuilt)
-          fi
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-          {
-            echo "### Live at"
-            echo ""
-            echo "$url"
-          } >> "$GITHUB_STEP_SUMMARY"
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # This is what registers the deployment and its URL with GitHub, so the
+    # live site shows up on the repository's Environments panel.
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

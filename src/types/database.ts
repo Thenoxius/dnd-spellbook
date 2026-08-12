@@ -1,4 +1,6 @@
-// Database types matching Supabase schema
+// Shared shapes for everything stored in the browser (IndexedDB) plus the
+// bundled reference data. The file name is a leftover from when these mirrored
+// a Supabase schema; there has been no backend since the app went local-first.
 
 export interface Class {
   id: string;
