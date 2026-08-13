@@ -6,6 +6,11 @@
 
 import type { Character } from '@/types/database';
 import type { DndSpell } from '@/data/spells';
+import { BACKUP_VERSION, markDataChanged, type BackupData } from '@/lib/backup';
+
+// The backup file's shape lives with the validation rules that read it; this
+// re-export keeps `import { type BackupData } from '@/lib/db'` working.
+export type { BackupData };
 
 const DB_NAME = 'dnd-spellbook';
 const DB_VERSION = 1;
@@ -121,6 +126,7 @@ export async function addCharacter(
   const now = new Date().toISOString();
   const record = normalizeCharacter({ ...data, id: crypto.randomUUID(), created_at: now, updated_at: now });
   await withStore('readwrite', (s) => s.put(record), CHARACTER_STORE);
+  markDataChanged();
   return record;
 }
 
@@ -129,11 +135,13 @@ export async function updateCharacter(id: string, patch: Partial<Character>): Pr
   if (!existing) throw new Error('Character not found');
   const next = { ...existing, ...patch, updated_at: new Date().toISOString() };
   await withStore('readwrite', (s) => s.put(next), CHARACTER_STORE);
+  markDataChanged();
   return next;
 }
 
 export async function deleteCharacter(id: string): Promise<void> {
   await withStore('readwrite', (s) => s.delete(id), CHARACTER_STORE);
+  markDataChanged();
 }
 
 // Custom (homebrew) spells are stored in the same shape as the bundled spell
@@ -145,45 +153,53 @@ export async function listCustomSpells(): Promise<DndSpell[]> {
 
 export async function addCustomSpell(spell: DndSpell): Promise<void> {
   await withStore('readwrite', (s) => s.put(spell), SPELL_STORE);
+  markDataChanged();
 }
 
 export async function deleteCustomSpell(id: string): Promise<void> {
   await withStore('readwrite', (s) => s.delete(id), SPELL_STORE);
+  markDataChanged();
 }
 
 // Backup: with everything on one device, a JSON export/import is the safety
 // net (a cleared browser profile would otherwise take the campaign with it).
-
-export interface BackupData {
-  version: 1;
-  exportedAt: string;
-  characters: Character[];
-  customSpells: DndSpell[];
-}
+// The file's shape, its validation and the merge arithmetic live in
+// lib/backup.ts; this file only reads and writes the stores.
 
 export async function exportBackup(): Promise<BackupData> {
   return {
-    version: 1,
+    version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
     characters: await listCharacters(),
     customSpells: await listCustomSpells(),
   };
 }
 
-/** Merge a backup into the local stores (records with the same id are
- * overwritten; everything else is left untouched). Returns what was read. */
-export async function importBackup(data: BackupData): Promise<{ characters: number; customSpells: number }> {
-  const characters = Array.isArray(data.characters) ? data.characters : [];
-  const customSpells = Array.isArray(data.customSpells) ? data.customSpells : [];
-  for (const c of characters) {
-    if (c && typeof c.id === 'string') {
-      await withStore('readwrite', (s) => s.put(normalizeCharacter(c)), CHARACTER_STORE);
-    }
+/**
+ * Merge validated backup records into the local stores.
+ *
+ * Only the records in the file are written: matching ids are replaced, and
+ * anything else already on this device is left exactly where it is — a restore
+ * is a merge, never a reset. Callers pass the output of `validateBackup`, so
+ * unreadable rows have already been dropped and reported before this point.
+ */
+export async function importBackup(records: {
+  characters: readonly Character[];
+  customSpells: readonly DndSpell[];
+}): Promise<{ characters: number; customSpells: number }> {
+  const characters = records.characters.filter((c) => c && typeof c.id === 'string');
+  const customSpells = records.customSpells.filter((s) => s && typeof s.id === 'string');
+
+  for (const character of characters) {
+    await withStore('readwrite', (s) => s.put(normalizeCharacter(character)), CHARACTER_STORE);
   }
-  for (const sp of customSpells) {
-    if (sp && typeof sp.id === 'string') {
-      await withStore('readwrite', (s) => s.put(sp), SPELL_STORE);
-    }
+  for (const spell of customSpells) {
+    await withStore('readwrite', (s) => s.put(spell), SPELL_STORE);
   }
+
+  // The device now holds records the backup file it came from does not
+  // necessarily match (the merge kept whatever was already here).
+  markDataChanged();
+
   return { characters: characters.length, customSpells: customSpells.length };
 }

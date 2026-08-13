@@ -1117,7 +1117,7 @@ body::after {
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  color: color-mix(in srgb, var(--tome-ink) 62%, transparent);
+  color: color-mix(in srgb, var(--tome-ink) 70%, var(--tome-leather-b));
   transition: background-color 0.18s, color 0.18s;
 }
 
@@ -1131,8 +1131,18 @@ body::after {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
 }
 
+/* Metadata is mixed toward the cover rather than made transparent. The two are
+   not the same: an alpha ink under a further `opacity` on the label — which is
+   how "Hit points" and "Prepared" were drawn — multiplies down to roughly half
+   strength, and at 11px that is the least readable text in the app. Mixing
+   toward --tome-leather-b keeps the same recessive look at a contrast the
+   palest covers (cleric, paladin) still clear. */
 .tome__meta {
-  color: color-mix(in srgb, var(--tome-ink) 72%, transparent);
+  color: color-mix(in srgb, var(--tome-ink) 88%, var(--tome-leather-b));
+}
+
+.tome__meta-label {
+  color: color-mix(in srgb, var(--tome-ink) 76%, var(--tome-leather-b));
 }
 
 /* Lighter than the glow itself: the cleric and paladin covers are the palest
@@ -1141,13 +1151,25 @@ body::after {
   color: color-mix(in srgb, var(--slot-glow) 50%, white);
 }
 
+/* The "/max" half of the hit-point readout: quieter than the current value,
+   but a colour of its own rather than an opacity over the glow. */
+.tome__stat-sub {
+  color: color-mix(in srgb, var(--tome-ink) 78%, var(--tome-leather-b));
+}
+
 /* The shelf region. It only grows as wide as the books standing on it, so one
    character reads as one book on a short shelf rather than a lone card adrift
    in a 1024px canvas. --shelf-cols comes from the roster length, capped at 3.
-   Below sm the cap is dropped so a phone still gets full-width tomes. */
-.shelf {
+   Below sm the cap is dropped so a phone still gets full-width tomes.
+
+   The measurements live on .shelf-area — the wrapper around the shelf and the
+   backup strip — so both children work from the same numbers. */
+.shelf-area {
   --shelf-col: 19rem;
   --shelf-gap: 1rem;
+}
+
+.shelf {
   position: relative;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--shelf-col)), 1fr));
@@ -1155,11 +1177,33 @@ body::after {
   padding-bottom: 16px;
 }
 
+/* The backup strip belongs to the shelf, not to the page: it carries the one
+   file that stands between this browser profile and a lost campaign. Stacked
+   on a phone; on a wider screen it takes exactly the shelf's measure, so it
+   ends where the books end instead of running out to the window edge. When
+   that measure is too narrow for text and buttons side by side, the row wraps
+   rather than widening past the shelf. */
+.shelf-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
 @media (min-width: 640px) {
-  .shelf {
+  .shelf,
+  .shelf-footer {
     max-width: calc(
       var(--shelf-cols, 3) * var(--shelf-col) + (var(--shelf-cols, 3) - 1) * var(--shelf-gap)
     );
+  }
+
+  .shelf-footer {
+    flex-flow: row wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
   }
 }
 
@@ -1186,6 +1230,36 @@ body::after {
   background-color: color-mix(in srgb, var(--surface) 60%, transparent);
 }
 
+/* The backup reminder: quiet, and only when this device holds something the
+   last backup file has not seen. A dot and a phrase, not a banner.
+
+   --text-highlight alone is tuned for headings and links; at 12px over the
+   parchment theme it measures 3.84:1, so the accent is pulled a quarter of the
+   way toward the theme's ink. That reads as the same colour and clears 4.5:1
+   in all six themes (4.9:1 at worst). */
+.backup-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.5rem;
+  color: color-mix(in srgb, var(--text-highlight) 75%, var(--ink));
+}
+
+.backup-flag::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* "Never": there the value is the warning, so it takes the same accent instead
+   of the muted ink the other readings get. */
+.backup-flag-value {
+  color: color-mix(in srgb, var(--text-highlight) 75%, var(--ink));
+  font-weight: 500;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tome,
   .row-plate--interactive {
@@ -1194,6 +1268,55 @@ body::after {
   .tome:hover {
     transform: none;
   }
+}
+
+/* The edition stamp under the title. Which rulebook this app implements is
+   worth stating — a sheet built here follows the 2014 PHB, not the 2024 one —
+   but it is provenance, not a headline: engraved small caps behind a short
+   rule, at the same weight as the theme label. */
+.rules-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.rules-stamp::before {
+  content: "";
+  width: 1.5rem;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--edge) 20%, transparent),
+    color-mix(in srgb, var(--edge) 95%, transparent)
+  );
+}
+
+/* The restore preview: what the file holds, before a single record is written.
+   It rides on the standard .row-plate surface rather than a translucent plate
+   of its own — one more layer of alpha here would put 13px text on a stack of
+   three semi-transparent backgrounds. */
+.import-preview {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.import-preview dt {
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.import-preview dd {
+  color: var(--ink-muted);
 }
 
 /* ==========================================================================
